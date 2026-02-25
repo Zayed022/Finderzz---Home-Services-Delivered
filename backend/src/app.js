@@ -34,4 +34,7 @@ app.use("/api/v1/subService", subServiceRoutes);
 import areaRoutes from "./routes/area.routes.js"
 app.use("/api/v1/area", areaRoutes);
 
+import bannerRoutes from "./routes/banner.routes.js"
+app.use("/api/v1/banner", bannerRoutes);
+
 export {app}

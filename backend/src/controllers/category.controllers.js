@@ -1,4 +1,5 @@
 import Category from "../models/category.models.js";
+import Service from "../models/service.models.js"
 
 export const createCategory = async (req, res, next) => {
   try {
@@ -36,6 +37,39 @@ export const getCategories = async (req, res, next) => {
     } catch (error) {
       next(error);
     }
+};
+
+export const getCategoriesWithServices = async (req, res, next) => {
+  try {
+    const categories = await Category.find({ active: true })
+      .sort({ order: 1 })
+      .lean();
+
+    const categoryIds = categories.map((c) => c._id);
+
+    const services = await Service.find({
+      categoryId: { $in: categoryIds },
+      active: true,
+    })
+      .select("name icon categoryId isPopular")
+      .lean();
+
+    // Group services by category
+    const grouped = categories.map((category) => ({
+      ...category,
+      services: services.filter(
+        (service) =>
+          service.categoryId.toString() === category._id.toString()
+      ),
+    }));
+
+    res.json({
+      success: true,
+      data: grouped,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const updateCategory = async (req, res, next) => {
