@@ -162,3 +162,35 @@ export const deleteSubService = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getSubServiceById = async (req, res, next) => {
+  try {
+    const { subId } = req.params;
+
+    // 1️⃣ Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(subId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid SubService ID",
+      });
+    }
+
+    // 2️⃣ Fetch subservice
+    const subService = await SubService.findById(subId).lean();
+
+    if (!subService || !subService.active) {
+      return res.status(404).json({
+        success: false,
+        message: "SubService not found",
+      });
+    }
+
+    // 3️⃣ Return response
+    res.json({
+      success: true,
+      data: subService,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

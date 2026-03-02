@@ -10,6 +10,7 @@ const generateToken = (user) => {
     {
       id: user._id,
       role: user.role,
+      tokenVersion: user.tokenVersion || 0,
     },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
@@ -76,39 +77,81 @@ export const login = async (req, res, next) => {
 };
 
 export const googleLogin = async (req, res, next) => {
-    try {
-      const { token } = req.body;
-  
-      const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Google token is required",
       });
-  
-      const payload = ticket.getPayload();
-  
-      const { sub, email, name, picture } = payload;
-  
-      let user = await User.findOne({ email });
-  
-      if (!user) {
-        user = await User.create({
-          name,
-          email,
-          googleId: sub,
-          avatar: picture,
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Google token",
+      });
+    }
+
+    const { sub, email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    // 🔵 If user exists
+    if (user) {
+      // If user was created via normal email/password
+      if (!user.googleId) {
+        user.googleId = sub;
+      }
+
+      // Ensure googleId matches
+      if (user.googleId !== sub) {
+        return res.status(403).json({
+          success: false,
+          message: "Google account mismatch",
         });
       }
-  
-      const jwtToken = generateToken(user);
-  
-      res.json({
-        success: true,
-        token: jwtToken,
-        user,
+
+      if (!user.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: "Account is deactivated",
+        });
+      }
+
+      // Update avatar if changed
+      user.avatar = picture || user.avatar;
+
+      await user.save();
+    } else {
+      // 🔵 New user
+      user = await User.create({
+        name,
+        email,
+        googleId: sub,
+        avatar: picture,
+        role: "user",
       });
-    } catch (error) {
-      next(error);
     }
+
+    const jwtToken = generateToken(user);
+
+    res.json({
+      success: true,
+      token: jwtToken,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const getCurrentUser = async (req, res, next) => {

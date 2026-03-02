@@ -37,4 +37,7 @@ app.use("/api/v1/area", areaRoutes);
 import bannerRoutes from "./routes/banner.routes.js"
 app.use("/api/v1/banner", bannerRoutes);
 
+import bookingRoutes from "./routes/booking.routes.js"
+app.use("/api/v1/booking", bookingRoutes);
+
 export {app}

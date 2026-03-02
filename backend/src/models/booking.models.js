@@ -1,38 +1,66 @@
+import mongoose from "mongoose";
+
 const bookingSchema = new mongoose.Schema(
-    {
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-      serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Service" },
-      subServiceId: { type: mongoose.Schema.Types.ObjectId, ref: "SubService" },
-      areaId: { type: mongoose.Schema.Types.ObjectId, ref: "Area" },
-  
-      address: String,
-      scheduledDate: Date,
-  
-      basePrice: Number,
-      extraCharge: Number,
-      totalPrice: Number,
-  
-      workerId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Worker",
-        default: null
-      },
-  
-      status: {
-        type: String,
-        enum: [
-          "pending",
-          "assigned",
-          "in_progress",
-          "completed",
-          "cancelled"
-        ],
-        default: "pending"
-      }
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null, // ✅ allow guest
     },
-    { timestamps: true }
-  );
+
+    services: [
+      {
+        subServiceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "SubService",
+        },
+        quantity: { type: Number, default: 1 },
+        price: Number,
+      },
+    ],
+
+    areaId: { type: mongoose.Schema.Types.ObjectId, ref: "Area" },
+
+    customerDetails: {
+      name: { type: String, required: true },
+      phone: { type: String, required: true },
+    },
+
+    address: {
+      houseNumber: String,
+      floorNumber: String,
+      buildingName: String,
+      landmark: String,
+      fullAddress: String,
+    },
+
+    scheduledDate: Date,
+    timeSlot: String,
+
+    subtotal: Number,
+    extraCharge: Number,
+    totalPrice: Number,
+
+    workerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Worker",
+      default: null,
+    },
+
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "assigned",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+      default: "pending",
+    },
+  },
+  { timestamps: true }
+);
   
   bookingSchema.index({ status: 1 });
   bookingSchema.index({ createdAt: -1 });

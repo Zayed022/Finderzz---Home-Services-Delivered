@@ -37,6 +37,19 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    defaultAddress: {
+      name: String,
+      phone: String,
+      houseNumber: String,
+      floorNumber: String,
+      buildingName: String,
+      landmark: String,
+      fullAddress: String,
+      areaId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Area",
+      }
+    }
   },
   { timestamps: true }
 );
