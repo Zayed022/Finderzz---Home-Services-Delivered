@@ -40,4 +40,10 @@ app.use("/api/v1/banner", bannerRoutes);
 import bookingRoutes from "./routes/booking.routes.js"
 app.use("/api/v1/booking", bookingRoutes);
 
+import searchRoutes from "./routes/search.routes.js"
+app.use("/api/v1/search", searchRoutes);
+
+import verticalRoutes from "./routes/vertical.routes.js"
+app.use("/api/v1/vertical", verticalRoutes);
+
 export {app}
