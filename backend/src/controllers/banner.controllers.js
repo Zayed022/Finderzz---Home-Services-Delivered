@@ -13,7 +13,7 @@ export const createBanner = async (req, res, next) => {
     const bannerUploaded = await uploadOnCloudinary(bannerPath);
 
     const banner = await Banner.create({
-      bannerImage: bannerUploaded.url,
+      bannerImage: bannerUploaded.secure_url,
       title,
       redirectUrl,
       order,
