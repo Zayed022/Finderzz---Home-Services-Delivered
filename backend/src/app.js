@@ -46,4 +46,7 @@ app.use("/api/v1/search", searchRoutes);
 import verticalRoutes from "./routes/vertical.routes.js"
 app.use("/api/v1/vertical", verticalRoutes);
 
+import workerRoutes from "./routes/worker.routes.js"
+app.use("/api/v1/worker", workerRoutes);
+
 export {app}

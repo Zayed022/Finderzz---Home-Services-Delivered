@@ -2,13 +2,6 @@ import mongoose from "mongoose";
 
 const workerSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      unique: true,
-      index: true,
-    },
 
     phone: {
       type: String,
@@ -34,19 +27,12 @@ const workerSchema = new mongoose.Schema(
 
     address: String,
 
-    skills: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "SubService",
-      }
-    ],
+    skills: {
+      type: String,
+      required: true,
+    },
 
-    assignedAreas: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Area",
-      }
-    ],
+    
 
     status: {
       type: String,
@@ -73,6 +59,8 @@ const workerSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+
+    
 
     rating: {
       type: Number,

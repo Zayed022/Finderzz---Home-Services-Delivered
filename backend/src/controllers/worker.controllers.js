@@ -1,7 +1,9 @@
 import User from "../models/user.models.js";
 import Worker from "../models/worker.models.js";
+import Booking from "../models/booking.models.js"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const generateWorkerToken = (user) => {
   return jwt.sign(
@@ -14,106 +16,104 @@ const generateWorkerToken = (user) => {
   );
 };
 
-export const loginWorker = async (req, res, next) => {
+export const workerLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
-    }
-
-    const user = await User.findOne({ email, role: "worker" });
-
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const worker = await Worker.findOne({ userId: user._id })
-      .select("status isActive")
-      .lean();
+    const worker = await Worker.findOne({ phone });
 
     if (!worker) {
-      return res.status(400).json({ message: "Worker profile not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
     }
 
     if (worker.status !== "approved") {
       return res.status(403).json({
-        message:
-          worker.status === "pending"
-            ? "Your account is pending admin approval"
-            : "Your account has been rejected",
+        success: false,
+        message: "Your account is not approved yet",
       });
     }
-
-    if (!worker.isActive) {
-      return res.status(403).json({
-        message: "Your account is disabled",
-      });
-    }
-
-    const token = generateWorkerToken(user);
+    const token = generateWorkerToken(worker);
 
     res.json({
       success: true,
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: "worker",
-      },
+      worker,
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Login failed",
+      error: error.message,
+    });
   }
 };
 
-export const registerWorker = async (req, res, next) => {
+export const registerWorker = async (req, res) => {
   try {
     const {
-      name,
-      email,
-      password,
       phone,
       aadhaarNumber,
       panNumber,
       address,
+      skills,
     } = req.body;
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "Email already registered" });
+    const existingWorker = await Worker.findOne({ phone });
+
+    if (existingWorker) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker profile already exists",
+      });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const aadhaarImagePath = req.files?.aadhaarImage?.[0]?.path;
+        
+    
+        if (!aadhaarImagePath) return res.status(400).json({ message: "Aadhaar image is required" });
 
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: "worker",
-    });
+        const aadhaarImageUploaded = await uploadOnCloudinary(aadhaarImagePath);
+    
+        
 
-    await Worker.create({
-      userId: user._id,
+        const panImagePath = req.files?.panImage?.[0]?.path;
+            
+        
+            if (!panImagePath) return res.status(400).json({ message: "Pan image is required" });
+        
+            const panImageUploaded = await uploadOnCloudinary(panImagePath);
+
+            const profileImagePath = req.files?.profileImage?.[0]?.path;
+        
+    
+            if (!profileImagePath) return res.status(400).json({ message: "Profile image is required" });
+    
+            const profileImageUploaded = await uploadOnCloudinary(profileImagePath);
+
+    const worker = await Worker.create({
       phone,
       aadhaarNumber,
       panNumber,
       address,
-      status: "pending",
+      skills,
+      aadhaarImage: aadhaarImageUploaded.url,
+      panImage: panImageUploaded.url,
+      profileImage: profileImageUploaded.url,
     });
 
     res.status(201).json({
       success: true,
-      message: "Registration submitted. Await admin approval.",
+      message: "Registration submitted. Waiting for admin approval.",
+      worker,
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Worker registration failed",
+      error: error.message,
+    });
   }
 };
 
@@ -174,5 +174,191 @@ export const getWorkers = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+export const getWorkerDashboard = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const totalJobs = await Booking.countDocuments({
+      workerId,
+    });
+
+    const completedJobs = await Booking.countDocuments({
+      workerId,
+      status: "completed",
+    });
+
+    const inProgressJobs = await Booking.countDocuments({
+      workerId,
+      status: "in_progress",
+    });
+
+    const pendingJobs = await Booking.countDocuments({
+      workerId,
+      status: "assigned",
+    });
+
+    res.json({
+      success: true,
+      dashboard: {
+        totalJobs,
+        completedJobs,
+        inProgressJobs,
+        pendingJobs,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard",
+    });
+  }
+};
+
+export const getAssignedJobs = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const jobs = await Booking.find({
+      workerId,
+      status: { $in: ["assigned", "in_progress"] },
+    })
+      .populate("services.subServiceId")
+      .populate("areaId")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      jobs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch jobs",
+    });
+  }
+};
+
+export const getJobDetails = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const job = await Booking.findById(bookingId)
+      .populate("services.subServiceId")
+      .populate("areaId")
+      .populate("workerId");
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      job,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch job",
+    });
+  }
+};
+
+export const startJob = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: "in_progress" },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: "Job started",
+      booking,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to start job",
+    });
+  }
+};
+
+export const completeJob = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: "completed" },
+      { new: true }
+    );
+
+    await Worker.findByIdAndUpdate(booking.workerId, {
+      $inc: { totalJobs: 1 },
+    });
+
+    res.json({
+      success: true,
+      message: "Job completed successfully",
+      booking,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to complete job",
+    });
+  }
+};
+
+export const toggleAvailability = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const worker = await Worker.findById(workerId);
+
+    worker.isAvailable = !worker.isAvailable;
+
+    await worker.save();
+
+    res.json({
+      success: true,
+      message: "Availability updated",
+      isAvailable: worker.isAvailable,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update availability",
+    });
+  }
+};
+
+export const getWorkerProfile = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const worker = await Worker.findById(workerId)
+      .populate("skills")
+      .populate("assignedAreas")
+      .populate("userId");
+
+    res.json({
+      success: true,
+      worker,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch profile",
+    });
   }
 };
