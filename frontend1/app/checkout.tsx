@@ -261,12 +261,14 @@ export default function CheckoutScreen() {
             </Text>
             <TextInput
               placeholder="Full Name"
+              placeholderTextColor="#94A3B8"
               value={name}
               onChangeText={setName}
               style={styles.input}
             />
             <TextInput
               placeholder="Phone Number"
+              placeholderTextColor="#94A3B8"
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
@@ -280,6 +282,7 @@ export default function CheckoutScreen() {
 
   <TextInput
     placeholder="House / Flat No. *"
+    placeholderTextColor="#94A3B8"
     value={houseNumber}
     onChangeText={setHouseNumber}
     style={styles.input}
@@ -287,6 +290,7 @@ export default function CheckoutScreen() {
 
   <TextInput
     placeholder="Floor No."
+    placeholderTextColor="#94A3B8"
     value={floorNumber}
     onChangeText={setFloorNumber}
     style={styles.input}
@@ -294,6 +298,7 @@ export default function CheckoutScreen() {
 
   <TextInput
     placeholder="Building Name"
+    placeholderTextColor="#94A3B8"
     value={buildingName}
     onChangeText={setBuildingName}
     style={styles.input}
@@ -301,6 +306,7 @@ export default function CheckoutScreen() {
 
   <TextInput
     placeholder="Landmark"
+    placeholderTextColor="#94A3B8"
     value={landmark}
     onChangeText={setLandmark}
     style={styles.input}
@@ -308,6 +314,7 @@ export default function CheckoutScreen() {
 
   <TextInput
     placeholder="Full Address *"
+    placeholderTextColor="#94A3B8"
     value={fullAddress}
     onChangeText={setFullAddress}
     style={styles.input}
