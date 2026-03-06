@@ -16,9 +16,33 @@ const generateWorkerToken = (user) => {
   );
 };
 
+const generateAccessAndRefreshTokens = async (workerId) => {
+  try {
+    const worker = await Worker.findById(workerId);
+
+    const accessToken = worker.generateAccessToken();
+    const refreshToken = worker.generateRefreshToken();
+
+    worker.refreshToken = refreshToken;
+    await worker.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating access and refresh token"
+    );
+  }
+};
+
 export const workerLogin = async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { phone, password } = req.body;
+
+    if(!(phone || password)){
+      return res.status(400).json({message:"All fields are required"});
+    };
 
     const worker = await Worker.findOne({ phone });
 
@@ -29,6 +53,27 @@ export const workerLogin = async (req, res) => {
       });
     }
 
+    const isPasswordValid = await worker.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid worker credentials" });
+    }
+
+    // Generate tokens
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(worker._id);
+
+    // Fetch logged-in user details (excluding sensitive fields)
+    const loggedInWorker = await Worker.findById(worker._id).select("-password -refreshToken");
+
+    // Set cookies
+
+    worker.lastLogin = new Date();
+    await worker.save();
+
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Set to true in production
+    };
+
     if (worker.status !== "approved") {
       return res.status(403).json({
         success: false,
@@ -37,10 +82,15 @@ export const workerLogin = async (req, res) => {
     }
     const token = generateWorkerToken(worker);
 
-    res.json({
+    return res.status(200)
+  .cookie("accessToken", accessToken, options)
+  .cookie("refreshToken", refreshToken, options)
+  .json({
       success: true,
-      worker,
-    });
+      message: "User logged in successfully",
+      worker: loggedInWorker,
+      token: accessToken
+  });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -58,6 +108,8 @@ export const registerWorker = async (req, res) => {
       panNumber,
       address,
       skills,
+      name,
+      password,
     } = req.body;
 
     const existingWorker = await Worker.findOne({ phone });
@@ -93,6 +145,8 @@ export const registerWorker = async (req, res) => {
             const profileImageUploaded = await uploadOnCloudinary(profileImagePath);
 
     const worker = await Worker.create({
+      name,
+      password,
       phone,
       aadhaarNumber,
       panNumber,
@@ -103,10 +157,16 @@ export const registerWorker = async (req, res) => {
       profileImage: profileImageUploaded.url,
     });
 
-    res.status(201).json({
+    const createdWorker = await Worker.findById(worker._id).select("-password -refreshToken");
+    if (!createdWorker) {
+      return res.status(500).json({ success: false, message: "Error creating worker" });
+    }
+
+    return res.status(201).json({
       success: true,
       message: "Registration submitted. Waiting for admin approval.",
       worker,
+      data: createdWorker,
     });
   } catch (error) {
     res.status(500).json({
@@ -180,6 +240,8 @@ export const getWorkers = async (req, res, next) => {
 export const getWorkerDashboard = async (req, res) => {
   try {
     const { workerId } = req.params;
+
+    console.log("PARAMS:", req.params);
 
     const totalJobs = await Booking.countDocuments({
       workerId,
