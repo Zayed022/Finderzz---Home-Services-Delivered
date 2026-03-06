@@ -16,8 +16,17 @@ const bookingSchema = new mongoose.Schema(
         },
         quantity: { type: Number, default: 1 },
         price: Number,
+        bookingType: {
+          type: String,
+          enum: ["service", "inspection"],
+          default: "service",
+        },
       },
     ],
+
+    inspectionNotes: {
+      type: String,
+    },
 
     areaId: { type: mongoose.Schema.Types.ObjectId, ref: "Area" },
 

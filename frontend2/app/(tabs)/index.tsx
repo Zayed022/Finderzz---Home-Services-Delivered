@@ -103,7 +103,8 @@ const styles = StyleSheet.create({
 
   title:{
     fontSize:22,
-    fontWeight:"bold"
+    fontWeight:"bold",
+    marginTop:10
   },
 
   statusRow:{

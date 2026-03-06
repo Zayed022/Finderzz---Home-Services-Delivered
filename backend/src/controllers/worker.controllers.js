@@ -404,23 +404,209 @@ export const toggleAvailability = async (req, res) => {
   }
 };
 
-export const getWorkerProfile = async (req, res) => {
+export const getWorkerHistory = async (req, res) => {
   try {
+
     const { workerId } = req.params;
 
-    const worker = await Worker.findById(workerId)
-      .populate("skills")
-      .populate("assignedAreas")
-      .populate("userId");
+    if (!workerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker ID is required",
+      });
+    }
 
-    res.json({
+    const jobs = await Booking.find({
+      workerId,
+      status: "completed",
+    })
+      .populate("services.subServiceId")
+      .populate("areaId")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
       success: true,
-      worker,
+      count: jobs.length,
+      jobs,
     });
+
   } catch (error) {
+
+    console.error("Worker history error:", error);
+
     res.status(500).json({
       success: false,
-      message: "Failed to fetch profile",
+      message: "Failed to fetch worker history",
+      error: error.message,
     });
+
+  }
+};
+
+export const getWorkerEarnings = async (req, res) => {
+  try {
+
+    const { workerId } = req.params;
+
+    if (!workerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker ID is required",
+      });
+    }
+
+    const bookings = await Booking.find({
+      workerId,
+      status: "completed",
+    })
+      .populate("services.subServiceId")
+      .sort({ createdAt: -1 });
+
+    let totalEarnings = 0;
+    let todayEarnings = 0;
+    let weeklyEarnings = 0;
+    let monthlyEarnings = 0;
+
+    const now = new Date();
+    const todayStart = new Date(now.setHours(0,0,0,0));
+
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - 7);
+
+    const monthStart = new Date();
+    monthStart.setDate(1);
+
+    bookings.forEach((booking) => {
+
+      let bookingEarning = 0;
+
+      booking.services.forEach((service) => {
+
+        const workerPrice =
+          service.subServiceId?.workerPrice || 0;
+
+        bookingEarning += workerPrice * (service.quantity || 1);
+
+      });
+
+      totalEarnings += bookingEarning;
+
+      const bookingDate = new Date(booking.createdAt);
+
+      if (bookingDate >= todayStart) {
+        todayEarnings += bookingEarning;
+      }
+
+      if (bookingDate >= weekStart) {
+        weeklyEarnings += bookingEarning;
+      }
+
+      if (bookingDate >= monthStart) {
+        monthlyEarnings += bookingEarning;
+      }
+
+    });
+
+    res.status(200).json({
+      success: true,
+      earnings: {
+        totalEarnings,
+        todayEarnings,
+        weeklyEarnings,
+        monthlyEarnings,
+        totalCompletedJobs: bookings.length,
+      },
+    });
+
+  } catch (error) {
+
+    console.error("Worker earnings error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch earnings",
+    });
+
+  }
+};
+
+export const getWorkerProfile = async (req, res) => {
+  try {
+
+    const { workerId } = req.params;
+
+    const worker = await Worker.findById(workerId).select("-password -refreshToken");
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      worker
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch worker profile"
+    });
+
+  }
+};
+
+export const updateWorkerProfile = async (req, res) => {
+  try {
+
+    const { workerId } = req.params;
+
+    const {
+      name,
+      phone,
+      address,
+      skills
+    } = req.body;
+
+    const worker = await Worker.findById(workerId);
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found"
+      });
+    }
+
+    if (name) worker.name = name;
+    if (phone) worker.phone = phone;
+    if (address) worker.address = address;
+    if (skills) worker.skills = skills;
+
+    if (req.file) {
+
+      const uploaded = await uploadOnCloudinary(req.file.path);
+
+      worker.profileImage = uploaded.url;
+
+    }
+
+    await worker.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      worker
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update profile"
+    });
+
   }
 };

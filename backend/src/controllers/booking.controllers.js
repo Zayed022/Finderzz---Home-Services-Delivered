@@ -40,9 +40,8 @@ export const createBooking = async (req, res, next) => {
     const enrichedServices = [];
 
     for (const item of services) {
-      const subService = await SubService.findById(
-        item.subServiceId
-      );
+
+      const subService = await SubService.findById(item.subServiceId);
 
       if (!subService) {
         return res.status(400).json({
@@ -51,15 +50,33 @@ export const createBooking = async (req, res, next) => {
         });
       }
 
-      const itemTotal =
-        subService.customerPrice * item.quantity;
+      const bookingType = item.bookingType || "service";
+
+      let price = subService.customerPrice;
+
+      if (bookingType === "inspection") {
+
+        if (!subService.inspectionAvailable) {
+          return res.status(400).json({
+            success: false,
+            message: "Inspection not available for this service",
+          });
+        }
+
+        price = subService.inspectionPrice;
+      }
+
+      const quantity = item.quantity || 1;
+
+      const itemTotal = price * quantity;
 
       subtotal += itemTotal;
 
       enrichedServices.push({
         subServiceId: subService._id,
-        quantity: item.quantity,
-        price: subService.customerPrice,
+        quantity,
+        price,
+        bookingType,
       });
     }
 
@@ -94,7 +111,7 @@ export const createBooking = async (req, res, next) => {
       status: "pending",
     });
 
-    /* ================= POPULATE SERVICES FOR RESPONSE ================= */
+    /* ================= POPULATE RESPONSE ================= */
 
     const populatedBooking = await Booking.findById(
       booking._id
@@ -107,6 +124,7 @@ export const createBooking = async (req, res, next) => {
       success: true,
       data: populatedBooking,
     });
+
   } catch (error) {
     next(error);
   }

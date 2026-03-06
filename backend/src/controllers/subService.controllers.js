@@ -11,6 +11,10 @@ export const createSubService = async (req, res, next) => {
       workerPrice,
       platformFee,
       durationEstimate,
+      inspectionAvailable,
+      inspectionPrice,
+      inspectionDescription,
+      inspectionDuration,
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -30,6 +34,7 @@ export const createSubService = async (req, res, next) => {
     }
 
     const service = await Service.findById(serviceId).lean();
+
     if (!service || !service.active) {
       return res.status(400).json({ message: "Invalid service" });
     }
@@ -44,6 +49,12 @@ export const createSubService = async (req, res, next) => {
       platformFee,
       customerPrice,
       durationEstimate,
+
+      // inspection feature
+      inspectionAvailable: inspectionAvailable || false,
+      inspectionPrice: inspectionPrice || 0,
+      inspectionDescription,
+      inspectionDuration,
     });
 
     res.status(201).json({

@@ -5,7 +5,8 @@ interface CartItem {
   name: string;
   price: number;
   duration: number;
-  quantity: number;
+  quantity?: number;
+  bookingType?: "service" | "inspection";
 }
 
 interface CartState {
@@ -22,11 +23,13 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const existing = state.items.find(
-        (item) => item._id === action.payload._id
+        (item) =>
+          item._id === action.payload._id &&
+          item.bookingType === action.payload.bookingType
       );
-
+    
       if (existing) {
-        existing.quantity += 1;
+        existing.quantity = (existing.quantity ?? 0) + 1;
       } else {
         state.items.push({
           ...action.payload,
@@ -39,15 +42,19 @@ const cartSlice = createSlice({
       const item = state.items.find(
         (i) => i._id === action.payload
       );
-      if (item) item.quantity += 1;
+    
+      if (item) {
+        item.quantity = (item.quantity ?? 0) + 1;
+      }
     },
 
     decreaseQty: (state, action: PayloadAction<string>) => {
       const item = state.items.find(
         (i) => i._id === action.payload
       );
-      if (item && item.quantity > 1) {
-        item.quantity -= 1;
+    
+      if (item && (item.quantity ?? 0) > 1) {
+        item.quantity = (item.quantity ?? 1) - 1;
       }
     },
 

@@ -9,6 +9,9 @@ import {
   completeJob,
   toggleAvailability,
   getWorkerProfile,
+  getWorkerHistory,
+  getWorkerEarnings,
+  updateWorkerProfile,
 } from "../controllers/worker.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 
@@ -24,12 +27,21 @@ router.post("/login", workerLogin);
 
 router.get("/dashboard/:workerId", getWorkerDashboard);
 router.get("/profile/:workerId", getWorkerProfile);
+router.patch(
+  "/profile/:workerId",
+  upload.single("profileImage"),
+  updateWorkerProfile
+);
 
 router.get("/jobs/:workerId", getAssignedJobs);
 router.get("/job/:bookingId", getJobDetails);
 
 router.patch("/job/start/:bookingId", startJob);
 router.patch("/job/complete/:bookingId", completeJob);
+
+router.get("/history/:workerId", getWorkerHistory);
+
+router.get("/earnings/:workerId", getWorkerEarnings);
 
 router.patch("/availability/:workerId", toggleAvailability);
 

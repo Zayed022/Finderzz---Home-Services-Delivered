@@ -30,13 +30,23 @@ export default function ServiceDetails() {
     },
   });
 
-  const handleBook = (sub: any) => {
+  const handleBook = (sub: any, type: "service" | "inspection") => {
     dispatch(
       addToCart({
         _id: sub._id,
-        name: sub.name,
-        price: sub.customerPrice,
-        duration: sub.durationEstimate,
+        name:
+          type === "inspection"
+            ? `${sub.name} (Inspection)`
+            : sub.name,
+        price:
+          type === "inspection"
+            ? sub.inspectionPrice
+            : sub.customerPrice,
+        duration:
+          type === "inspection"
+            ? sub.inspectionDuration
+            : sub.durationEstimate,
+        bookingType: type,
       })
     );
   };
@@ -109,28 +119,51 @@ export default function ServiceDetails() {
 
               {/* Buttons */}
               <View style={styles.buttonRow}>
-                <Pressable
-                  onPress={() =>
-                    router.push(
-                      `/services/subservice/${sub._id}`
-                    )
-                  }
-                  style={styles.detailsButton}
-                >
-                  <Text style={styles.detailsText}>
-                    Details
-                  </Text>
-                </Pressable>
+  <Pressable
+    onPress={() =>
+      router.push(`/services/subservice/${sub._id}`)
+    }
+    style={styles.detailsButton}
+  >
+    <Text style={styles.detailsText}>Details</Text>
+  </Pressable>
 
-                <Pressable
-                  onPress={() => handleBook(sub)}
-                  style={styles.bookButton}
-                >
-                  <Text style={styles.bookText}>
-                    Add
-                  </Text>
-                </Pressable>
-              </View>
+  <Pressable
+    onPress={() => handleBook(sub, "service")}
+    style={styles.bookButton}
+  >
+    <Text style={styles.bookText}>Add</Text>
+  </Pressable>
+</View>
+
+{sub.inspectionAvailable && (
+  <View style={styles.inspectionBox}>
+    <View style={styles.inspectionHeader}>
+      <Text style={styles.inspectionTitle}>
+        Inspection Available
+      </Text>
+
+      <Text style={styles.inspectionPrice}>
+        ₹{sub.inspectionPrice}
+      </Text>
+    </View>
+
+    {sub.inspectionDescription && (
+      <Text style={styles.inspectionDesc}>
+        {sub.inspectionDescription}
+      </Text>
+    )}
+
+    <Pressable
+      style={styles.inspectButton}
+      onPress={() => handleBook(sub, "inspection")}
+    >
+      <Text style={styles.inspectText}>
+        Request Inspection
+      </Text>
+    </Pressable>
+  </View>
+)}
             </View>
           ))}
         </View>
@@ -234,5 +267,46 @@ const styles = StyleSheet.create({
   bookText: {
     color: "#FFFFFF",
     fontWeight: "700",
+  },
+
+  inspectionBox: {
+    marginTop: 12,
+    backgroundColor: "#F1F5F9",
+    padding: 12,
+    borderRadius: 12,
+  },
+  
+  inspectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  
+  inspectionTitle: {
+    fontWeight: "600",
+    color: "#111827",
+  },
+  
+  inspectionPrice: {
+    fontWeight: "700",
+    color: "#F59E0B",
+  },
+  
+  inspectionDesc: {
+    fontSize: 13,
+    marginTop: 6,
+    color: "#6B7280",
+  },
+  
+  inspectButton: {
+    marginTop: 10,
+    backgroundColor: "#F59E0B",
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  
+  inspectText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
 });
