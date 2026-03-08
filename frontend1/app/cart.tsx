@@ -60,7 +60,7 @@ export default function CartScreen() {
 
       <FlatList
         data={items}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => `${item._id}_${item.bookingType}`}
         contentContainerStyle={{
           padding: 20,
           paddingBottom: 160,
@@ -86,7 +86,10 @@ export default function CartScreen() {
                 <Pressable
                   onPress={() =>
                     dispatch(
-                      removeFromCart(item._id)
+                      removeFromCart({
+                        _id: item._id,
+                        bookingType: item.bookingType!,
+                      })
                     )
                   }
                 >
@@ -113,7 +116,10 @@ export default function CartScreen() {
                     style={styles.qtyButton}
                     onPress={() =>
                       dispatch(
-                        decreaseQty(item._id)
+                        decreaseQty({
+                          _id: item._id,
+                          bookingType: item.bookingType!,
+                        })
                       )
                     }
                   >
@@ -132,7 +138,10 @@ export default function CartScreen() {
                     style={styles.qtyButton}
                     onPress={() =>
                       dispatch(
-                        increaseQty(item._id)
+                        increaseQty({
+                          _id: item._id,
+                          bookingType: item.bookingType!,
+                        })
                       )
                     }
                   >

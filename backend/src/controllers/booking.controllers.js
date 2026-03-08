@@ -1,6 +1,7 @@
 import Booking from "../models/booking.models.js";
 import SubService from "../models/subService.models.js";
 import Area from "../models/area.models.js";
+import { createInvoice } from "./invoice.controllers.js";
 
 export const createBooking = async (req, res, next) => {
   try {
@@ -111,6 +112,8 @@ export const createBooking = async (req, res, next) => {
       status: "pending",
     });
 
+    const invoice = await createInvoice(booking._id);
+
     /* ================= POPULATE RESPONSE ================= */
 
     const populatedBooking = await Booking.findById(
@@ -120,10 +123,13 @@ export const createBooking = async (req, res, next) => {
       .populate("areaId", "name extraCharge")
       .lean();
 
-    res.json({
-      success: true,
-      data: populatedBooking,
-    });
+      res.json({
+        success: true,
+        data: {
+          ...populatedBooking,
+          invoice
+        }
+      });
 
   } catch (error) {
     next(error);

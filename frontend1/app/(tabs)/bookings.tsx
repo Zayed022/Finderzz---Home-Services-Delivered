@@ -4,19 +4,24 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  StatusBar,
+  Pressable,
 } from "react-native";
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Linking from "expo-linking";
 import { Ionicons } from "@expo/vector-icons";
+import API from "@/services/api";
 
-export default function Bookings() {
+export default function MyBookingsScreen() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadBookings = async () => {
     const data = await AsyncStorage.getItem("guest_bookings");
-    setBookings(data ? JSON.parse(data) : []);
+
+    const parsed = data ? JSON.parse(data) : [];
+
+    setBookings(parsed);
     setLoading(false);
   };
 
@@ -24,350 +29,133 @@ export default function Bookings() {
     loadBookings();
   }, []);
 
+  const openInvoice = async (invoiceUrl: string) => {
+
+    try {
+  
+      const baseURL = API.defaults.baseURL.replace("/api/v1","");
+  
+      const fullUrl = `${baseURL}${invoiceUrl}`;
+  
+      console.log("Opening invoice:", fullUrl);
+  
+      await Linking.openURL(fullUrl);
+  
+    } catch (error) {
+      console.log("Invoice open failed", error);
+    }
+  
+  };
+
   if (loading) {
-    return <BookingsSkeleton />;
+    return <ActivityIndicator style={{ marginTop: 50 }} />;
   }
 
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* HEADER */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.header}>My Bookings</Text>
-          <Text style={styles.subHeader}>
-            {bookings.length} Total Bookings
-          </Text>
-        </View>
+    <ScrollView style={styles.container}>
+      <Text style={styles.header}>My Bookings</Text>
 
-        {/* EMPTY STATE */}
-        {bookings.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons
-              name="calendar-outline"
-              size={60}
-              color="#CBD5E1"
-            />
-            <Text style={styles.emptyTitle}>
-              No bookings yet
+      {bookings.length === 0 ? (
+        <Text style={styles.empty}>No bookings yet</Text>
+      ) : (
+        bookings.map((booking: any) => (
+          <View key={booking._id} style={styles.card}>
+            {/* DATE */}
+            <Text style={styles.date}>
+              {new Date(booking.scheduledDate).toDateString()}
             </Text>
-            <Text style={styles.emptySubtitle}>
-              Your confirmed bookings will appear here.
+
+            {/* STATUS */}
+            <Text style={styles.status}>
+              Status: {booking.status}
             </Text>
+
+            {/* PRICE */}
+            <Text style={styles.price}>
+              ₹{booking.totalPrice}
+            </Text>
+
+            {/* INVOICE BUTTON */}
+            {booking?.invoice?.invoiceUrl && (
+              <Pressable
+                style={styles.invoiceButton}
+                onPress={() =>
+                  openInvoice(booking.invoice.invoiceUrl)
+                }
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={18}
+                  color="#fff"
+                />
+                <Text style={styles.invoiceText}>
+                  Download Invoice
+                </Text>
+              </Pressable>
+            )}
           </View>
-        ) : (
-          bookings.map((booking: any) => {
-            const statusColor =
-              booking.status === "pending"
-                ? "#F59E0B"
-                : booking.status === "completed"
-                ? "#22C55E"
-                : "#0A84FF";
-
-            return (
-              <View key={booking._id} style={styles.card}>
-                {/* Top Row */}
-                <View style={styles.topRow}>
-                  <Text style={styles.bookingId}>
-                    #{booking._id.slice(-6).toUpperCase()}
-                  </Text>
-
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: `${statusColor}15` },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statusText,
-                        { color: statusColor },
-                      ]}
-                    >
-                      {booking.status?.toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Schedule */}
-                <View style={styles.infoRow}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={16}
-                    color="#64748B"
-                  />
-                  <Text style={styles.infoText}>
-                    {new Date(
-                      booking.scheduledDate
-                    ).toDateString()} • {booking.timeSlot}
-                  </Text>
-                </View>
-
-                {/* Services Preview */}
-                {booking.services?.length > 0 && (
-                  <Text style={styles.servicesPreview}>
-                    {booking.services
-                      .slice(0, 2)
-                      .map(
-                        (s: any) =>
-                          s.subServiceId?.name || "Service"
-                      )
-                      .join(", ")}
-                    {booking.services.length > 2 && " + more"}
-                  </Text>
-                )}
-
-                {/* Divider */}
-                <View style={styles.divider} />
-
-                {/* Bottom Row */}
-                <View style={styles.bottomRow}>
-                  <Text style={styles.totalLabel}>
-                    Total Paid
-                  </Text>
-                  <Text style={styles.totalValue}>
-                    ₹{booking.totalPrice}
-                  </Text>
-                </View>
-              </View>
-            );
-          })
-        )}
-      </ScrollView>
-    </>
-  );
-}
-
-/* ---------------- Skeleton ---------------- */
-
-function BookingsSkeleton() {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* HEADER SKELETON */}
-        <View style={styles.headerContainer}>
-          <View
-            style={{
-              width: 180,
-              height: 28,
-              borderRadius: 6,
-              backgroundColor: "#E5E7EB",
-              marginTop: 30,
-              marginBottom: 10,
-            }}
-          />
-          <View
-            style={{
-              width: 140,
-              height: 14,
-              borderRadius: 4,
-              backgroundColor: "#E5E7EB",
-            }}
-          />
-        </View>
-
-        {/* BOOKING CARD SKELETONS */}
-        {[1, 2, 3].map((_, i) => (
-          <View key={i} style={styles.card}>
-            {/* Top Row */}
-            <View style={styles.topRow}>
-              <View
-                style={{
-                  width: 120,
-                  height: 14,
-                  borderRadius: 4,
-                  backgroundColor: "#E5E7EB",
-                }}
-              />
-
-              <View
-                style={{
-                  width: 80,
-                  height: 28,
-                  borderRadius: 20,
-                  backgroundColor: "#E5E7EB",
-                }}
-              />
-            </View>
-
-            {/* Schedule */}
-            <View
-              style={{
-                marginTop: 14,
-                width: "70%",
-                height: 14,
-                borderRadius: 4,
-                backgroundColor: "#E5E7EB",
-              }}
-            />
-
-            {/* Services Preview */}
-            <View
-              style={{
-                marginTop: 12,
-                width: "60%",
-                height: 12,
-                borderRadius: 4,
-                backgroundColor: "#E5E7EB",
-              }}
-            />
-
-            {/* Divider */}
-            <View style={styles.divider} />
-
-            {/* Bottom Row */}
-            <View style={styles.bottomRow}>
-              <View
-                style={{
-                  width: 90,
-                  height: 14,
-                  borderRadius: 4,
-                  backgroundColor: "#E5E7EB",
-                }}
-              />
-              <View
-                style={{
-                  width: 70,
-                  height: 18,
-                  borderRadius: 4,
-                  backgroundColor: "#E5E7EB",
-                }}
-              />
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    </>
+        ))
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
     padding: 20,
-  },
-
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  headerContainer: {
-    marginBottom: 24,
+    backgroundColor: "#F1F5F9",
   },
 
   header: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: "700",
-    color: "#0F172A",
-    marginTop:30,
+    marginBottom: 20,
   },
 
-  subHeader: {
-    marginTop: 6,
-    color: "#64748B",
-  },
-
-  emptyContainer: {
-    marginTop: 80,
-    alignItems: "center",
-  },
-
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 16,
-    color: "#0F172A",
-  },
-
-  emptySubtitle: {
-    marginTop: 6,
+  empty: {
     textAlign: "center",
+    marginTop: 40,
     color: "#64748B",
-    paddingHorizontal: 30,
   },
 
   card: {
-    backgroundColor: "#FFFFFF",
-    padding: 20,
-    borderRadius: 22,
-    marginBottom: 18,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    backgroundColor: "#fff",
+    padding: 18,
+    borderRadius: 18,
+    marginBottom: 14,
+    elevation: 3,
   },
 
-  topRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  bookingId: {
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-
-  statusText: {
-    fontSize: 12,
+  date: {
     fontWeight: "600",
+    fontSize: 15,
   },
 
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 12,
-  },
-
-  infoText: {
-    color: "#475569",
-  },
-
-  servicesPreview: {
-    marginTop: 10,
-    fontSize: 13,
+  status: {
+    marginTop: 4,
     color: "#64748B",
   },
 
-  divider: {
-    height: 1,
-    backgroundColor: "#E2E8F0",
-    marginVertical: 14,
+  price: {
+    marginTop: 8,
+    fontWeight: "700",
+    fontSize: 16,
   },
 
-  bottomRow: {
+  invoiceButton: {
+    marginTop: 14,
+    backgroundColor: "#16A34A",
+    paddingVertical: 12,
+    borderRadius: 12,
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
+    gap: 8,
   },
 
-  totalLabel: {
-    fontWeight: "600",
-    color: "#334155",
-  },
-
-  totalValue: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0A84FF",
+  invoiceText: {
+    color: "#fff",
+    fontWeight: "700",
   },
 });

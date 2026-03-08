@@ -14,6 +14,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAppDispatch } from "@/store/hooks";
 import { clearCart } from "@/store/slices/cartSlice";
+import * as Linking from "expo-linking";
+import API from "@/services/api";
+import * as WebBrowser from "expo-web-browser";
 
 export default function BookingSuccessScreen() {
   const router = useRouter();
@@ -37,6 +40,17 @@ export default function BookingSuccessScreen() {
     setBooking(parsed[0]);
     dispatch(clearCart());
     setLoading(false);
+  };
+
+  const openInvoice = async () => {
+
+    if (!booking?.invoice?.invoiceUrl) return;
+  
+    const url = `http://finderzz-home-services-delivered.onrender.com${booking.invoice.invoiceUrl}`;
+  
+    console.log("Opening invoice:", url);
+  
+    await WebBrowser.openBrowserAsync(url);
   };
 
   if (loading) {
@@ -120,29 +134,31 @@ export default function BookingSuccessScreen() {
             </View>
           </View>
 
-          {/* Services */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Services
-            </Text>
+  <Text style={styles.cardTitle}>
+    Services
+  </Text>
 
-            {booking.services?.map((service: any, index: number) => (
-              <View key={index} style={styles.serviceTile}>
-                <View>
-                  <Text style={styles.serviceName}>
-                    {service.subServiceId?.name}
-                  </Text>
-                  <Text style={styles.serviceMeta}>
-                    Qty {service.quantity}
-                  </Text>
-                </View>
+  {booking.services?.map((service: any, index: number) => (
+    <View key={index} style={styles.serviceTile}>
+      <View>
+        <Text style={styles.serviceName}>
+          {service.bookingType === "inspection"
+            ? `${service.subServiceId?.name} (Inspection)`
+            : service.subServiceId?.name}
+        </Text>
 
-                <Text style={styles.serviceAmount}>
-                  ₹{service.price * service.quantity}
-                </Text>
-              </View>
-            ))}
-          </View>
+        <Text style={styles.serviceMeta}>
+          Qty {service.quantity}
+        </Text>
+      </View>
+
+      <Text style={styles.serviceAmount}>
+        ₹{service.price * service.quantity}
+      </Text>
+    </View>
+  ))}
+</View>
 
           {/* Customer */}
           <View style={styles.card}>
@@ -225,6 +241,16 @@ export default function BookingSuccessScreen() {
               </Text>
             </View>
           </View>
+
+          {booking?.invoice?.invoiceUrl && (
+  <Pressable
+    style={styles.invoiceButton}
+    onPress={openInvoice}
+  >
+    <Ionicons name="document-text-outline" size={18} color="#FFF" />
+    <Text style={styles.invoiceText}>Download Invoice</Text>
+  </Pressable>
+)}
 
           {/* Buttons */}
           <Pressable
@@ -422,5 +448,21 @@ const styles = StyleSheet.create({
   secondaryText: {
     color: "#0A84FF",
     fontWeight: "600",
+  },
+  invoiceButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#16A34A",
+    paddingVertical: 16,
+    borderRadius: 22,
+    marginBottom: 14,
+    gap: 8,
+  },
+  
+  invoiceText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 15,
   },
 });

@@ -12,6 +12,7 @@ app.use(express.json({limit:"16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
+app.use("/uploads", express.static("uploads"));
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
@@ -48,5 +49,8 @@ app.use("/api/v1/vertical", verticalRoutes);
 
 import workerRoutes from "./routes/worker.routes.js"
 app.use("/api/v1/worker", workerRoutes);
+
+import invoiceRoutes from "./routes/invoice.routes.js"
+app.use("/api/v1/invoice", invoiceRoutes);
 
 export {app}

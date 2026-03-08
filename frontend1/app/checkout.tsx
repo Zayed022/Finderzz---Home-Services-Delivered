@@ -97,6 +97,7 @@ export default function CheckoutScreen() {
         services: items.map((item) => ({
           subServiceId: item._id,
           quantity: item.quantity,
+          bookingType: item.bookingType || "service",
         })),
         areaId: area._id,
         customerDetails: { name, phone },

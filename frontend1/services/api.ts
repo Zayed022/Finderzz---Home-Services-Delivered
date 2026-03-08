@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://10.218.18.100:8000/api/v1",
+  baseURL: "http://finderzz-home-services-delivered.onrender.com/api/v1",
 });
 
 export default API;
