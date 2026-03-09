@@ -46,7 +46,7 @@ export default function BookingSuccessScreen() {
 
     if (!booking?.invoice?.invoiceUrl) return;
   
-    const url = `http://finderzz-home-services-delivered.onrender.com${booking.invoice.invoiceUrl}`;
+    const url = `https://finderzz-home-services-delivered.onrender.com${booking.invoice.invoiceUrl}`;
   
     console.log("Opening invoice:", url);
   
