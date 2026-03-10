@@ -135,3 +135,46 @@ export const createBooking = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getBookingsByStatus = async (req, res, next) => {
+  try {
+
+    const {
+      status = "pending",
+      page = 1,
+      limit = 10
+    } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    const query = {};
+
+    if (status !== "all") {
+      query.status = status;
+    }
+
+    const bookings = await Booking.find(query)
+      .populate("areaId", "name")
+      .populate("services.subServiceId", "name")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean();
+
+    const total = await Booking.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: bookings,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / limit)
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};

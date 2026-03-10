@@ -52,3 +52,24 @@ export const deleteBanner = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateBannerOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { order } = req.body;
+
+    const banner = await Banner.findByIdAndUpdate(
+      id,
+      { order },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      data: banner
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
