@@ -13,6 +13,9 @@ import DeleteBanner from './components/banner/DeleteBanner'
 import ManageBanners from './components/banner/ManageBanner'
 import ManageServices from './components/ManageServices'
 import ManageBookings from './components/bookings/GetBookingsByStatus'
+import AddCategory from './components/category/AddCategory'
+import AddService from './components/category/AddService'
+import AddSubService from './components/category/AddSubService'
 
 
 
@@ -33,6 +36,9 @@ function App() {
       <Route path = "/banner/delete" element={<DeleteBanner/>}/>
       <Route path = "/banner/manage" element={<ManageBanners/>}/>
       <Route path = "/services" element={<ManageServices/>}/>
+      <Route path = "/services/add-category" element={<AddCategory/>}/>
+      <Route path = "/services/add-service" element={<AddService/>}/>
+      <Route path = "/services/add-subservice" element={<AddSubService/>}/>
       <Route path = "/bookings" element={<ManageBookings/>}/>
 
       

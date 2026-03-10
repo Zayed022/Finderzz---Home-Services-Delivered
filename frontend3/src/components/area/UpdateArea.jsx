@@ -15,7 +15,7 @@ export default function UpdateArea({ area, refresh, close }) {
     try {
       setLoading(true);
 
-      await API.put(`/area/${area._id}`, {
+      await API.patch(`/area/${area._id}`, {
         name,
         extraCharge,
       });

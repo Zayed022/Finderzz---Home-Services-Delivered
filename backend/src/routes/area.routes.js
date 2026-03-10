@@ -4,7 +4,8 @@ import {
   getActiveAreas,
   getAllAreas,
   updateArea,
-  deleteArea
+  deleteArea,
+  toggleAreaStatus
 } from "../controllers/area.controllers.js";
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.get("/active", getActiveAreas);
 router.post("/", createArea);
 router.get("/", getAllAreas);
 router.patch("/:id", updateArea);
+router.patch("/toggle/:id", toggleAreaStatus);
 router.delete("/:id", deleteArea);
 
 export default router;

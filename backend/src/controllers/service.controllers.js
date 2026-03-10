@@ -5,39 +5,76 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export const createService = async (req, res, next) => {
   try {
+
     const { categoryId, name, description, isPopular } = req.body;
 
     const category = await Category.findById(categoryId);
+
     if (!category || !category.active) {
-      return res.status(400).json({ message: "Invalid category" });
+      return res.status(400).json({
+        success:false,
+        message:"Invalid category"
+      });
     }
+
+    /* ---------------- BANNER ---------------- */
+
     const bannerPath = req.files?.bannerImage?.[0]?.path;
-        
-    
-        if (!bannerPath) return res.status(400).json({ message: "Banner image is required" });
 
-        const bannerUploaded = await uploadOnCloudinary(bannerPath);
-    
-        
+    if (!bannerPath) {
+      return res.status(400).json({
+        success:false,
+        message:"Banner image is required"
+      });
+    }
 
-        const iconPath = req.files?.icon?.[0]?.path;
-            
-        
-            if (!iconPath) return res.status(400).json({ message: "Icon image is required" });
-        
-            const iconUploaded = await uploadOnCloudinary(iconPath);
+    const bannerUploaded = await uploadOnCloudinary(bannerPath);
+
+    if (!bannerUploaded) {
+      return res.status(500).json({
+        success:false,
+        message:"Banner upload failed"
+      });
+    }
+
+    /* ---------------- ICON ---------------- */
+
+    const iconPath = req.files?.icon?.[0]?.path;
+
+    if (!iconPath) {
+      return res.status(400).json({
+        success:false,
+        message:"Icon image is required"
+      });
+    }
+
+    const iconUploaded = await uploadOnCloudinary(iconPath);
+
+    if (!iconUploaded) {
+      return res.status(500).json({
+        success:false,
+        message:"Icon upload failed"
+      });
+    }
+
+    /* ---------------- CREATE SERVICE ---------------- */
 
     const service = await Service.create({
       categoryId,
       name,
-      bannerImage: bannerUploaded.url,
+      bannerImage: bannerUploaded.secure_url,
       description,
-      icon: iconUploaded.url,
+      icon: iconUploaded.secure_url,
       isPopular
     });
 
-    res.status(201).json({ success: true, data: service });
+    res.status(201).json({
+      success:true,
+      data:service
+    });
+
   } catch (error) {
+    console.error("Create service error:", error);
     next(error);
   }
 };
@@ -50,6 +87,18 @@ export const getServicesByCategory = async (req, res, next) => {
         categoryId,
         active: true,
       }).lean();
+  
+      res.json({ success: true, data: services });
+    } catch (error) {
+      next(error);
+    }
+};
+
+export const getServices = async (req, res, next) => {
+    try {
+      const services = await Service.find({  })
+        .sort({ order: 1 })
+        .lean();
   
       res.json({ success: true, data: services });
     } catch (error) {

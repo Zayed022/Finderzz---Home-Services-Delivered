@@ -71,26 +71,49 @@ export const getAllAreas = async (req, res, next) => {
 };
 
 export const updateArea = async (req, res, next) => {
-    try {
-      const { id } = req.params;
-  
-      const area = await Area.findByIdAndUpdate(
-        id,
-        req.body,
-        { new: true }
-      );
-  
-      if (!area) {
-        return res.status(404).json({ message: "Area not found" });
-      }
-  
-      res.json({
-        success: true,
-        data: area,
+  try {
+
+    const { id } = req.params;
+    const { name } = req.body;
+
+    // check duplicate name
+    if (name) {
+
+      const existing = await Area.findOne({
+        name,
+        _id: { $ne: id }
       });
-    } catch (error) {
-      next(error);
+
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Area with this name already exists"
+        });
+      }
+
     }
+
+    const area = await Area.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true }
+    );
+
+    if (!area) {
+      return res.status(404).json({
+        success: false,
+        message: "Area not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: area
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const deleteArea = async (req, res, next) => {
@@ -114,4 +137,35 @@ export const deleteArea = async (req, res, next) => {
     } catch (error) {
       next(error);
     }
+};
+
+export const toggleAreaStatus = async (req, res, next) => {
+  try {
+
+    const { id } = req.params;
+
+    const area = await Area.findById(id);
+
+    if (!area) {
+      return res.status(404).json({
+        success: false,
+        message: "Area not found"
+      });
+    }
+
+    area.active = !area.active;
+
+    await area.save();
+
+    res.json({
+      success: true,
+      message: area.active
+        ? "Area activated"
+        : "Area disabled",
+      data: area
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };

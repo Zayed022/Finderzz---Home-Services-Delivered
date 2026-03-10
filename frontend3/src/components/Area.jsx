@@ -2,9 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const actions = [
-  { title: 'Add Area', path: '/area/add' },
-  { title: 'Update Area', path: '/area/update' },
-  { title: 'Delete Area', path: '/area/delete' },
+  
   { title: 'Manage Area', path: '/area/manage' },
   
 ];

@@ -1,43 +1,52 @@
-import { FiPlus, FiEdit, FiTrash } from "react-icons/fi";
-
-export default function ServicePanel({services,selectService}){
+export default function ServicePanel({
+  services,
+  selectService,
+  createService,
+  updateService,
+  deleteService
+}){
 
   return(
 
-    <div className="bg-white shadow rounded-xl p-4">
+    <div className="bg-white p-4 rounded-xl shadow">
 
-      <div className="flex justify-between mb-4">
-        <h2 className="font-semibold text-lg">
-          Services
-        </h2>
+      <h2 className="font-semibold mb-4">Services</h2>
 
-        <button className="text-blue-600">
-          <FiPlus/>
-        </button>
-      </div>
+      {services.map(service=>(
+        <div
+          key={service._id}
+          className="flex justify-between p-2 border-b"
+        >
 
-      <div className="space-y-2">
-
-        {services.map(service=>(
-          
-          <div
-            key={service._id}
+          <span
             onClick={()=>selectService(service)}
-            className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 flex justify-between"
+            className="cursor-pointer"
           >
+            {service.name}
+          </span>
 
-            <span>{service.name}</span>
+          <div className="flex gap-2">
 
-            <div className="flex gap-2">
-              <FiEdit className="text-blue-500"/>
-              <FiTrash className="text-red-500"/>
-            </div>
+            <button
+              onClick={()=>{
+                const name = prompt("New name",service.name);
+                updateService(service._id,{name});
+              }}
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={()=>deleteService(service._id)}
+              className="text-red-600"
+            >
+              Delete
+            </button>
 
           </div>
 
-        ))}
-
-      </div>
+        </div>
+      ))}
 
     </div>
 

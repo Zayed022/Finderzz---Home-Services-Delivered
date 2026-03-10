@@ -1,43 +1,45 @@
-import { FiPlus, FiEdit, FiTrash } from "react-icons/fi";
-
-export default function SubServicePanel({subServices}){
+export default function SubServicePanel({
+  subServices,
+  updateSubService,
+  deleteSubService
+}){
 
   return(
 
-    <div className="bg-white shadow rounded-xl p-4">
+    <div className="bg-white p-4 rounded-xl shadow">
 
-      <div className="flex justify-between mb-4">
-        <h2 className="font-semibold text-lg">
-          SubServices
-        </h2>
+      <h2 className="font-semibold mb-4">SubServices</h2>
 
-        <button className="text-blue-600">
-          <FiPlus/>
-        </button>
-      </div>
+      {subServices.map(sub=>(
+        <div
+          key={sub._id}
+          className="flex justify-between p-2 border-b"
+        >
 
-      <div className="space-y-3">
+          <span>{sub.name}</span>
 
-        {subServices.map(sub=>(
-          
-          <div
-            key={sub._id}
-            className="border p-3 rounded-lg"
-          >
+          <div className="flex gap-2">
 
-            <div className="font-medium">
-              {sub.name}
-            </div>
+            <button
+              onClick={()=>{
+                const price = prompt("Worker price");
+                updateSubService(sub._id,{workerPrice:price});
+              }}
+            >
+              Edit
+            </button>
 
-            <div className="text-sm text-gray-500">
-              ₹{sub.customerPrice}
-            </div>
+            <button
+              onClick={()=>deleteSubService(sub._id)}
+              className="text-red-600"
+            >
+              Delete
+            </button>
 
           </div>
 
-        ))}
-
-      </div>
+        </div>
+      ))}
 
     </div>
 

@@ -3,23 +3,40 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export const createBanner = async (req, res, next) => {
   try {
+
     const { title, redirectUrl, order } = req.body;
 
     const bannerPath = req.files?.bannerImage?.[0]?.path;
-    
 
-    if (!bannerPath) return res.status(400).json({ message: "Banner image is required" });
+    if (!bannerPath) {
+      return res.status(400).json({
+        success:false,
+        message: "Banner image is required"
+      });
+    }
 
     const bannerUploaded = await uploadOnCloudinary(bannerPath);
+
+    // handle cloudinary failure
+    if (!bannerUploaded || !bannerUploaded.secure_url) {
+      return res.status(500).json({
+        success:false,
+        message:"Image upload failed. Please try again."
+      });
+    }
 
     const banner = await Banner.create({
       bannerImage: bannerUploaded.secure_url,
       title,
       redirectUrl,
-      order,
+      order
     });
 
-    res.status(201).json({ success: true, data: banner });
+    res.status(201).json({
+      success:true,
+      data:banner
+    });
+
   } catch (error) {
     next(error);
   }

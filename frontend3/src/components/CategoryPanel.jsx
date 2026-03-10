@@ -1,43 +1,68 @@
-import { FiPlus, FiEdit, FiTrash } from "react-icons/fi";
+export default function CategoryPanel({
+  categories,
+  selectCategory,
+  createCategory,
+  updateCategory,
+  deleteCategory
+}){
 
-export default function CategoryPanel({categories,selectCategory}){
+  const handleAdd = ()=>{
+    const name = prompt("Category name");
+    if(!name) return;
+
+    createCategory({name});
+  };
 
   return(
 
-    <div className="bg-white shadow rounded-xl p-4">
+    <div className="bg-white p-4 rounded-xl shadow">
 
       <div className="flex justify-between mb-4">
-        <h2 className="font-semibold text-lg">
-          Categories
-        </h2>
+        <h2 className="font-semibold">Categories</h2>
 
-        <button className="text-blue-600">
-          <FiPlus/>
+        <button
+          onClick={handleAdd}
+          className="bg-blue-500 text-white px-3 py-1 rounded"
+        >
+          Add
         </button>
       </div>
 
-      <div className="space-y-2">
+      {categories.map(cat=>(
+        <div
+          key={cat._id}
+          className="flex justify-between p-2 border-b"
+        >
 
-        {categories.map(cat=>(
-          
-          <div
-            key={cat._id}
+          <span
             onClick={()=>selectCategory(cat)}
-            className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 flex justify-between"
+            className="cursor-pointer"
           >
+            {cat.name}
+          </span>
 
-            <span>{cat.name}</span>
+          <div className="flex gap-2">
 
-            <div className="flex gap-2">
-              <FiEdit className="text-blue-500"/>
-              <FiTrash className="text-red-500"/>
-            </div>
+            <button
+              onClick={()=>{
+                const name = prompt("New name",cat.name);
+                updateCategory(cat._id,{name});
+              }}
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={()=>deleteCategory(cat._id)}
+              className="text-red-600"
+            >
+              Delete
+            </button>
 
           </div>
 
-        ))}
-
-      </div>
+        </div>
+      ))}
 
     </div>
 
