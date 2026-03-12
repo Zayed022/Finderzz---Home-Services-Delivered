@@ -42,6 +42,18 @@ const subServiceSchema = new mongoose.Schema(
     default: false
   },
 
+  inspectionWorkerPrice: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  
+  inspectionPlatformFee: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+
   inspectionPrice: {
     type: Number,
     default: 0

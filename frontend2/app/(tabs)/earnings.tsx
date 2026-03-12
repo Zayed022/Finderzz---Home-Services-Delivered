@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  RefreshControl
+} from "react-native";
+
 import API from "@/services/api";
 import { getWorker } from "@/utils/worker";
 
@@ -7,6 +15,7 @@ export default function EarningsScreen(){
 
   const [earnings,setEarnings] = useState<any>(null);
   const [loading,setLoading] = useState(true);
+  const [refreshing,setRefreshing] = useState(false);
 
   const fetchEarnings = async()=>{
 
@@ -27,6 +36,7 @@ export default function EarningsScreen(){
     }finally{
 
       setLoading(false);
+      setRefreshing(false);
 
     }
 
@@ -35,6 +45,11 @@ export default function EarningsScreen(){
   useEffect(()=>{
     fetchEarnings();
   },[]);
+
+  const onRefresh = ()=>{
+    setRefreshing(true);
+    fetchEarnings();
+  };
 
   if(loading){
     return(
@@ -46,46 +61,70 @@ export default function EarningsScreen(){
 
   return(
 
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      }
+    >
 
-      <Text style={styles.title}>Earnings</Text>
+      <Text style={styles.title}>Your Earnings</Text>
 
-      <View style={styles.card}>
-        <Text>Today</Text>
-        <Text style={styles.amount}>
-          ₹{earnings.todayEarnings}
+      {/* Total Earnings Highlight */}
+
+      <View style={styles.totalCard}>
+
+        <Text style={styles.totalLabel}>
+          Total Earnings
         </Text>
-      </View>
 
-      <View style={styles.card}>
-        <Text>This Week</Text>
-        <Text style={styles.amount}>
-          ₹{earnings.weeklyEarnings}
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text>This Month</Text>
-        <Text style={styles.amount}>
-          ₹{earnings.monthlyEarnings}
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text>Total Earnings</Text>
-        <Text style={styles.amount}>
+        <Text style={styles.totalAmount}>
           ₹{earnings.totalEarnings}
         </Text>
-      </View>
 
-      <View style={styles.card}>
-        <Text>Total Completed Jobs</Text>
-        <Text style={styles.amount}>
-          {earnings.totalCompletedJobs}
+        <Text style={styles.jobs}>
+          {earnings.totalCompletedJobs} Jobs Completed
         </Text>
+
       </View>
 
-    </View>
+      {/* Stats Grid */}
+
+      <View style={styles.grid}>
+
+        <View style={styles.statCard}>
+          <Text style={styles.statTitle}>
+            Today
+          </Text>
+          <Text style={styles.statAmount}>
+            ₹{earnings.todayEarnings}
+          </Text>
+        </View>
+
+        <View style={styles.statCard}>
+          <Text style={styles.statTitle}>
+            This Week
+          </Text>
+          <Text style={styles.statAmount}>
+            ₹{earnings.weeklyEarnings}
+          </Text>
+        </View>
+
+        <View style={styles.statCard}>
+          <Text style={styles.statTitle}>
+            This Month
+          </Text>
+          <Text style={styles.statAmount}>
+            ₹{earnings.monthlyEarnings}
+          </Text>
+        </View>
+
+      </View>
+
+    </ScrollView>
 
   );
 
@@ -95,7 +134,8 @@ const styles = StyleSheet.create({
 
 container:{
   flex:1,
-  padding:20
+  backgroundColor:"#f5f6fa",
+  padding:16
 },
 
 center:{
@@ -105,22 +145,66 @@ center:{
 },
 
 title:{
-  fontSize:22,
-  fontWeight:"bold",
+  fontSize:24,
+  fontWeight:"700",
+  marginBottom:16
+},
+
+/* TOTAL CARD */
+
+totalCard:{
+  backgroundColor:"#2563eb",
+  padding:24,
+  borderRadius:16,
   marginBottom:20
 },
 
-card:{
-  backgroundColor:"#fff",
-  padding:20,
-  marginBottom:12,
-  borderRadius:10
+totalLabel:{
+  color:"#c7d2fe",
+  fontSize:14
 },
 
-amount:{
-  fontSize:18,
-  fontWeight:"bold",
-  marginTop:4
+totalAmount:{
+  color:"#fff",
+  fontSize:34,
+  fontWeight:"800",
+  marginTop:6
+},
+
+jobs:{
+  color:"#e0e7ff",
+  marginTop:6
+},
+
+/* GRID */
+
+grid:{
+  flexDirection:"row",
+  flexWrap:"wrap",
+  justifyContent:"space-between"
+},
+
+statCard:{
+  backgroundColor:"#fff",
+  width:"48%",
+  padding:20,
+  borderRadius:14,
+  marginBottom:12,
+  shadowColor:"#000",
+  shadowOpacity:0.08,
+  shadowRadius:6,
+  elevation:3
+},
+
+statTitle:{
+  fontSize:14,
+  color:"#6b7280"
+},
+
+statAmount:{
+  fontSize:20,
+  fontWeight:"700",
+  marginTop:6
 }
 
 });

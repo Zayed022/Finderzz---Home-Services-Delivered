@@ -55,6 +55,9 @@ app.use("/api/v1/worker", workerRoutes);
 import invoiceRoutes from "./routes/invoice.routes.js"
 app.use("/api/v1/invoice", invoiceRoutes);
 
+import settlementRoutes from "./routes/settlement.routes.js"
+app.use("/api/v1/settlement", settlementRoutes);
+
 // ================= PRIVACY POLICY =================
 
 app.get("/api/v1/privacy-policy", (req, res) => {

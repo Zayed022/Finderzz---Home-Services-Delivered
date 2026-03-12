@@ -1,6 +1,7 @@
 import User from "../models/user.models.js";
 import Worker from "../models/worker.models.js";
 import Booking from "../models/booking.models.js"
+import Settlement from "../models/settlement.models.js"
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
@@ -450,17 +451,17 @@ export const getWorkerEarnings = async (req, res) => {
 
     if (!workerId) {
       return res.status(400).json({
-        success: false,
-        message: "Worker ID is required",
+        success:false,
+        message:"Worker ID is required"
       });
     }
 
     const bookings = await Booking.find({
       workerId,
-      status: "completed",
+      status:"completed"
     })
-      .populate("services.subServiceId")
-      .sort({ createdAt: -1 });
+    .populate("services.subServiceId")
+    .sort({ createdAt:-1 });
 
     let totalEarnings = 0;
     let todayEarnings = 0;
@@ -468,7 +469,9 @@ export const getWorkerEarnings = async (req, res) => {
     let monthlyEarnings = 0;
 
     const now = new Date();
-    const todayStart = new Date(now.setHours(0,0,0,0));
+
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
 
     const weekStart = new Date();
     weekStart.setDate(weekStart.getDate() - 7);
@@ -482,8 +485,15 @@ export const getWorkerEarnings = async (req, res) => {
 
       booking.services.forEach((service) => {
 
-        const workerPrice =
-          service.subServiceId?.workerPrice || 0;
+        let workerPrice = 0;
+
+        if(service.bookingType === "inspection"){
+          workerPrice =
+            service.subServiceId?.inspectionWorkerPrice || 0;
+        } else {
+          workerPrice =
+            service.subServiceId?.workerPrice || 0;
+        }
 
         bookingEarning += workerPrice * (service.quantity || 1);
 
@@ -508,14 +518,14 @@ export const getWorkerEarnings = async (req, res) => {
     });
 
     res.status(200).json({
-      success: true,
-      earnings: {
+      success:true,
+      earnings:{
         totalEarnings,
         todayEarnings,
         weeklyEarnings,
         monthlyEarnings,
-        totalCompletedJobs: bookings.length,
-      },
+        totalCompletedJobs: bookings.length
+      }
     });
 
   } catch (error) {
@@ -523,8 +533,8 @@ export const getWorkerEarnings = async (req, res) => {
     console.error("Worker earnings error:", error);
 
     res.status(500).json({
-      success: false,
-      message: "Failed to fetch earnings",
+      success:false,
+      message:"Failed to fetch earnings"
     });
 
   }
@@ -628,5 +638,125 @@ export const getApprovedWorkers = async (req,res,next)=>{
 
   }catch(error){
     next(error);
+  }
+};
+
+export const getWorkerDailySettlement = async (req,res)=>{
+  try{
+
+    const { workerId } = req.params;
+
+    if(!workerId){
+      return res.status(400).json({
+        success:false,
+        message:"Worker ID required"
+      });
+    }
+
+    const bookings = await Booking.find({
+      workerId,
+      status:"completed"
+    })
+    .populate("services.subServiceId")
+    .populate("areaId")
+    .sort({ createdAt:-1 });
+
+    const settlements = await Settlement.find({ workerId });
+
+    const settlementMap = {};
+
+    settlements.forEach(s=>{
+      settlementMap[s.date] = s;
+    });
+
+    const dailyMap = {};
+
+    bookings.forEach((booking)=>{
+
+      const date = booking.createdAt.toISOString().split("T")[0];
+
+      if(!dailyMap[date]){
+        dailyMap[date] = {
+          date,
+          totalCollected:0,
+          workerEarnings:0,
+          adminShare:0,
+          jobs:0,
+          status:"pending"
+        };
+      }
+
+      let collected = 0;
+      let workerEarn = 0;
+      let platformEarn = 0;
+
+      booking.services.forEach(service=>{
+
+        const price = service.price || 0;
+
+        let workerPrice = 0;
+        let platformFee = 0;
+
+        if(service.bookingType === "inspection"){
+
+          workerPrice =
+            service.subServiceId?.inspectionWorkerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.inspectionPlatformFee || 0;
+
+        }else{
+
+          workerPrice =
+            service.subServiceId?.workerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.platformFee || 0;
+        }
+
+        collected += price;
+        workerEarn += workerPrice;
+        platformEarn += platformFee;
+
+      });
+
+      const areaCharge = booking.extraCharge || 0;
+
+      const adminShare = platformEarn + areaCharge;
+
+      dailyMap[date].totalCollected += collected + areaCharge;
+      dailyMap[date].workerEarnings += workerEarn;
+      dailyMap[date].adminShare += adminShare;
+      dailyMap[date].jobs += 1;
+
+    });
+
+    const result = Object.values(dailyMap).map(day=>{
+
+      const settlement = settlementMap[day.date];
+
+      if(settlement){
+        day.status = settlement.status;
+        day.settlementId = settlement._id;
+      }
+
+      return day;
+
+    });
+
+    res.json({
+      success:true,
+      data:result
+    });
+
+  }catch(error){
+
+    console.error(error);
+
+    res.status(500).json({
+      success:false,
+      message:"Failed to fetch settlement"
+    });
+
   }
 };
