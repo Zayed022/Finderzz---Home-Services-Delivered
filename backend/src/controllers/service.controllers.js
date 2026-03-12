@@ -106,6 +106,27 @@ export const getServices = async (req, res, next) => {
     }
 };
 
+export const getServiceById = async (req,res,next)=>{
+  try{
+
+    const { id } = req.params;
+
+    const service = await Service.findById(id);
+
+    if(!service){
+      return res.status(404).json({message:"Service not found"});
+    }
+
+    res.json({
+      success:true,
+      data:service
+    });
+
+  }catch(error){
+    next(error);
+  }
+};
+
 export const updateService = async (req, res, next) => {
     try {
       const { id } = req.params;

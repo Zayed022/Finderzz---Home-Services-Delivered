@@ -39,6 +39,27 @@ export const getCategories = async (req, res, next) => {
     }
 };
 
+export const getCategoryById = async (req,res,next)=>{
+  try{
+
+    const { id } = req.params;
+
+    const category = await Category.findById(id);
+
+    if(!category){
+      return res.status(404).json({message:"Category not found"});
+    }
+
+    res.json({
+      success:true,
+      data:category
+    });
+
+  }catch(error){
+    next(error);
+  }
+};
+
 export const getCategoriesWithServices = async (req, res, next) => {
   try {
     const categories = await Category.find({ active: true })

@@ -610,3 +610,23 @@ export const updateWorkerProfile = async (req, res) => {
 
   }
 };
+
+export const getApprovedWorkers = async (req,res,next)=>{
+  try{
+
+    const workers = await Worker.find({
+      status:"approved",
+      isActive:true
+    })
+    .select("name phone")
+    .lean();
+
+    res.json({
+      success:true,
+      data:workers
+    });
+
+  }catch(error){
+    next(error);
+  }
+};

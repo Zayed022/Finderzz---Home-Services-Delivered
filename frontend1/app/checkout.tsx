@@ -166,8 +166,8 @@ export default function CheckoutScreen() {
               Selected Services
             </Text>
 
-            {items.map((item) => (
-              <View key={item._id} style={styles.serviceRow}>
+            {items.map((item, index) => (
+  <View key={`${item._id}-${index}`} style={styles.serviceRow}>
                 <Text>{item.name}</Text>
                 <Text>
                   ₹{item.price} × {item.quantity}

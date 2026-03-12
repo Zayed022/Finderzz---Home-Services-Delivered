@@ -1,8 +1,9 @@
 import express from "express";
 
 import { authMiddleware } from "../middlewares/auth.middlewares.js";
-import { createService, deleteService, getServices, getServicesByCategory, getServiceWithSubServices, updateService } from "../controllers/service.controllers.js";
+import { createService, deleteService, getServiceById, getServices, getServicesByCategory, getServiceWithSubServices, updateService } from "../controllers/service.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
+
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.get(
     "/:serviceId/details",
     getServiceWithSubServices
   );
+  router.get("/:id", getServiceById);
 router.patch("/:id", updateService);
 router.delete("/:id", deleteService);
 

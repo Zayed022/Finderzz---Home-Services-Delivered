@@ -2,7 +2,7 @@
   "expo": {
     "name": "Finderzz",
     "slug": "frontend1",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "frontend1",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "com.finderzz.userapp",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundColor": "#E6F4FE"
@@ -49,9 +49,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1161d7f2-29ce-4406-ac29-9be9324cb34b"
+        "projectId": "eaa3b4f6-99f3-4294-b105-9a66c77d56d7"
       }
     },
-    "owner": "zayedansari02"
+    "owner": "zayed02"
   }
 }

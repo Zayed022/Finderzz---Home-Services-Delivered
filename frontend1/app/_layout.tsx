@@ -7,18 +7,23 @@ import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-// Keep splash visible until we hide it manually
-SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
 
   useEffect(() => {
     async function prepare() {
+      try {
+        // prevent splash from hiding automatically
+        await SplashScreen.preventAutoHideAsync();
 
-      // simulate loading resources (fonts/api/etc)
-      await new Promise(resolve => setTimeout(resolve, 800));
+        // simulate loading resources
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-      await SplashScreen.hideAsync();
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // always hide splash
+        await SplashScreen.hideAsync();
+      }
     }
 
     prepare();

@@ -12,10 +12,14 @@ import AddBanner from './components/banner/AddBanner'
 import DeleteBanner from './components/banner/DeleteBanner'
 import ManageBanners from './components/banner/ManageBanner'
 import ManageServices from './components/ManageServices'
-import ManageBookings from './components/bookings/GetBookingsByStatus'
+
 import AddCategory from './components/category/AddCategory'
 import AddService from './components/category/AddService'
 import AddSubService from './components/category/AddSubService'
+import EditCategory from './components/EditCategory'
+import EditService from './components/EditService'
+import EditSubService from './components/EditSubService'
+import ManageBookings from './components/ManageBookings'
 
 
 
@@ -39,6 +43,12 @@ function App() {
       <Route path = "/services/add-category" element={<AddCategory/>}/>
       <Route path = "/services/add-service" element={<AddService/>}/>
       <Route path = "/services/add-subservice" element={<AddSubService/>}/>
+      <Route path="/services/edit-category/:id" element={<EditCategory />} />
+      <Route path="/services/edit-service/:id" element={<EditService />} />
+      <Route
+  path="/services/edit-subservice/:id"
+  element={<EditSubService />}
+/>
       <Route path = "/bookings" element={<ManageBookings/>}/>
 
       
