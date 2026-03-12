@@ -55,13 +55,26 @@ export default function AddSubService(){
         serviceId,
         name,
         description,
-        workerPrice:Number(workerPrice),
-        platformFee:Number(platformFee),
-        durationEstimate,
+        workerPrice: Number(workerPrice),
+        platformFee: Number(platformFee),
+      
+        durationEstimate: durationEstimate
+          ? Number(durationEstimate)
+          : 0,
+      
         inspectionAvailable,
-        inspectionPrice:Number(inspectionPrice),
-        inspectionDescription,
-        inspectionDuration
+      
+        inspectionPrice: inspectionAvailable
+          ? Number(inspectionPrice)
+          : 0,
+      
+        inspectionDescription: inspectionAvailable
+          ? inspectionDescription
+          : "",
+      
+        inspectionDuration: inspectionAvailable
+          ? Number(inspectionDuration)
+          : 0
       };
 
       await API.post("/subService/",payload);
@@ -197,7 +210,7 @@ export default function AddSubService(){
           </label>
 
           <input
-            type="text"
+            type="number"
             value={durationEstimate}
             onChange={(e)=>setDurationEstimate(e.target.value)}
             className="w-full border rounded p-2"
@@ -246,7 +259,7 @@ export default function AddSubService(){
               </label>
 
               <input
-                type="text"
+                type="number"
                 value={inspectionDuration}
                 onChange={(e)=>setInspectionDuration(e.target.value)}
                 className="w-full border rounded p-2"
