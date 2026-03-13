@@ -128,4 +128,90 @@ app.get("/api/v1/privacy-policy", (req, res) => {
   `);
 });
 
+app.get("/api/v1/delete-account", (req,res)=>{
+
+  res.send(`
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <title>Delete Finderzz Worker Account</title>
+  <style>
+  body{
+  font-family:Arial;
+  max-width:800px;
+  margin:auto;
+  padding:40px;
+  line-height:1.6;
+  }
+  h1{color:#222}
+  h2{margin-top:30px}
+  </style>
+  </head>
+  
+  <body>
+  
+  <h1>Delete Your Finderzz Worker Account</h1>
+  
+  <p>
+  This page explains how Finderzz workers can request deletion of their account and associated data.
+  </p>
+  
+  <h2>How to Request Account Deletion</h2>
+  
+  <ol>
+  <li>Open the <strong>Finderzz Worker App</strong>.</li>
+  <li>Go to <strong>Profile</strong>.</li>
+  <li>Tap <strong>Delete Account</strong>.</li>
+  <li>Submit your deletion request.</li>
+  <li>Our admin team will review and process your request.</li>
+  </ol>
+  
+  <p>
+  You may also contact support directly to request deletion.
+  </p>
+  
+  <p>
+  Email: <strong>support@finderzz.com</strong>
+  </p>
+  
+  <h2>Data That Will Be Deleted</h2>
+  
+  <ul>
+  <li>Worker profile information</li>
+  <li>Phone number</li>
+  <li>Address and service details</li>
+  <li>Account authentication data</li>
+  </ul>
+  
+  <h2>Data That May Be Retained</h2>
+  
+  <p>
+  Certain information may be retained for legal, financial, or fraud prevention purposes.
+  </p>
+  
+  <ul>
+  <li>Transaction history</li>
+  <li>Settlement records</li>
+  <li>Invoices</li>
+  </ul>
+  
+  <h2>Retention Period</h2>
+  
+  <p>
+  Financial and transaction records may be retained for up to <strong>90 days</strong> for compliance and dispute resolution.
+  </p>
+  
+  <h2>Developer Information</h2>
+  
+  <p>
+  App Name: Finderzz Worker App<br/>
+  Developer: Finderzz Technologies
+  </p>
+  
+  </body>
+  </html>
+  `);
+  
+  });
+
 export {app}
