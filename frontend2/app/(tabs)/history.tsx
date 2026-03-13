@@ -5,14 +5,16 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  TouchableOpacity,
+  Linking
 } from "react-native";
 
 import API from "@/services/api";
 import { getWorker } from "@/utils/worker";
 import { format } from "date-fns";
 
-export default function HistoryScreen(){
+export default function HistoryScreen() {
 
   const [jobs,setJobs] = useState<any[]>([]);
   const [loading,setLoading] = useState(true);
@@ -36,11 +38,15 @@ export default function HistoryScreen(){
       setError("");
 
     }catch(err){
+
       console.log("History error",err);
       setError("Failed to load history");
+
     }finally{
+
       setLoading(false);
       setRefreshing(false);
+
     }
 
   };
@@ -52,6 +58,28 @@ export default function HistoryScreen(){
   const onRefresh = ()=>{
     setRefreshing(true);
     fetchHistory();
+  };
+
+  const callCustomer = (phone:string)=>{
+    if(!phone) return;
+    Linking.openURL(`tel:${phone}`);
+  };
+
+  const getStatusColor = (status:string)=>{
+
+    switch(status){
+
+      case "completed":
+        return "#16a34a";
+
+      case "cancelled":
+        return "#ef4444";
+
+      default:
+        return "#64748b";
+
+    }
+
   };
 
   const renderServices = (services:any[])=>{
@@ -107,7 +135,9 @@ export default function HistoryScreen(){
   if(jobs.length === 0){
     return(
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>No completed jobs yet</Text>
+        <Text style={styles.emptyTitle}>
+          No completed jobs yet
+        </Text>
       </View>
     );
   }
@@ -134,41 +164,81 @@ export default function HistoryScreen(){
 
           <View style={styles.card}>
 
-            {/* Customer */}
+            {/* HEADER */}
 
             <View style={styles.header}>
-              <Text style={styles.customer}>
-                {item.customerDetails?.name}
-              </Text>
 
-              <Text style={styles.status}>
-                {item.status.toUpperCase()}
-              </Text>
+              <View>
+
+                <Text style={styles.customerName}>
+                  {item.customerDetails?.name}
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.callBtn}
+                  onPress={() =>
+                    callCustomer(item.customerDetails?.phone)
+                  }
+                >
+                  <Text style={styles.callText}>
+                    📞 {item.customerDetails?.phone}
+                  </Text>
+                </TouchableOpacity>
+
+              </View>
+
+              <View
+                style={[
+                  styles.statusBadge,
+                  {backgroundColor:getStatusColor(item.status)}
+                ]}
+              >
+                <Text style={styles.statusText}>
+                  {item.status.replace("_"," ").toUpperCase()}
+                </Text>
+              </View>
+
             </View>
 
-            <Text style={styles.phone}>
-              {item.customerDetails?.phone}
-            </Text>
+            {/* ADDRESS */}
 
-            {/* Address */}
+            <View style={styles.addressBox}>
 
-            <Text style={styles.address}>
-              {item.address?.fullAddress}
-            </Text>
+              <Text style={styles.addressTitle}>
+                Address
+              </Text>
 
-            {/* Schedule */}
+              <Text style={styles.addressLine}>
+                🏠 House: {item.address.houseNumber}
+              </Text>
+
+              <Text style={styles.addressLine}>
+                🏢 Building: {item.address.buildingName}
+              </Text>
+
+              <Text style={styles.addressLine}>
+                📍 Landmark: {item.address.landmark}
+              </Text>
+
+              <Text style={styles.addressMain}>
+                {item.address.fullAddress}
+              </Text>
+
+            </View>
+
+            {/* SCHEDULE */}
 
             <Text style={styles.schedule}>
               Scheduled : {date} • {item.timeSlot}
             </Text>
 
-            {/* Area */}
+            {/* AREA */}
 
             <Text style={styles.area}>
               Area : {item.areaId?.name}
             </Text>
 
-            {/* Services */}
+            {/* SERVICES */}
 
             <View style={styles.servicesBox}>
 
@@ -180,25 +250,40 @@ export default function HistoryScreen(){
 
             </View>
 
-            {/* Price Summary */}
+            {/* PAYMENT SUMMARY */}
 
             <View style={styles.summary}>
 
-              <Text>
-                Subtotal : ₹{item.subtotal}
-              </Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  Subtotal
+                </Text>
+                <Text style={styles.summaryValue}>
+                  ₹{item.subtotal}
+                </Text>
+              </View>
 
-              <Text>
-                Area Charge : ₹{item.extraCharge}
-              </Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  Area Charge
+                </Text>
+                <Text style={styles.summaryValue}>
+                  ₹{item.extraCharge}
+                </Text>
+              </View>
 
-              <Text style={styles.total}>
-                Total : ₹{item.totalPrice}
-              </Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.totalLabel}>
+                  Total
+                </Text>
+                <Text style={styles.totalAmount}>
+                  ₹{item.totalPrice}
+                </Text>
+              </View>
 
             </View>
 
-            {/* Completion Time */}
+            {/* COMPLETED TIME */}
 
             <Text style={styles.completed}>
               Completed : {format(
@@ -228,56 +313,85 @@ center:{
 
 card:{
   backgroundColor:"#fff",
-  marginHorizontal:14,
-  marginVertical:8,
+  marginHorizontal:16,
+  marginVertical:10,
   padding:18,
-  borderRadius:14,
+  borderRadius:18,
+
   shadowColor:"#000",
   shadowOpacity:0.08,
-  shadowRadius:6,
-  elevation:3
+  shadowRadius:10,
+  elevation:4
 },
 
 header:{
   flexDirection:"row",
   justifyContent:"space-between",
-  alignItems:"center"
+  alignItems:"flex-start"
 },
 
-customer:{
-  fontSize:17,
+customerName:{
+  fontSize:18,
   fontWeight:"700"
 },
 
-phone:{
-  color:"#666",
-  marginTop:2
+callBtn:{
+  marginTop:4
 },
 
-status:{
-  color:"#16a34a",
-  fontWeight:"700"
+callText:{
+  color:"#2563eb",
+  fontWeight:"600"
 },
 
-address:{
-  marginTop:8,
-  color:"#444"
+statusBadge:{
+  paddingHorizontal:10,
+  paddingVertical:4,
+  borderRadius:20
+},
+
+statusText:{
+  color:"#fff",
+  fontSize:12,
+  fontWeight:"600"
+},
+
+addressBox:{
+  marginTop:12
+},
+
+addressTitle:{
+  fontWeight:"700",
+  marginBottom:4
+},
+
+addressLine:{
+  color:"#555",
+  fontSize:13
+},
+
+addressMain:{
+  marginTop:4,
+  fontWeight:"500"
 },
 
 schedule:{
-  marginTop:6,
-  fontSize:13,
-  color:"#666"
+  marginTop:10,
+  fontSize:16,
+  color:"#555"
 },
 
 area:{
   marginTop:4,
-  fontSize:13,
-  color:"#666"
+  fontSize:15,
+  color:"#555"
 },
 
 servicesBox:{
-  marginTop:14
+  marginTop:14,
+  borderTopWidth:1,
+  borderColor:"#eee",
+  paddingTop:10
 },
 
 sectionTitle:{
@@ -288,7 +402,7 @@ sectionTitle:{
 serviceRow:{
   flexDirection:"row",
   justifyContent:"space-between",
-  marginBottom:6
+  marginBottom:8
 },
 
 serviceName:{
@@ -297,24 +411,41 @@ serviceName:{
 
 serviceType:{
   fontSize:12,
-  color:"#777"
+  color:"#888"
 },
 
 servicePrice:{
-  fontWeight:"600"
+  fontWeight:"700"
 },
 
 summary:{
-  marginTop:14,
+  marginTop:12,
   borderTopWidth:1,
   borderColor:"#eee",
   paddingTop:10
 },
 
-total:{
-  marginTop:4,
-  fontWeight:"700",
-  fontSize:15
+summaryRow:{
+  flexDirection:"row",
+  justifyContent:"space-between",
+  marginBottom:4
+},
+
+summaryLabel:{
+  color:"#555"
+},
+
+summaryValue:{
+  fontWeight:"600"
+},
+
+totalLabel:{
+  fontWeight:"700"
+},
+
+totalAmount:{
+  fontSize:16,
+  fontWeight:"700"
 },
 
 completed:{

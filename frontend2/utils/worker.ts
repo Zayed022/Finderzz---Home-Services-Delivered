@@ -4,8 +4,12 @@ export const getWorker = async () => {
 
   const worker = await SecureStore.getItemAsync("worker");
 
-  console.log("SECURE STORE WORKER:", worker);
-
   return worker ? JSON.parse(worker) : null;
+
+};
+
+export const removeWorker = async () => {
+
+  await SecureStore.deleteItemAsync("worker");
 
 };

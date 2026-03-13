@@ -2,7 +2,7 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 const API = axios.create({
-  baseURL: "http://10.237.121.100:8000/api/v1",
+  baseURL: "http://finderzz-home-services-delivered.onrender.com/api/v1",
 });
 
 API.interceptors.request.use(async (config) => {

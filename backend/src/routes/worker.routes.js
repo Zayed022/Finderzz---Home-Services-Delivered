@@ -14,6 +14,7 @@ import {
   updateWorkerProfile,
   getApprovedWorkers,
   getWorkerDailySettlement,
+  workerLogout,
 } from "../controllers/worker.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 
@@ -48,6 +49,8 @@ router.get("/earnings/:workerId", getWorkerEarnings);
 router.patch("/availability/:workerId", toggleAvailability);
 
 router.get("/settlement/:workerId", getWorkerDailySettlement);
+
+router.post("/logout/:workerId", workerLogout);
 
 router.get("/approved", getApprovedWorkers);
 

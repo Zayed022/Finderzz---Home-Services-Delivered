@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Switch
+  Switch,
+  Linking
 } from "react-native";
 
 import { router } from "expo-router";
@@ -16,7 +17,6 @@ import { getWorker } from "@/utils/worker";
 
 import "@/utils/i18n";
 import { useTranslation } from "react-i18next";
-
 
 import { format } from "date-fns";
 
@@ -27,7 +27,6 @@ export default function JobsScreen() {
   const [jobs,setJobs] = useState<any[]>([]);
   const [loading,setLoading] = useState(true);
   const [refreshing,setRefreshing] = useState(false);
-  const [error,setError] = useState("");
   const [isHindi,setIsHindi] = useState(false);
   const [updatingId,setUpdatingId] = useState<string | null>(null);
 
@@ -37,70 +36,30 @@ export default function JobsScreen() {
     setIsHindi(!isHindi);
   };
 
+  const callCustomer = (phone:string)=>{
+    if(!phone) return;
+    Linking.openURL(`tel:${phone}`);
+  };
+
   const fetchJobs = async () => {
-    try {
+
+    try{
 
       const worker = await getWorker();
 
-      if(!worker){
-        setError("Worker not found");
-        return;
-      }
+      if(!worker) return;
 
       const res = await API.get(`/worker/jobs/${worker._id}`);
 
       setJobs(res.data.jobs || []);
 
-      setError("");
-
-    } catch(err:any) {
-
-      console.log(err);
-      setError("Failed to load jobs");
-
-    } finally {
-
+    }catch(err){
+      console.log("Jobs error",err);
+    }finally{
       setLoading(false);
       setRefreshing(false);
-
     }
-  };
 
-  const updateStatus = async (id:string,status:string) => {
-    try{
-  
-      setUpdatingId(id);
-  
-      await API.patch(`/booking/${id}/status`,{
-        status
-      });
-  
-      setJobs(prev =>
-        prev.map(j =>
-          j._id === id ? { ...j, status } : j
-        )
-      );
-  
-    }catch(err){
-      console.log("Status update error",err);
-    }finally{
-      setUpdatingId(null);
-    }
-  };
-
-  const getStatusColor = (status:string)=>{
-    switch(status){
-      case "assigned":
-        return "#2563eb";
-      case "in_progress":
-        return "#f59e0b";
-      case "completed":
-        return "#16a34a";
-      case "cancelled":
-        return "#ef4444";
-      default:
-        return "#64748b";
-    }
   };
 
   useEffect(()=>{
@@ -112,12 +71,51 @@ export default function JobsScreen() {
     fetchJobs();
   };
 
-  const openJob = (id:string)=>{
-    router.push(`/job/${id}`);
+  const updateStatus = async(id:string,status:string)=>{
+
+    try{
+
+      setUpdatingId(id);
+
+      await API.patch(`/booking/${id}/status`,{status});
+
+      setJobs(prev =>
+        prev.map(j =>
+          j._id === id ? {...j,status} : j
+        )
+      );
+
+    }catch(err){
+      console.log("Status update error",err);
+    }finally{
+      setUpdatingId(null);
+    }
+
   };
 
-  const renderServices = (services:any[]) => {
+  const getStatusColor = (status:string)=>{
 
+    switch(status){
+
+      case "assigned":
+        return "#3b82f6";
+
+      case "in_progress":
+        return "#f59e0b";
+
+      case "completed":
+        return "#22c55e";
+
+      case "cancelled":
+        return "#ef4444";
+
+      default:
+        return "#64748b";
+    }
+
+  };
+
+  const renderServices = (services:any[])=>{
     return services.map((s,index)=>{
 
       const type =
@@ -139,18 +137,15 @@ export default function JobsScreen() {
             </Text>
           </View>
 
-          <Text style={styles.price}>
+          <Text style={styles.servicePrice}>
             ₹{s.price}
           </Text>
-
-          
 
         </View>
 
       );
 
     });
-
   };
 
   if(loading){
@@ -165,280 +160,391 @@ export default function JobsScreen() {
   if(jobs.length === 0){
     return(
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>{t("noJobs")}</Text>
+        <Text style={styles.emptyTitle}>
+          {t("noJobs")}
+        </Text>
       </View>
     );
   }
 
   return(
 
-    <View style={{flex:1}}>
+<View style={{flex:1}}>
 
-      {/* Language Switch */}
+{/* Language Switch */}
 
-      <View style={styles.languageBar}>
+<View style={styles.languageBar}>
 
-        <Text style={{fontWeight:"600"}}>EN</Text>
+<Text style={styles.lang}>EN</Text>
 
-        <Switch
-          value={isHindi}
-          onValueChange={toggleLanguage}
-        />
+<Switch
+value={isHindi}
+onValueChange={toggleLanguage}
+/>
 
-        <Text style={{fontWeight:"600"}}>हिंदी</Text>
-
-      </View>
-
-      <FlatList
-        data={jobs}
-        keyExtractor={(item)=>item._id}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
-        }
-        renderItem={({item})=>{
-
-          const date = format(
-            new Date(item.scheduledDate),
-            "dd MMM yyyy"
-          );
-
-          return(
-
-            <TouchableOpacity
-              style={styles.card}
-              onPress={()=>openJob(item._id)}
-            >
-
-              {/* Header */}
-
-              <View style={styles.header}>
-
-                <Text style={styles.customerName}>
-                  {item.customerDetails?.name}
-                </Text>
-
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusText}>
-                    {item.status}
-                  </Text>
-                </View>
-
-              </View>
-
-              {/* Address */}
-
-              <Text style={styles.address}>
-                {item.address?.fullAddress}
-              </Text>
-
-              {/* Schedule */}
-
-              <Text style={styles.schedule}>
-                {t("scheduled")} :
-                {" "}
-                {date} • {item.timeSlot}
-              </Text>
-
-              {/* Services */}
-
-              <View style={styles.servicesBox}>
-
-                <Text style={styles.sectionTitle}>
-                  {t("services")}
-                </Text>
-
-                {renderServices(item.services)}
-
-              </View>
-
-              {/* Price Summary */}
-
-              <View style={styles.summary}>
-
-                <Text>
-                  {t("extraCharge")} : ₹{item.extraCharge}
-                </Text>
-
-                <Text style={styles.total}>
-                  {t("total")} : ₹{item.totalPrice}
-                </Text>
-
-              </View>
-
-              <View style={styles.actions}>
-
-  {item.status === "assigned" && (
-    <TouchableOpacity
-      style={styles.startBtn}
-      onPress={()=>updateStatus(item._id,"in_progress")}
-      disabled={updatingId === item._id}
-    >
-      <Text style={styles.btnText}>
-        {updatingId === item._id ? "..." : "Start Job"}
-      </Text>
-    </TouchableOpacity>
-  )}
-
-  {item.status === "in_progress" && (
-    <TouchableOpacity
-      style={styles.completeBtn}
-      onPress={()=>updateStatus(item._id,"completed")}
-      disabled={updatingId === item._id}
-    >
-      <Text style={styles.btnText}>
-        {updatingId === item._id ? "..." : "Complete"}
-      </Text>
-    </TouchableOpacity>
-  )}
+<Text style={styles.lang}>हिंदी</Text>
 
 </View>
 
-            </TouchableOpacity>
+<FlatList
+data={jobs}
+keyExtractor={(item)=>item._id}
+refreshControl={
+<RefreshControl
+refreshing={refreshing}
+onRefresh={onRefresh}
+/>
+}
 
-          );
+renderItem={({item})=>{
 
-        }}
-      />
+const date = format(
+new Date(item.scheduledDate),
+"dd MMM yyyy"
+);
 
-    </View>
+return(
 
-  );
+<View style={styles.card}>
+
+{/* HEADER */}
+
+<View style={styles.header}>
+
+<View>
+
+<Text style={styles.customerName}>
+{item.customerDetails?.name}
+</Text>
+
+<TouchableOpacity
+onPress={()=>callCustomer(item.customerDetails?.phone)}
+style={styles.callBtn}
+>
+
+<Text style={styles.callText}>
+📞 {item.customerDetails?.phone}
+</Text>
+
+</TouchableOpacity>
+
+</View>
+
+<View
+style={[
+styles.statusBadge,
+{backgroundColor:getStatusColor(item.status)}
+]}
+>
+
+<Text style={styles.statusText}>
+{item.status.replace("_"," ").toUpperCase()}
+</Text>
+
+</View>
+
+</View>
+
+{/* ADDRESS */}
+
+<View style={styles.addressBox}>
+
+<Text style={styles.addressTitle}>
+Address
+</Text>
+
+<Text style={styles.addressLine}>
+🏠 House: {item.address.houseNumber}
+</Text>
+
+<Text style={styles.addressLine}>
+🏢 Building: {item.address.buildingName}
+</Text>
+
+<Text style={styles.addressLine}>
+📍 Landmark: {item.address.landmark}
+</Text>
+
+<Text style={styles.addressMain}>
+{item.address.fullAddress}
+</Text>
+
+</View>
+
+{/* SCHEDULE */}
+
+<Text style={styles.schedule}>
+{t("scheduled")} : {date} • {item.timeSlot}
+</Text>
+
+{/* SERVICES */}
+
+<View style={styles.servicesBox}>
+
+<Text style={styles.sectionTitle}>
+{t("services")}
+</Text>
+
+{renderServices(item.services)}
+
+</View>
+
+{/* PAYMENT */}
+
+<View style={styles.summary}>
+
+<View style={styles.summaryRow}>
+<Text style={styles.summaryLabel}>
+{t("extraCharge")}
+</Text>
+
+<Text style={styles.summaryValue}>
+₹{item.extraCharge}
+</Text>
+</View>
+
+<View style={styles.summaryRow}>
+<Text style={styles.totalLabel}>
+{t("total")}
+</Text>
+
+<Text style={styles.totalAmount}>
+₹{item.totalPrice}
+</Text>
+</View>
+
+</View>
+
+{/* ACTION BUTTONS */}
+
+<View style={styles.actions}>
+
+{item.status === "assigned" && (
+
+<TouchableOpacity
+style={styles.startBtn}
+onPress={()=>updateStatus(item._id,"in_progress")}
+disabled={updatingId === item._id}
+>
+
+<Text style={styles.btnText}>
+{updatingId === item._id ? "..." : "Start Job"}
+</Text>
+
+</TouchableOpacity>
+
+)}
+
+{item.status === "in_progress" && (
+
+<TouchableOpacity
+style={styles.completeBtn}
+onPress={()=>updateStatus(item._id,"completed")}
+disabled={updatingId === item._id}
+>
+
+<Text style={styles.btnText}>
+{updatingId === item._id ? "..." : "Complete Job"}
+</Text>
+
+</TouchableOpacity>
+
+)}
+
+</View>
+
+</View>
+
+);
+
+}}
+/>
+
+</View>
+
+);
 
 }
 
 const styles = StyleSheet.create({
 
 center:{
-  flex:1,
-  justifyContent:"center",
-  alignItems:"center"
+flex:1,
+justifyContent:"center",
+alignItems:"center"
 },
 
 languageBar:{
-  flexDirection:"row",
-  justifyContent:"center",
-  alignItems:"center",
-  padding:12,
-  gap:8
+flexDirection:"row",
+justifyContent:"center",
+alignItems:"center",
+padding:12
+},
+
+lang:{
+fontWeight:"600",
+marginHorizontal:6
 },
 
 card:{
-  backgroundColor:"#fff",
-  marginHorizontal:14,
-  marginVertical:8,
-  padding:18,
-  borderRadius:16,
-  shadowColor:"#000",
-  shadowOpacity:0.08,
-  shadowRadius:10,
-  elevation:4
+backgroundColor:"#fff",
+marginHorizontal:16,
+marginVertical:10,
+padding:18,
+borderRadius:18,
+
+shadowColor:"#000",
+shadowOpacity:0.08,
+shadowRadius:10,
+elevation:4
 },
 
 header:{
-  flexDirection:"row",
-  justifyContent:"space-between",
-  alignItems:"center"
+flexDirection:"row",
+justifyContent:"space-between",
+alignItems:"flex-start"
 },
 
 customerName:{
-  fontSize:17,
-  fontWeight:"700"
+fontSize:18,
+fontWeight:"700"
+},
+
+callBtn:{
+marginTop:4
+},
+
+callText:{
+color:"#2563eb",
+fontWeight:"600"
 },
 
 statusBadge:{
-  backgroundColor:"#e6f7ee",
-  paddingHorizontal:10,
-  paddingVertical:4,
-  borderRadius:8
+paddingHorizontal:10,
+paddingVertical:4,
+borderRadius:20
 },
 
 statusText:{
-  color:"#0a7",
-  fontWeight:"600"
+color:"#fff",
+fontSize:12,
+fontWeight:"600"
 },
 
-address:{
-  marginTop:6,
-  color:"#666"
+addressBox:{
+marginTop:12
+},
+
+addressTitle:{
+fontWeight:"700",
+marginBottom:4
+},
+
+addressLine:{
+color:"#555",
+fontSize:13
+},
+
+addressMain:{
+marginTop:4,
+fontWeight:"500"
 },
 
 schedule:{
-  marginTop:6,
-  fontSize:13,
-  color:"#444"
+marginTop:10,
+fontSize:13,
+color:"#555"
 },
 
 servicesBox:{
-  marginTop:14
+marginTop:14,
+borderTopWidth:1,
+borderColor:"#eee",
+paddingTop:10
 },
 
 sectionTitle:{
-  fontWeight:"700",
-  marginBottom:6
+fontWeight:"700",
+marginBottom:6
 },
 
 serviceRow:{
-  flexDirection:"row",
-  justifyContent:"space-between",
-  marginBottom:8
+flexDirection:"row",
+justifyContent:"space-between",
+marginBottom:8
 },
 
 serviceName:{
-  fontWeight:"600"
+fontWeight:"600"
 },
 
 serviceType:{
-  fontSize:12,
-  color:"#777"
+fontSize:12,
+color:"#888"
 },
 
-price:{
-  fontWeight:"600"
-},
-actions:{
-  flexDirection:"row",
-  marginTop:14,
-  justifyContent:"flex-end"
-},
-
-startBtn:{
-  backgroundColor:"#2563eb",
-  paddingVertical:10,
-  paddingHorizontal:18,
-  borderRadius:10
-},
-
-completeBtn:{
-  backgroundColor:"#16a34a",
-  paddingVertical:10,
-  paddingHorizontal:18,
-  borderRadius:10
-},
-
-btnText:{
-  color:"#fff",
-  fontWeight:"600"
+servicePrice:{
+fontWeight:"700"
 },
 
 summary:{
-  marginTop:12,
-  borderTopWidth:1,
-  borderColor:"#eee",
-  paddingTop:10
+marginTop:12,
+borderTopWidth:1,
+borderColor:"#eee",
+paddingTop:10
 },
 
-total:{
-  marginTop:4,
-  fontWeight:"700",
-  fontSize:15
+summaryRow:{
+flexDirection:"row",
+justifyContent:"space-between",
+marginBottom:4
+},
+
+summaryLabel:{
+color:"#555"
+},
+
+summaryValue:{
+fontWeight:"600"
+},
+
+totalLabel:{
+fontWeight:"700"
+},
+
+totalAmount:{
+fontSize:16,
+fontWeight:"700"
+},
+
+actions:{
+marginTop:14,
+flexDirection:"row",
+justifyContent:"flex-end"
+},
+
+startBtn:{
+backgroundColor:"#2563eb",
+paddingVertical:10,
+paddingHorizontal:20,
+borderRadius:10
+},
+
+completeBtn:{
+backgroundColor:"#16a34a",
+paddingVertical:10,
+paddingHorizontal:20,
+borderRadius:10
+},
+
+btnText:{
+color:"#fff",
+fontWeight:"600"
 },
 
 emptyTitle:{
-  fontSize:18,
-  fontWeight:"700"
+fontSize:18,
+fontWeight:"700"
 }
 
 });

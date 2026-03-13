@@ -8,11 +8,13 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  Linking
 } from "react-native";
 
 import API from "@/services/api";
-import { getWorker } from "@/utils/worker";
+import { getWorker, removeWorker } from "@/utils/worker";
+import { router } from "expo-router";
 
 export default function ProfileScreen(){
 
@@ -24,20 +26,26 @@ const [phone,setPhone] = useState("");
 const [address,setAddress] = useState("");
 const [skills,setSkills] = useState("");
 
+/* ---------------- FETCH PROFILE ---------------- */
+
 const fetchProfile = async ()=>{
 
 try{
 
 const workerData = await getWorker();
 
+if(!workerData) return;
+
 const res = await API.get(`/worker/profile/${workerData._id}`);
 
-setWorker(res.data.worker);
+const w = res.data.worker;
 
-setName(res.data.worker.name);
-setPhone(res.data.worker.phone);
-setAddress(res.data.worker.address);
-setSkills(res.data.worker.skills);
+setWorker(w);
+
+setName(w.name || "");
+setPhone(w.phone || "");
+setAddress(w.address || "");
+setSkills(w.skills || "");
 
 }catch(err){
 
@@ -55,6 +63,8 @@ useEffect(()=>{
 fetchProfile();
 },[]);
 
+/* ---------------- UPDATE PROFILE ---------------- */
+
 const updateProfile = async()=>{
 
 try{
@@ -68,7 +78,7 @@ address,
 skills
 });
 
-Alert.alert("Success","Profile updated");
+Alert.alert("Success","Profile updated successfully");
 
 }catch(err){
 
@@ -78,6 +88,69 @@ Alert.alert("Error","Failed to update profile");
 
 };
 
+/* ---------------- LOGOUT ---------------- */
+
+const logout = async () => {
+
+try {
+
+const workerData = await getWorker();
+
+if(!workerData) return;
+
+await API.post(`/worker/logout/${workerData._id}`);
+
+await removeWorker();
+
+router.replace("/login");
+
+}catch(error){
+
+console.log("Logout error:",error);
+
+Alert.alert("Error","Logout failed");
+
+}
+
+};
+
+const confirmLogout = ()=>{
+
+Alert.alert(
+"Logout",
+"Are you sure you want to logout?",
+[
+{ text:"Cancel", style:"cancel" },
+{ text:"Logout", style:"destructive", onPress:logout }
+]
+);
+
+};
+
+/* ---------------- SUPPORT FUNCTIONS ---------------- */
+
+const callSupport = ()=>{
+Linking.openURL("tel:+918262990986");
+};
+
+const emailSupport = ()=>{
+Linking.openURL("mailto:support@finderzz.com");
+};
+
+const openPrivacy = ()=>{
+  router.push("/privacy");
+  };
+  
+  const openTerms = ()=>{
+  router.push("/terms");
+  };
+  
+  const openAbout = ()=>{
+  router.push("/about");
+  };
+
+/* ---------------- LOADING ---------------- */
+
 if(loading){
 return(
 <View style={styles.center}>
@@ -85,6 +158,8 @@ return(
 </View>
 );
 }
+
+/* ---------------- UI ---------------- */
 
 return(
 
@@ -95,26 +170,33 @@ return(
 <View style={styles.profileCard}>
 
 <Image
-source={{uri:worker.profileImage}}
+source={{uri:worker?.profileImage || "https://i.pravatar.cc/150"}}
 style={styles.avatar}
 />
 
-<Text style={styles.workerName}>{worker.name}</Text>
+<Text style={styles.workerName}>
+{worker?.name}
+</Text>
 
-<Text style={styles.workerSkill}>{worker.skills}</Text>
+<Text style={styles.workerSkill}>
+{worker?.skills}
+</Text>
 
 <View style={styles.statusBadge}>
 <Text style={styles.statusText}>
-{worker.status}
+{worker?.status}
 </Text>
 </View>
 
 </View>
 
-
-{/* FORM SECTION */}
+{/* EDIT PROFILE */}
 
 <View style={styles.formCard}>
+
+<Text style={styles.sectionTitle}>
+Edit Profile
+</Text>
 
 <Text style={styles.label}>Name</Text>
 
@@ -150,7 +232,6 @@ style={styles.input}
 
 </View>
 
-
 {/* UPDATE BUTTON */}
 
 <TouchableOpacity
@@ -164,11 +245,72 @@ Update Profile
 
 </TouchableOpacity>
 
+{/* SUPPORT */}
+
+<View style={styles.sectionCard}>
+
+<Text style={styles.sectionTitle}>
+Support
+</Text>
+
+<TouchableOpacity style={styles.menuItem} onPress={callSupport}>
+<Text style={styles.menuText}>📞 Call Support</Text>
+</TouchableOpacity>
+
+<TouchableOpacity style={styles.menuItem} onPress={emailSupport}>
+<Text style={styles.menuText}>✉️ Email Support</Text>
+</TouchableOpacity>
+
+</View>
+
+{/* LEGAL */}
+
+<View style={styles.sectionCard}>
+
+<Text style={styles.sectionTitle}>
+Legal
+</Text>
+
+<TouchableOpacity style={styles.menuItem} onPress={openPrivacy}>
+<Text style={styles.menuText}>Privacy Policy</Text>
+</TouchableOpacity>
+
+<TouchableOpacity style={styles.menuItem} onPress={openTerms}>
+<Text style={styles.menuText}>Terms & Conditions</Text>
+</TouchableOpacity>
+
+<TouchableOpacity style={styles.menuItem} onPress={openAbout}>
+<Text style={styles.menuText}>About Finderzz</Text>
+</TouchableOpacity>
+
+</View>
+
+{/* LOGOUT */}
+
+<TouchableOpacity
+style={styles.logoutBtn}
+onPress={confirmLogout}
+>
+
+<Text style={styles.logoutText}>
+Logout
+</Text>
+
+</TouchableOpacity>
+
+{/* APP VERSION */}
+
+<Text style={styles.version}>
+Finderzz Worker App • v1.0.0
+</Text>
+
 </ScrollView>
 
 );
 
 }
+
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
 
@@ -183,14 +325,12 @@ justifyContent:"center",
 alignItems:"center"
 },
 
-/* PROFILE CARD */
-
 profileCard:{
 backgroundColor:"#fff",
 alignItems:"center",
 padding:25,
 margin:16,
-borderRadius:14,
+borderRadius:16,
 shadowColor:"#000",
 shadowOpacity:0.05,
 shadowOffset:{width:0,height:2},
@@ -227,17 +367,21 @@ color:"#18a558",
 fontWeight:"600"
 },
 
-/* FORM CARD */
-
 formCard:{
 backgroundColor:"#fff",
 marginHorizontal:16,
-borderRadius:14,
+borderRadius:16,
 padding:20,
 shadowColor:"#000",
 shadowOpacity:0.05,
 shadowOffset:{width:0,height:2},
 elevation:3
+},
+
+sectionTitle:{
+fontSize:16,
+fontWeight:"700",
+marginBottom:10
 },
 
 label:{
@@ -255,8 +399,6 @@ marginTop:6,
 backgroundColor:"#fafafa"
 },
 
-/* BUTTON */
-
 updateBtn:{
 backgroundColor:"#2f80ed",
 margin:16,
@@ -269,6 +411,51 @@ updateText:{
 color:"#fff",
 fontWeight:"bold",
 fontSize:16
+},
+
+sectionCard:{
+backgroundColor:"#fff",
+marginHorizontal:16,
+marginTop:16,
+borderRadius:14,
+paddingVertical:10,
+shadowColor:"#000",
+shadowOpacity:0.05,
+shadowOffset:{width:0,height:2},
+elevation:3
+},
+
+menuItem:{
+paddingVertical:14,
+paddingHorizontal:16,
+borderTopWidth:1,
+borderColor:"#f1f1f1"
+},
+
+menuText:{
+fontSize:15,
+color:"#333"
+},
+
+logoutBtn:{
+backgroundColor:"#ef4444",
+marginHorizontal:16,
+marginTop:20,
+padding:16,
+borderRadius:10,
+alignItems:"center"
+},
+
+logoutText:{
+color:"#fff",
+fontWeight:"bold",
+fontSize:16
+},
+
+version:{
+textAlign:"center",
+color:"#999",
+marginVertical:20
 }
 
 });

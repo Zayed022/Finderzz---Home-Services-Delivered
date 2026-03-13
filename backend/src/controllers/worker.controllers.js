@@ -101,6 +101,49 @@ export const workerLogin = async (req, res) => {
   }
 };
 
+export const workerLogout = async (req, res) => {
+  try {
+
+    const { workerId } = req.params;
+
+    if (!workerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Worker ID required"
+      });
+    }
+
+    // remove refresh token from DB
+    await Worker.findByIdAndUpdate(
+      workerId,
+      { refreshToken: null },
+      { new: true }
+    );
+
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production"
+    };
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json({
+        success: true,
+        message: "Logged out successfully"
+      });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: "Logout failed"
+    });
+
+  }
+};
+
 export const registerWorker = async (req, res) => {
   try {
     const {
