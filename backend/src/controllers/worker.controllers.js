@@ -64,7 +64,7 @@ export const workerLogin = async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(worker._id);
 
     // Fetch logged-in user details (excluding sensitive fields)
-    const loggedInWorker = await Worker.findById(worker._id).select("-password -refreshToken");
+    const loggedInWorker = await Worker.findById(worker._id).select("-password ");
 
     // Set cookies
 
@@ -82,16 +82,18 @@ export const workerLogin = async (req, res) => {
         message: "Your account is not approved yet",
       });
     }
-    const token = generateWorkerToken(worker);
+    
 
-    return res.status(200)
+    return res
+  .status(200)
   .cookie("accessToken", accessToken, options)
   .cookie("refreshToken", refreshToken, options)
   .json({
-      success: true,
-      message: "User logged in successfully",
-      worker: loggedInWorker,
-      token: accessToken
+    success: true,
+    message: "User logged in successfully",
+    token: accessToken,
+    refreshToken: refreshToken,
+    worker: loggedInWorker
   });
   } catch (error) {
     res.status(500).json({

@@ -1,3 +1,4 @@
+import React from "react";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -5,23 +6,23 @@ import { getToken } from "@/utils/auth";
 
 export default function RootLayout() {
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
       const token = await getToken();
 
       if (token) {
-        setIsLoggedIn(true);
+        setInitialRoute("(tabs)");
       } else {
-        setIsLoggedIn(false);
+        setInitialRoute("login");
       }
     };
 
     checkAuth();
   }, []);
 
-  if (isLoggedIn === null) {
+  if (!initialRoute) {
     return (
       <View style={{ flex:1, justifyContent:"center", alignItems:"center" }}>
         <ActivityIndicator size="large" />
@@ -30,12 +31,13 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {isLoggedIn ? (
-        <Stack.Screen name="(tabs)" />
-      ) : (
-        <Stack.Screen name="login" />
-      )}
+    <Stack
+      screenOptions={{ headerShown:false }}
+      initialRouteName={initialRoute}
+    >
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }
