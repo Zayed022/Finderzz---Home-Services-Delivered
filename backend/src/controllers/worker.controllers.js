@@ -19,7 +19,12 @@ const generateWorkerToken = (user) => {
 
 const generateAccessAndRefreshTokens = async (workerId) => {
   try {
+
     const worker = await Worker.findById(workerId);
+
+    if (!worker) {
+      throw new Error("Worker not found");
+    }
 
     const accessToken = worker.generateAccessToken();
     const refreshToken = worker.generateRefreshToken();
@@ -30,11 +35,7 @@ const generateAccessAndRefreshTokens = async (workerId) => {
     return { accessToken, refreshToken };
 
   } catch (error) {
-    return ({
-      success: false,
-      message: "Login failed",
-      error: error.message,
-    });
+    throw new Error(error.message);
   }
 };
 

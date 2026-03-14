@@ -33,18 +33,23 @@ export default function Login() {
         phone,
         password
       });
-    
+      
+      console.log("FULL RESPONSE:", res);
+      console.log("RESPONSE DATA:", res.data);
+      
+      const token = res.data?.token;
+      
+      if (!token) {
+        throw new Error("Token not received");
+      }
+      
+      await saveToken(String(token));
+      
       await SecureStore.setItemAsync(
         "worker",
         JSON.stringify(res.data.worker)
       );
-    
-      const token = res?.data?.token;
-    
-      if (!token) throw new Error("Token not received");
-    
-      await saveToken(String(token));
-    
+      
       router.replace("/(tabs)");
     
     } catch (err:any) {
