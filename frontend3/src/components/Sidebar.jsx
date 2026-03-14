@@ -22,7 +22,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Bookings', icon: <ShoppingCart size={24} />, to: '/bookings' },
     { name: "Area", icon: <Heart size={24} />, to: "/area" },
     { name: 'Users', icon: <Users size={24} />, to: '/users' },
-    { name: 'Delivery Partners', icon: <Bike size={24} />, to: '/delivery-partners' },
+    { name: 'Workers', icon: <Bike size={24} />, to: '/worker' },
     { name: 'Shop', icon: <Package size={24} />, to: '/shop' },
     { name: 'Banner', icon: <Image size={24} />, to: '/banner' },
     { name: 'Notice', icon: <Megaphone size={24} />, to: '/notice' },

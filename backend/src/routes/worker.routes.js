@@ -15,6 +15,7 @@ import {
   getApprovedWorkers,
   getWorkerDailySettlement,
   workerLogout,
+  getRegisteredWorkers,
 } from "../controllers/worker.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 
@@ -53,6 +54,8 @@ router.get("/settlement/:workerId", getWorkerDailySettlement);
 router.post("/logout/:workerId", workerLogout);
 
 router.get("/approved", getApprovedWorkers);
+
+router.get("/pending", getRegisteredWorkers);
 
 
 export default router;

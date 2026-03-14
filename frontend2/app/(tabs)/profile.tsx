@@ -94,13 +94,9 @@ const logout = async () => {
 
 try {
 
-const workerData = await getWorker();
 
-if(!workerData) return;
 
-await API.post(`/worker/logout/${workerData._id}`);
 
-await removeWorker();
 
 router.replace("/login");
 
@@ -289,7 +285,7 @@ Legal
 
 <TouchableOpacity
 style={styles.logoutBtn}
-onPress={confirmLogout}
+onPress={logout}
 >
 
 <Text style={styles.logoutText}>

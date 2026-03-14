@@ -30,10 +30,11 @@ const generateAccessAndRefreshTokens = async (workerId) => {
     return { accessToken, refreshToken };
 
   } catch (error) {
-    throw new ApiError(
-      500,
-      "Something went wrong while generating access and refresh token"
-    );
+    res.status(500).json({
+      success: false,
+      message: "Login failed",
+      error: error.message,
+    });
   }
 };
 
@@ -672,6 +673,25 @@ export const getApprovedWorkers = async (req,res,next)=>{
       isActive:true
     })
     .select("name phone")
+    .lean();
+
+    res.json({
+      success:true,
+      data:workers
+    });
+
+  }catch(error){
+    next(error);
+  }
+};
+
+export const getRegisteredWorkers = async (req,res,next)=>{
+  try{
+
+    const workers = await Worker.find({
+      status:"pending",
+    })
+    .select("name phone aadhaarNumber panNumber aadhaarImage panImage profileImage skills address")
     .lean();
 
     res.json({

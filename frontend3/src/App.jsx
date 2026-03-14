@@ -20,6 +20,9 @@ import EditCategory from './components/EditCategory'
 import EditService from './components/EditService'
 import EditSubService from './components/EditSubService'
 import ManageBookings from './components/ManageBookings'
+import Bookings from './components/Bookings'
+import GetBookingById from './components/bookings/GetBookingsById'
+import Worker from './components/Worker'
 
 
 
@@ -49,7 +52,10 @@ function App() {
   path="/services/edit-subservice/:id"
   element={<EditSubService />}
 />
-      <Route path = "/bookings" element={<ManageBookings/>}/>
+      <Route path = "/bookings" element={<Bookings/>}/>
+      <Route path = "/bookings/manage" element={<ManageBookings/>}/>
+      <Route path = "/bookings/id" element={<GetBookingById/>}/>
+      <Route path = "/worker" element={<Worker/>}/>
 
       
       
