@@ -30,7 +30,7 @@ const generateAccessAndRefreshTokens = async (workerId) => {
     return { accessToken, refreshToken };
 
   } catch (error) {
-    res.status(500).json({
+    return ({
       success: false,
       message: "Login failed",
       error: error.message,
