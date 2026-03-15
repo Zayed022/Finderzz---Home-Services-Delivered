@@ -1,5 +1,5 @@
 import express from "express";
-import { createRequest, createVertical, getAllVerticals, getVerticalDetails } from "../controllers/vertical.controllers.js";
+import { createRequest, createVertical, getAllRequest, getAllVerticals, getVerticalDetails } from "../controllers/vertical.controllers.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 
 
@@ -13,4 +13,5 @@ router.post("/", upload.fields([
     { name: "icon", maxCount: 1 },
   ]), 
     createVertical);
+router.get("/get", getAllRequest)
 export default router;

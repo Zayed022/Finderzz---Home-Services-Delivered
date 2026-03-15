@@ -13,8 +13,41 @@ export const getAllVerticals = async (req, res) => {
   };
   
   export const createRequest = async (req, res) => {
-    const request = await Request.create(req.body);
-    res.json({ success: true, data: request });
+    try {
+      const { verticalId, userId, phone, responses } = req.body;
+  
+      if (!verticalId) {
+        return res.status(400).json({
+          success: false,
+          message: "Vertical ID is required",
+        });
+      }
+  
+      if (!phone) {
+        return res.status(400).json({
+          success: false,
+          message: "Phone number is required",
+        });
+      }
+  
+      const request = await Request.create({
+        verticalId,
+        userId,
+        phone,
+        responses,
+      });
+  
+      res.status(201).json({
+        success: true,
+        data: request,
+      });
+  
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
   };
 
   export const createVertical = async (req, res, next) => {
@@ -66,5 +99,26 @@ export const getAllVerticals = async (req, res) => {
     } catch (error) {
       console.log("Create Vertical Error:", error);
       next(error);
+    }
+  };
+
+  export const getAllRequest = async (req, res) => {
+    try {
+  
+      const requests = await Request.find()
+        .populate("verticalId", "name")   // 👈 THIS FIX
+        .populate("userId", "name phone");
+  
+      res.json({
+        success: true,
+        data: requests,
+      });
+  
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch requests",
+      });
     }
   };

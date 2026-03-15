@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom';
 
 const actions = [
   
-  { title: 'Registered Workers', path: '/worker/pending' },
-  { title: 'All Approved Workers', path: '/worker/approved' },
-  { title: 'Settlement Dashboard', path: '/worker/settlement' },
+  { title: 'Create Vertical', path: '/vertical/create' },
+  { title: 'Get All Vertical', path: '/vertical/get' },
+  { title: 'Get all Vertical request', path: '/vertical/request' },
   
 ];
 
-const Worker = () => {
+const Explore = () => {
   const navigate = useNavigate();
 
   return (
     <div className="p-8 w-full">
-      <h1 className="text-3xl font-semibold text-gray-800 mb-8">Worker Management</h1>
+      <h1 className="text-3xl font-semibold text-gray-800 mb-8">Explore Management</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {actions.map((action, index) => (
@@ -36,4 +36,4 @@ const Worker = () => {
   );
 };
 
-export default Worker;
+export default Explore;

@@ -1,7 +1,8 @@
-import User from "../models/user.models.js";
 import Worker from "../models/worker.models.js";
 import Booking from "../models/booking.models.js"
 import Settlement from "../models/settlement.models.js"
+import Service from "../models/service.models.js";
+import SubService from "../models/subService.models.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
@@ -675,7 +676,7 @@ export const getApprovedWorkers = async (req,res,next)=>{
       status:"approved",
       isActive:true
     })
-    .select("name phone")
+    .select("name phone skills address profileImage")
     .lean();
 
     res.json({
@@ -731,9 +732,13 @@ export const getWorkerDailySettlement = async (req,res)=>{
 
     const settlementMap = {};
 
-    settlements.forEach(s=>{
-      settlementMap[s.date] = s;
-    });
+settlements.forEach(s => {
+
+  const key = `${s.workerId}_${s.date}`;
+
+  settlementMap[key] = s;
+
+});
 
     const dailyMap = {};
 
@@ -797,9 +802,139 @@ export const getWorkerDailySettlement = async (req,res)=>{
 
     });
 
-    const result = Object.values(dailyMap).map(day=>{
+    const result = Object.values(dailyMap).map(day => {
 
-      const settlement = settlementMap[day.date];
+      const key = `${workerId}_${day.date}`;
+    
+      const settlement = settlementMap[key];
+    
+      if (settlement) {
+    
+        day.status = settlement.status;
+        day.settlementId = settlement._id;
+    
+      }
+    
+      return day;
+    
+    
+    
+    });
+    
+
+    res.json({
+      success:true,
+      data:result
+    });
+
+  }catch(error){
+
+    console.error(error);
+
+    res.status(500).json({
+      success:false,
+      message:"Failed to fetch settlement"
+    });
+
+  }
+};
+
+export const getAllSettlements = async (req,res)=>{
+  try{
+
+    const bookings = await Booking.find({
+      status:"completed"
+    })
+    .populate("workerId","name phone")
+    .populate("services.subServiceId")
+    .populate("areaId")
+    .sort({createdAt:-1});
+
+    const settlements = await Settlement.find();
+
+    const settlementMap = {};
+
+    settlements.forEach(s => {
+
+      const key = `${s.workerId.toString()}_${s.date}`;
+
+      settlementMap[key] = s;
+
+    });
+
+    const dailyMap = {};
+
+    bookings.forEach((booking)=>{
+
+      const date = booking.createdAt.toISOString().split("T")[0];
+      const workerId = booking.workerId?._id?.toString();
+
+      const key = `${workerId}_${date}`;
+
+      if(!dailyMap[key]){
+        dailyMap[key] = {
+          workerId,
+          workerName: booking.workerId?.name,
+          workerPhone: booking.workerId?.phone,
+          date,
+          totalCollected:0,
+          workerEarnings:0,
+          adminShare:0,
+          jobs:0,
+          status:"pending"
+        };
+      }
+
+      let collected = 0;
+      let workerEarn = 0;
+      let platformEarn = 0;
+
+      booking.services.forEach(service=>{
+
+        const price = service.price || 0;
+
+        let workerPrice = 0;
+        let platformFee = 0;
+
+        if(service.bookingType === "inspection"){
+
+          workerPrice =
+            service.subServiceId?.inspectionWorkerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.inspectionPlatformFee || 0;
+
+        }else{
+
+          workerPrice =
+            service.subServiceId?.workerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.platformFee || 0;
+        }
+
+        collected += price;
+        workerEarn += workerPrice;
+        platformEarn += platformFee;
+
+      });
+
+      const areaCharge = booking.extraCharge || 0;
+
+      const adminShare = platformEarn + areaCharge;
+
+      dailyMap[key].totalCollected += collected + areaCharge;
+      dailyMap[key].workerEarnings += workerEarn;
+      dailyMap[key].adminShare += adminShare;
+      dailyMap[key].jobs += 1;
+
+    });
+
+    const result = Object.values(dailyMap).map(day => {
+
+      const key = `${day.workerId}_${day.date}`;
+
+      const settlement = settlementMap[key];
 
       if(settlement){
         day.status = settlement.status;
@@ -821,7 +956,291 @@ export const getWorkerDailySettlement = async (req,res)=>{
 
     res.status(500).json({
       success:false,
-      message:"Failed to fetch settlement"
+      message:"Failed to fetch settlements"
+    });
+
+  }
+};
+
+export const getSettlementStats = async (req,res)=>{
+  try{
+
+    const bookings = await Booking.find({
+      status:"completed"
+    })
+    .populate("services.subServiceId");
+
+    let totalRevenue = 0;
+    let workerEarnings = 0;
+    let adminShare = 0;
+
+    bookings.forEach(booking=>{
+
+      booking.services.forEach(service=>{
+
+        const price = service.price || 0;
+
+        let workerPrice = 0;
+        let platformFee = 0;
+
+        if(service.bookingType === "inspection"){
+
+          workerPrice =
+            service.subServiceId?.inspectionWorkerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.inspectionPlatformFee || 0;
+
+        }else{
+
+          workerPrice =
+            service.subServiceId?.workerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.platformFee || 0;
+
+        }
+
+        totalRevenue += price;
+        workerEarnings += workerPrice;
+        adminShare += platformFee;
+
+      });
+
+      adminShare += booking.extraCharge || 0;
+
+    });
+
+    res.json({
+      success:true,
+      stats:{
+        totalRevenue,
+        workerEarnings,
+        adminShare
+      }
+    });
+
+  }catch(error){
+
+    res.status(500).json({
+      success:false,
+      message:"Failed to fetch settlement stats"
+    });
+
+  }
+};
+
+export const getSettlementsByStatus = async (req,res)=>{
+  try{
+
+    const { status } = req.query;
+
+    const bookings = await Booking.find({
+      status:"completed"
+    })
+    .populate("workerId","name phone")
+    .populate("services.subServiceId")
+    .populate("areaId")
+    .sort({createdAt:-1});
+
+    const settlements = await Settlement.find();
+
+    const settlementMap = {};
+
+    settlements.forEach(s => {
+
+      const key = `${s.workerId.toString()}_${s.date}`;
+
+      settlementMap[key] = s;
+
+    });
+
+    const dailyMap = {};
+
+    bookings.forEach((booking)=>{
+
+      const date = booking.createdAt.toISOString().split("T")[0];
+      const workerId = booking.workerId?._id?.toString();
+
+      const key = `${workerId}_${date}`;
+
+      if(!dailyMap[key]){
+
+        dailyMap[key] = {
+          workerId,
+          workerName: booking.workerId?.name,
+          workerPhone: booking.workerId?.phone,
+          date,
+          totalCollected:0,
+          workerEarnings:0,
+          adminShare:0,
+          jobs:0,
+          status:"pending"
+        };
+
+      }
+
+      let collected = 0;
+      let workerEarn = 0;
+      let platformEarn = 0;
+
+      booking.services.forEach(service=>{
+
+        const price = service.price || 0;
+
+        let workerPrice = 0;
+        let platformFee = 0;
+
+        if(service.bookingType === "inspection"){
+
+          workerPrice =
+            service.subServiceId?.inspectionWorkerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.inspectionPlatformFee || 0;
+
+        }else{
+
+          workerPrice =
+            service.subServiceId?.workerPrice || 0;
+
+          platformFee =
+            service.subServiceId?.platformFee || 0;
+
+        }
+
+        collected += price;
+        workerEarn += workerPrice;
+        platformEarn += platformFee;
+
+      });
+
+      const areaCharge = booking.extraCharge || 0;
+
+      const adminShare = platformEarn + areaCharge;
+
+      dailyMap[key].totalCollected += collected + areaCharge;
+      dailyMap[key].workerEarnings += workerEarn;
+      dailyMap[key].adminShare += adminShare;
+      dailyMap[key].jobs += 1;
+
+    });
+
+    let result = Object.values(dailyMap).map(day => {
+
+      const key = `${day.workerId}_${day.date}`;
+
+      const settlement = settlementMap[key];
+
+      if(settlement){
+        day.status = settlement.status;
+        day.settlementId = settlement._id;
+      }
+
+      return day;
+
+    });
+
+    if(status){
+      result = result.filter(r => r.status === status);
+    }
+
+    res.json({
+      success:true,
+      count:result.length,
+      data:result
+    });
+
+  }catch(error){
+
+    console.error(error);
+
+    res.status(500).json({
+      success:false,
+      message:"Failed to fetch settlements"
+    });
+
+  }
+};
+
+export const getDashboardStats = async (req, res) => {
+  try {
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0,0,0,0);
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23,59,59,999);
+
+    const [
+      completedOrders,
+      inProgressOrders,
+      assignedOrders,
+      pendingOrders,
+      todaysOrders,
+      approvedWorkers,
+      pendingWorkers,
+      totalServices,
+      totalSubServices,
+      pendingSettlements
+    ] = await Promise.all([
+
+      Booking.countDocuments({ status: "completed" }),
+
+      Booking.countDocuments({ status: "in_progress" }),
+
+      Booking.countDocuments({ status: "assigned" }),
+
+      Booking.countDocuments({ status: "pending" }),
+
+      Booking.countDocuments({
+        createdAt: { $gte: startOfToday, $lte: endOfToday }
+      }),
+
+      Worker.countDocuments({ status: "approved" }),
+
+      Worker.countDocuments({ status: "pending" }),
+
+      Service.countDocuments(),
+
+      SubService.countDocuments(),
+
+      Settlement.countDocuments({ status: "pending" }),
+
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        orders: {
+          completed: completedOrders,
+          inProgress: inProgressOrders,
+          assigned: assignedOrders,
+          pending: pendingOrders,
+          today: todaysOrders
+        },
+        workers: {
+          approved: approvedWorkers,
+          pending: pendingWorkers
+        },
+        services: {
+          totalServices,
+          totalSubServices
+        },
+        settlements: {
+          pending: pendingSettlements
+        }
+      }
+    });
+
+  } catch (error) {
+
+    console.error("Dashboard Stats Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard",
+      error: error.message
     });
 
   }

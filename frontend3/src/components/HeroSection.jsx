@@ -1,22 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
+  CheckCircle,
   Truck,
+  ClipboardList,
+  Package,
+  Calendar,
   Users,
   UserCheck,
-  ClipboardList,
-  ShoppingCart,
-  CheckCircle,
-  Package,
-  Timer,
-  TrendingUp,
-  DollarSign,
-  Calendar,
-  UserPlus,
-  Repeat,
+  Layers,
   BarChart3,
-  Heart
-} from 'lucide-react';
+} from "lucide-react";
+import API from "../api/api";
 
 const HeroSection = () => {
   const [stats, setStats] = useState(null);
@@ -24,8 +19,11 @@ const HeroSection = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get('');
-      setStats(response.data);
+      const res = await API.get(
+        "/worker/dashboard/stats"
+      );
+
+      setStats(res.data.data);
     } catch (error) {
       console.error("Failed to fetch stats", error);
     } finally {
@@ -37,137 +35,75 @@ const HeroSection = () => {
     fetchStats();
   }, []);
 
-  const numberFormatter = new Intl.NumberFormat('en-IN');
-
   const metricCards = [
     {
-      label: 'Delivered Orders',
-      value: stats?.deliveredCount,
+      label: "Completed Orders",
+      value: stats?.orders?.completed || 0,
       icon: <CheckCircle className="text-green-600 w-6 h-6" />,
-      color: 'border-green-500',
+      color: "border-green-500",
     },
     {
-      label: 'Out for Delivery',
-      value: stats?.outForDeliveryCount,
+      label: "In Progress Orders",
+      value: stats?.orders?.inProgress || 0,
       icon: <Truck className="text-yellow-600 w-6 h-6" />,
-      color: 'border-yellow-500',
+      color: "border-yellow-500",
     },
     {
-      label: 'Picked Orders',
-      value: stats?.pickedCount,
+      label: "Assigned Orders",
+      value: stats?.orders?.assigned || 0,
+      icon: <ClipboardList className="text-orange-600 w-6 h-6" />,
+      color: "border-orange-500",
+    },
+    {
+      label: "Pending Orders",
+      value: stats?.orders?.pending || 0,
       icon: <Package className="text-blue-600 w-6 h-6" />,
-      color: 'border-blue-500',
-    },
-    {
-      label: 'Assigned Orders',
-      value: stats?.assignedCount,
-      icon: <ClipboardList className="text-orange-600 w-6 h-6" />,
-      color: 'border-orange-500',
-    },
-    {
-      label: 'Placed Orders',
-      value: stats?.placedCount,
-      icon: <ClipboardList className="text-orange-600 w-6 h-6" />,
-      color: 'border-orange-500',
-    },
-    {
-      label: 'Paid Orders',
-      value: stats?.paymentStatusCount,
-      icon: <CheckCircle className="text-green-600 w-6 h-6" />,
-      color: 'border-green-500',
+      color: "border-blue-500",
     },
     {
       label: "Today's Orders",
-      value: stats?.todayOrdersCount,
+      value: stats?.orders?.today || 0,
       icon: <Calendar className="text-indigo-600 w-6 h-6" />,
-      color: 'border-indigo-500',
+      color: "border-indigo-500",
     },
     {
-      label: 'Avg. Order Value',
-      value: `₹${stats?.averageOrderValue}`,
-      icon: <TrendingUp className="text-pink-600 w-6 h-6" />,
-      color: 'border-pink-500',
-    },
-    {
-      label: 'Fulfillment Rate',
-      value: `${stats?.fulfillmentRate}%`,
-      icon: <Timer className="text-teal-600 w-6 h-6" />,
-      color: 'border-teal-500',
-    },
-    {
-      label: 'Total Users',
-      value: stats?.totalUsers,
-      icon: <Users className="text-violet-600 w-6 h-6" />,
-      color: 'border-violet-500',
-    },
-    {
-      label: 'New Users Today',
-      value: stats?.newUsersToday,
-      icon: <UserPlus className="text-emerald-600 w-6 h-6" />,
-      color: 'border-emerald-500',
-    },
-    {
-      label: 'New Users This Week',
-      value: stats?.newUsersThisWeek,
-      icon: <UserPlus className="text-cyan-600 w-6 h-6" />,
-      color: 'border-cyan-500',
-    },
-    {
-      label: 'New Users This Month',
-      value: stats?.newUsersThisMonth,
-      icon: <UserPlus className="text-indigo-600 w-6 h-6" />,
-      color: 'border-indigo-500',
-    },
-    {
-      label: 'Retention Rate',
-      value: `${stats?.retentionRate}%`,
-      icon: <Repeat className="text-purple-600 w-6 h-6" />,
-      color: 'border-purple-500',
-    },
-    {
-  label: 'Wishlist Items',
-  value: stats?.wishListCount,
-  icon: <Heart className="text-red-500 w-6 h-6" />,
-  color: 'border-red-500',
-},
-
-
-    {
-      label: 'Delivery Partners',
-      value: stats?.totalDeliveryPartners,
+      label: "Approved Workers",
+      value: stats?.workers?.approved || 0,
       icon: <UserCheck className="text-emerald-600 w-6 h-6" />,
-      color: 'border-emerald-500',
+      color: "border-emerald-500",
     },
     {
-      label: 'Available Partners',
-      value: stats?.availableDeliveryPartners,
-      icon: <UserCheck className="text-sky-600 w-6 h-6" />,
-      color: 'border-sky-500',
+      label: "Pending Workers",
+      value: stats?.workers?.pending || 0,
+      icon: <Users className="text-red-500 w-6 h-6" />,
+      color: "border-red-500",
     },
     {
-      label: 'Total Products',
-      value: stats?.totalProducts,
-      icon: <ShoppingCart className="text-violet-600 w-6 h-6" />,
-      color: 'border-violet-500',
+      label: "Total Services",
+      value: stats?.services?.totalServices || 0,
+      icon: <Layers className="text-violet-600 w-6 h-6" />,
+      color: "border-violet-500",
     },
     {
-      label: 'Total Sales',
-      value: `₹${numberFormatter.format(stats?.totalSales || 0)}`,
-      icon: <DollarSign className="text-rose-600 w-6 h-6" />,
-      color: 'border-rose-500',
+      label: "Total Sub Services",
+      value: stats?.services?.totalSubServices || 0,
+      icon: <BarChart3 className="text-cyan-600 w-6 h-6" />,
+      color: "border-cyan-500",
     },
     {
-      label: "Today's Revenue",
-      value: `₹${numberFormatter.format(stats?.todaysRevenue || 0)}`,
-      icon: <DollarSign className="text-lime-600 w-6 h-6" />,
-      color: 'border-lime-500',
+      label: "Pending Settlements",
+      value: stats?.settlements?.pending || 0,
+      icon: <ClipboardList className="text-pink-600 w-6 h-6" />,
+      color: "border-pink-500",
     },
   ];
 
   if (loading) {
     return (
       <section className="p-6 bg-white shadow rounded-md w-full">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Dashboard Overview</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          Dashboard Overview
+        </h2>
         <p className="text-gray-600">Loading metrics...</p>
       </section>
     );
@@ -175,18 +111,21 @@ const HeroSection = () => {
 
   return (
     <section className="p-6 bg-gray-50 min-h-screen">
-      <h2 className="text-3xl font-bold text-gray-800 mb-8">📊 Dashboard Overview</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-8">
+        📊 Dashboard Overview
+      </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {metricCards.map(({ label, value, icon, color }, idx) => (
           <div
             key={idx}
-            className={`bg-white ${color} border-l-4 rounded-2xl shadow-md p-5 flex flex-col justify-center gap-2 transition duration-300 hover:scale-[1.02]`}
+            className={`bg-white ${color} border-l-4 rounded-2xl shadow-md p-5 flex flex-col gap-2 transition duration-300 hover:scale-[1.02]`}
           >
             <div className="flex items-center gap-3">
               {icon}
               <h3 className="text-md font-medium text-gray-600">{label}</h3>
             </div>
+
             <p className="text-3xl font-bold text-gray-800">{value}</p>
           </div>
         ))}

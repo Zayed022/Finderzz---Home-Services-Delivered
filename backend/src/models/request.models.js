@@ -14,6 +14,11 @@ const requestSchema = new mongoose.Schema(
       default: null,
     },
 
+    phone:{
+      type: Number,
+      required: true,
+    },
+
     responses: mongoose.Schema.Types.Mixed, // dynamic data
 
     status: {

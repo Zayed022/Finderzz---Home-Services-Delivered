@@ -21,14 +21,9 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Services', icon: <Package size={24} />, to: '/services' },
     { name: 'Bookings', icon: <ShoppingCart size={24} />, to: '/bookings' },
     { name: "Area", icon: <Heart size={24} />, to: "/area" },
-    { name: 'Users', icon: <Users size={24} />, to: '/users' },
     { name: 'Workers', icon: <Bike size={24} />, to: '/worker' },
-    { name: 'Shop', icon: <Package size={24} />, to: '/shop' },
+    { name: 'Explore', icon: <Package size={24} />, to: '/vertical' },
     { name: 'Banner', icon: <Image size={24} />, to: '/banner' },
-    { name: 'Notice', icon: <Megaphone size={24} />, to: '/notice' },
-    { name: 'Offers', icon: <Tag size={24} />, to: '/offers' },
-    { name: 'Notifications', icon: <Bell  size={24} />, to: '/notification' },
-    { name: 'Fee', icon: <IndianRupee  size={24} />, to: '/fee' },
     { name: 'Settings', icon: <Settings size={24} />, to: '/settings' },
   ];
 

@@ -31,32 +31,54 @@ export const submitSettlement = async(req,res)=>{
   
   };
 
-  export const approveSettlement = async(req,res)=>{
-
-    try{
+  export const approveSettlement = async (req, res) => {
+    try {
   
-      const {id} = req.params;
+      const { id } = req.params;
   
-      const settlement = await Settlement.findByIdAndUpdate(
-        id,
-        {
-          status:"approved",
-          approvedAt:new Date()
-        },
-        {new:true}
-      );
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: "Settlement ID is required"
+        });
+      }
   
-      res.json({
-        success:true,
+      const settlement = await Settlement.findById(id);
+  
+      if (!settlement) {
+        return res.status(404).json({
+          success: false,
+          message: "Settlement not found"
+        });
+      }
+  
+      if (settlement.status === "approved") {
+        return res.status(400).json({
+          success: false,
+          message: "Settlement already approved"
+        });
+      }
+  
+      settlement.status = "approved";
+      settlement.approvedAt = new Date();
+  
+      await settlement.save();
+  
+      res.status(200).json({
+        success: true,
+        message: "Settlement approved successfully",
         settlement
       });
   
-    }catch(error){
+    } catch (error) {
+  
+      console.error("Approve settlement error:", error);
   
       res.status(500).json({
-        success:false
+        success: false,
+        message: "Failed to approve settlement"
       });
   
     }
-  
   };
+  

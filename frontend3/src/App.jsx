@@ -23,6 +23,13 @@ import ManageBookings from './components/ManageBookings'
 import Bookings from './components/Bookings'
 import GetBookingById from './components/bookings/GetBookingsById'
 import Worker from './components/Worker'
+import PendingWorkers from './components/worker/PendingWorkers'
+import GetApprovedWorkers from './components/worker/GetApprovedWorkers'
+import SettlementDashboard from './components/worker/SettlementDashboard'
+import Explore from './components/Explore'
+import CreateVertical from './components/vertical/CreateVertical'
+import GetAllVerticals from './components/vertical/GetAllVerticals'
+import GetAllRequest from './components/vertical/GetAllRequest'
 
 
 
@@ -56,6 +63,13 @@ function App() {
       <Route path = "/bookings/manage" element={<ManageBookings/>}/>
       <Route path = "/bookings/id" element={<GetBookingById/>}/>
       <Route path = "/worker" element={<Worker/>}/>
+      <Route path = "/worker/pending" element={<PendingWorkers/>}/>
+      <Route path = "/worker/approved" element={<GetApprovedWorkers/>}/>
+      <Route path = "/worker/settlement" element={<SettlementDashboard/>}/>
+      <Route path = "/vertical" element={<Explore/>}/>
+      <Route path = "/vertical/create" element={<CreateVertical/>}/>
+      <Route path = "/vertical/get" element={<GetAllVerticals/>}/>
+      <Route path = "/vertical/request" element={<GetAllRequest/>}/>
 
       
       
