@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, RefreshCcw } from 'lucide-react';
+import logo from "../../public/logo.png"
 import { Menu } from 'lucide-react';
 
 const Navbar = ({ onMenuClick }) => {
@@ -25,7 +26,7 @@ const Navbar = ({ onMenuClick }) => {
       
       {/* Logo & Brand Name */}
       <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition">
-        <img  alt="GroKart Logo" className="h-10 w-auto object-contain" />
+        <img src={logo} alt="Finderzz Logo" className="h-18 w-auto object-contain" />
       </Link>
 
       {/* Buttons */}
