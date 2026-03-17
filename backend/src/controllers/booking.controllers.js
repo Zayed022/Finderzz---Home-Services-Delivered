@@ -1,6 +1,7 @@
 import Booking from "../models/booking.models.js";
 import SubService from "../models/subService.models.js";
 import Area from "../models/area.models.js";
+import Service from "../models/service.models.js";
 import { createInvoice } from "./invoice.controllers.js";
 
 export const createBooking = async (req, res, next) => {
@@ -35,53 +36,79 @@ export const createBooking = async (req, res, next) => {
       });
     }
 
-    /* ================= CALCULATE SERVICE SUBTOTAL ================= */
-
     let subtotal = 0;
     const enrichedServices = [];
 
     for (const item of services) {
-
-      const subService = await SubService.findById(item.subServiceId);
-
-      if (!subService) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid subservice",
-        });
-      }
-
       const bookingType = item.bookingType || "service";
+      const quantity = item.quantity || 1;
 
-      let price = subService.customerPrice;
+      let price = 0;
 
-      if (bookingType === "inspection") {
+      /* ================= SERVICE BOOKING ================= */
 
-        if (!subService.inspectionAvailable) {
+      if (bookingType === "service") {
+        const subService = await SubService.findById(item.subServiceId);
+
+        if (!subService) {
           return res.status(400).json({
             success: false,
-            message: "Inspection not available for this service",
+            message: "Invalid subservice",
           });
         }
 
-        price = subService.inspectionPrice;
+        price = subService.customerPrice;
+
+        enrichedServices.push({
+          subServiceId: subService._id,
+          serviceId: null,
+          quantity,
+          price,
+          bookingType,
+        });
       }
 
-      const quantity = item.quantity || 1;
+      /* ================= INSPECTION BOOKING ================= */
 
-      const itemTotal = price * quantity;
+      else if (bookingType === "inspection") {
+        const service = await Service.findById(item.serviceId);
 
-      subtotal += itemTotal;
+        if (!service || !service.active) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid service",
+          });
+        }
 
-      enrichedServices.push({
-        subServiceId: subService._id,
-        quantity,
-        price,
-        bookingType,
-      });
+        if (!service.inspectionAvailable) {
+          return res.status(400).json({
+            success: false,
+            message: "Inspection not available",
+          });
+        }
+
+        price = service.inspectionPrice;
+
+        enrichedServices.push({
+          subServiceId: null,
+          serviceId: service._id,
+          quantity,
+          price,
+          bookingType,
+        });
+      }
+
+      else {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid booking type",
+        });
+      }
+
+      subtotal += price * quantity;
     }
 
-    /* ================= GET AREA EXTRA CHARGE ================= */
+    /* ================= AREA ================= */
 
     const area = await Area.findById(areaId);
 
@@ -93,10 +120,9 @@ export const createBooking = async (req, res, next) => {
     }
 
     const extraCharge = area.extraCharge || 0;
-
     const totalPrice = subtotal + extraCharge;
 
-    /* ================= CREATE BOOKING ================= */
+    /* ================= CREATE ================= */
 
     const booking = await Booking.create({
       userId: null,
@@ -114,24 +140,21 @@ export const createBooking = async (req, res, next) => {
 
     const invoice = await createInvoice(booking._id);
 
-    /* ================= POPULATE RESPONSE ================= */
-
-    const populatedBooking = await Booking.findById(
-      booking._id
-    )
+    const populatedBooking = await Booking.findById(booking._id)
       .populate("services.subServiceId", "name")
+      .populate("services.serviceId", "name inspectionPrice")
       .populate("areaId", "name extraCharge")
       .lean();
 
-      res.json({
-        success: true,
-        data: {
-          ...populatedBooking,
-          invoice
-        }
-      });
-
+    res.json({
+      success: true,
+      data: {
+        ...populatedBooking,
+        invoice,
+      },
+    });
   } catch (error) {
+    console.log(error)
     next(error);
   }
 };

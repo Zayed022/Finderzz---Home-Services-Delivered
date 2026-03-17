@@ -11,12 +11,6 @@ export const createSubService = async (req, res, next) => {
       workerPrice,
       platformFee,
       durationEstimate,
-      inspectionAvailable,
-      inspectionWorkerPrice,
-      inspectionPlatformFee,
-      inspectionDescription,
-      inspectionDuration,
-
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -42,7 +36,6 @@ export const createSubService = async (req, res, next) => {
     }
 
     const customerPrice = workerPrice + platformFee;
-    const inspectionPrice = inspectionWorkerPrice + inspectionPlatformFee;
 
     const subService = await SubService.create({
       serviceId,
@@ -52,14 +45,6 @@ export const createSubService = async (req, res, next) => {
       platformFee,
       customerPrice,
       durationEstimate,
-
-      // inspection feature
-      inspectionAvailable: inspectionAvailable || false,
-      inspectionPrice: inspectionPrice || 0,
-      inspectionWorkerPrice,
-      inspectionPlatformFee,
-      inspectionDescription,
-      inspectionDuration,
     });
 
     res.status(201).json({
@@ -69,8 +54,8 @@ export const createSubService = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      success:false,
-      message:error.message
+      success: false,
+      message: error.message,
     });
   }
 };

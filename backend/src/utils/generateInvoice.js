@@ -126,20 +126,23 @@ export const generateInvoicePDF = async (booking) => {
 
     booking.services.forEach(service => {
 
-      const type =
-        service.bookingType === "inspection"
-          ? "Inspection"
-          : "Service";
-
+      const isInspection = service.bookingType === "inspection";
+    
+      const name = isInspection
+        ? service.serviceId?.name || "Inspection"
+        : service.subServiceId?.name || "Service";
+    
+      const type = isInspection ? "Inspection" : "Service";
+    
       const amount = service.price * service.quantity;
-
-      doc.text(service.subServiceId.name, colX[0], y);
+    
+      doc.text(name, colX[0], y);
       doc.text(type, colX[1], y);
       doc.text(service.quantity, colX[2], y);
       doc.text(`₹${amount}`, colX[3], y);
-
+    
       y += 25;
-
+    
     });
 
     doc.moveDown(3);

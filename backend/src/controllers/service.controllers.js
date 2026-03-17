@@ -5,15 +5,28 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export const createService = async (req, res, next) => {
   try {
+    const {
+      categoryId,
+      name,
+      description,
+      isPopular,
 
-    const { categoryId, name, description, isPopular } = req.body;
+      // inspection
+      inspectionAvailable,
+      inspectionWorkerPrice,
+      inspectionPlatformFee,
+      inspectionDescription,
+      inspectionDuration,
+    } = req.body;
+
+    /* ---------------- CATEGORY VALIDATION ---------------- */
 
     const category = await Category.findById(categoryId);
 
     if (!category || !category.active) {
       return res.status(400).json({
-        success:false,
-        message:"Invalid category"
+        success: false,
+        message: "Invalid category",
       });
     }
 
@@ -23,8 +36,8 @@ export const createService = async (req, res, next) => {
 
     if (!bannerPath) {
       return res.status(400).json({
-        success:false,
-        message:"Banner image is required"
+        success: false,
+        message: "Banner image is required",
       });
     }
 
@@ -32,8 +45,8 @@ export const createService = async (req, res, next) => {
 
     if (!bannerUploaded) {
       return res.status(500).json({
-        success:false,
-        message:"Banner upload failed"
+        success: false,
+        message: "Banner upload failed",
       });
     }
 
@@ -43,8 +56,8 @@ export const createService = async (req, res, next) => {
 
     if (!iconPath) {
       return res.status(400).json({
-        success:false,
-        message:"Icon image is required"
+        success: false,
+        message: "Icon image is required",
       });
     }
 
@@ -52,10 +65,45 @@ export const createService = async (req, res, next) => {
 
     if (!iconUploaded) {
       return res.status(500).json({
-        success:false,
-        message:"Icon upload failed"
+        success: false,
+        message: "Icon upload failed",
       });
     }
+
+    /* ----------- SAFE NUMBER CONVERSION ----------- */
+
+    const isInspectionEnabled =
+      inspectionAvailable === true || inspectionAvailable === "true";
+
+    const workerPrice = Number(inspectionWorkerPrice || 0);
+    const platformFee = Number(inspectionPlatformFee || 0);
+    const duration = inspectionDuration
+      ? Number(inspectionDuration)
+      : undefined;
+
+    /* ----------- VALIDATION ----------- */
+
+    if (isInspectionEnabled) {
+      if (isNaN(workerPrice) || isNaN(platformFee)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid inspection prices",
+        });
+      }
+
+      if (workerPrice < 0 || platformFee < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Inspection prices cannot be negative",
+        });
+      }
+    }
+
+    /* ----------- CALCULATION ----------- */
+
+    const inspectionPrice = isInspectionEnabled
+      ? workerPrice + platformFee
+      : 0;
 
     /* ---------------- CREATE SERVICE ---------------- */
 
@@ -65,14 +113,21 @@ export const createService = async (req, res, next) => {
       bannerImage: bannerUploaded.secure_url,
       description,
       icon: iconUploaded.secure_url,
-      isPopular
+      isPopular,
+
+      // inspection
+      inspectionAvailable: isInspectionEnabled,
+      inspectionWorkerPrice: workerPrice,
+      inspectionPlatformFee: platformFee,
+      inspectionPrice,
+      inspectionDescription,
+      inspectionDuration: duration,
     });
 
     res.status(201).json({
-      success:true,
-      data:service
+      success: true,
+      data: service,
     });
-
   } catch (error) {
     console.error("Create service error:", error);
     next(error);
@@ -128,23 +183,48 @@ export const getServiceById = async (req,res,next)=>{
 };
 
 export const updateService = async (req, res, next) => {
-    try {
-      const { id } = req.params;
-  
-      const service = await Service.findByIdAndUpdate(
-        id,
-        req.body,
-        { new: true }
-      );
-  
-      if (!service) {
-        return res.status(404).json({ message: "Service not found" });
+  try {
+    const { id } = req.params;
+
+    const {
+      inspectionAvailable,
+      inspectionWorkerPrice,
+      inspectionPlatformFee,
+    } = req.body;
+
+    if (inspectionAvailable === true) {
+      if (
+        inspectionWorkerPrice == null ||
+        inspectionPlatformFee == null
+      ) {
+        return res.status(400).json({
+          message: "Inspection prices required",
+        });
       }
-  
-      res.json({ success: true, data: service });
-    } catch (error) {
-      next(error);
+
+      req.body.inspectionPrice =
+        inspectionWorkerPrice + inspectionPlatformFee;
     }
+
+    const service = await Service.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true }
+    );
+
+    if (!service) {
+      return res.status(404).json({
+        message: "Service not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: service,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const deleteService = async (req, res, next) => {
@@ -182,7 +262,17 @@ export const getServiceWithSubServices = async (req, res, next) => {
     res.json({
       success: true,
       data: {
-        service,
+        service: {
+          ...service,
+
+          // Explicit exposure (frontend clarity)
+          inspection: {
+            available: service.inspectionAvailable,
+            price: service.inspectionPrice,
+            description: service.inspectionDescription,
+            duration: service.inspectionDuration,
+          },
+        },
         subServices,
       },
     });

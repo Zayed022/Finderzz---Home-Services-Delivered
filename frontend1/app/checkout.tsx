@@ -48,7 +48,6 @@ export default function CheckoutScreen() {
   );
 
   const extraCharge = area?.extraCharge || 0;
-
   const finalTotal = serviceTotal + extraCharge;
 
   /* ================= BOOKING ================= */
@@ -58,47 +57,67 @@ export default function CheckoutScreen() {
       Alert.alert("Cart Empty", "Please add services first.");
       return;
     }
-  
+
     if (!area?._id) {
       Alert.alert("Missing Area", "Please select service area.");
       return;
     }
-  
+
     if (!name || !phone || !houseNumber || !fullAddress) {
       Alert.alert("Missing Details", "Please fill all required fields.");
       return;
     }
-  
+
     if (!hour || !minute) {
       Alert.alert("Invalid Time", "Please enter time.");
       return;
     }
-  
+
     const hourNum = parseInt(hour);
     const minuteNum = parseInt(minute);
-  
+
     if (hourNum < 1 || hourNum > 12 || minuteNum > 59) {
       Alert.alert("Invalid Time", "Enter valid time format.");
       return;
     }
-  
+
     let hour24 = hourNum;
     if (period === "PM" && hour24 !== 12) hour24 += 12;
     if (period === "AM" && hour24 === 12) hour24 = 0;
-  
+
     const finalDate = new Date(date);
     finalDate.setHours(hour24);
     finalDate.setMinutes(minuteNum);
     finalDate.setSeconds(0);
     finalDate.setMilliseconds(0);
-  
+
     try {
-      const response = await API.post("/booking/", {
-        services: items.map((item) => ({
-          subServiceId: item._id,
+      const formattedServices = items.map((item) => {
+        if (item.bookingType === "inspection") {
+          if (!item.serviceId) {
+            throw new Error("Invalid inspection item");
+          }
+
+          return {
+            serviceId: item.serviceId,
+            quantity: item.quantity,
+            bookingType: "inspection",
+          };
+        }
+
+        if (!item.subServiceId) {
+          throw new Error("Invalid service item");
+        }
+
+        return {
+          subServiceId: item.subServiceId,
           quantity: item.quantity,
-          bookingType: item.bookingType || "service",
-        })),
+          bookingType: "service",
+        };
+      });
+
+      const response = await API.post("/booking/", {
+        services: formattedServices,
         areaId: area._id,
         customerDetails: { name, phone },
         address: {
@@ -111,18 +130,18 @@ export default function CheckoutScreen() {
         scheduledDate: finalDate,
         timeSlot: `${hour}:${minute} ${period}`,
       });
-  
+
       const bookingData = response.data.data;
-  
+
       const existing = await AsyncStorage.getItem("guest_bookings");
       const parsed = existing ? JSON.parse(existing) : [];
       parsed.unshift(bookingData);
-  
+
       await AsyncStorage.setItem(
         "guest_bookings",
         JSON.stringify(parsed)
       );
-  
+
       router.replace("/booking-success");
     } catch (error) {
       Alert.alert("Error", "Booking failed. Try again.");
@@ -162,19 +181,22 @@ export default function CheckoutScreen() {
 
           {/* SERVICES */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Selected Services
-            </Text>
+  <Text style={styles.cardTitle}>
+    Selected Services
+  </Text>
 
-            {items.map((item, index) => (
-  <View key={`${item._id}-${index}`} style={styles.serviceRow}>
-                <Text>{item.name}</Text>
-                <Text>
-                  ₹{item.price} × {item.quantity}
-                </Text>
-              </View>
-            ))}
-          </View>
+  {items.map((item, index) => (
+    <View
+      key={`${item.serviceId || item.subServiceId}-${index}`}
+      style={styles.serviceRow}
+    >
+      <Text>{item.name}</Text>
+      <Text>
+        ₹{item.price} × {item.quantity}
+      </Text>
+    </View>
+  ))}
+</View>  {/* ✅ FIX */}
 
           {/* DATE */}
           <View style={styles.card}>
@@ -278,50 +300,50 @@ export default function CheckoutScreen() {
           </View>
 
           {/* ADDRESS */}
-<View style={styles.card}>
-  <Text style={styles.cardTitle}>Address Details</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Address Details</Text>
 
-  <TextInput
-    placeholder="House / Flat No. *"
-    placeholderTextColor="#94A3B8"
-    value={houseNumber}
-    onChangeText={setHouseNumber}
-    style={styles.input}
-  />
+            <TextInput
+              placeholder="House / Flat No. *"
+              placeholderTextColor="#94A3B8"
+              value={houseNumber}
+              onChangeText={setHouseNumber}
+              style={styles.input}
+            />
 
-  <TextInput
-    placeholder="Floor No."
-    placeholderTextColor="#94A3B8"
-    value={floorNumber}
-    onChangeText={setFloorNumber}
-    style={styles.input}
-  />
+            <TextInput
+              placeholder="Floor No."
+              placeholderTextColor="#94A3B8"
+              value={floorNumber}
+              onChangeText={setFloorNumber}
+              style={styles.input}
+            />
 
-  <TextInput
-    placeholder="Building Name"
-    placeholderTextColor="#94A3B8"
-    value={buildingName}
-    onChangeText={setBuildingName}
-    style={styles.input}
-  />
+            <TextInput
+              placeholder="Building Name"
+              placeholderTextColor="#94A3B8"
+              value={buildingName}
+              onChangeText={setBuildingName}
+              style={styles.input}
+            />
 
-  <TextInput
-    placeholder="Landmark"
-    placeholderTextColor="#94A3B8"
-    value={landmark}
-    onChangeText={setLandmark}
-    style={styles.input}
-  />
+            <TextInput
+              placeholder="Landmark"
+              placeholderTextColor="#94A3B8"
+              value={landmark}
+              onChangeText={setLandmark}
+              style={styles.input}
+            />
 
-  <TextInput
-    placeholder="Full Address *"
-    placeholderTextColor="#94A3B8"
-    value={fullAddress}
-    onChangeText={setFullAddress}
-    style={styles.input}
-    multiline
-  />
-</View>
+            <TextInput
+              placeholder="Full Address *"
+              placeholderTextColor="#94A3B8"
+              value={fullAddress}
+              onChangeText={setFullAddress}
+              style={styles.input}
+              multiline
+            />
+          </View>
 
           {/* SUMMARY */}
           <View style={styles.summary}>

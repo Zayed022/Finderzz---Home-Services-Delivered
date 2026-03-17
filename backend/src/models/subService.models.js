@@ -35,38 +35,6 @@ const subServiceSchema = new mongoose.Schema(
 
   durationEstimate: Number,
 
-  /* ---------- INSPECTION FEATURE ---------- */
-
-  inspectionAvailable: {
-    type: Boolean,
-    default: false
-  },
-
-  inspectionWorkerPrice: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-  
-  inspectionPlatformFee: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-
-  inspectionPrice: {
-    type: Number,
-    default: 0
-  },
-
-  inspectionDescription: {
-    type: String
-  },
-
-  inspectionDuration: {
-    type: Number
-  },
-
   active: {
     type: Boolean,
     default: true

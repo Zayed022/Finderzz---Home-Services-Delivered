@@ -8,8 +8,9 @@ import { generateInvoiceNumber } from "../utils/generateInvoiceNumber.js";
 export const createInvoice = async (bookingId) => {
 
   const booking = await Booking.findById(bookingId)
-    .populate("services.subServiceId", "name")
-    .populate("areaId", "name extraCharge");
+  .populate("services.subServiceId", "name")
+  .populate("services.serviceId", "name")
+  .lean();
 
   if (!booking) {
     throw new Error("Booking not found");

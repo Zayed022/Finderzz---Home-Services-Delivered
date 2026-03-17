@@ -7,18 +7,34 @@ import { upload } from "../middlewares/multer.middlewares.js";
 
 const router = express.Router();
 
-router.post("/",upload.fields([
+/* -------- CREATE -------- */
+router.post(
+  "/",
+  upload.fields([
     { name: "bannerImage", maxCount: 1 },
     { name: "icon", maxCount: 1 },
-  ]), createService);                            // done
-router.get("/:categoryId", getServicesByCategory);          // done
+  ]),
+  createService
+);
+
+/* -------- READ -------- */
+
+// ALL services
 router.get("/", getServices);
-router.get(
-    "/:serviceId/details",
-    getServiceWithSubServices
-  );
-  router.get("/:id", getServiceById);
+
+// Services by category (FIXED)
+router.get("/category/:categoryId", getServicesByCategory);
+
+// Service with subservices
+router.get("/:serviceId/details", getServiceWithSubServices);
+
+// Single service
+router.get("/:id", getServiceById);
+
+/* -------- UPDATE -------- */
 router.patch("/:id", updateService);
+
+/* -------- DELETE -------- */
 router.delete("/:id", deleteService);
 
 export default router;

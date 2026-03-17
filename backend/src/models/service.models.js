@@ -16,12 +16,12 @@ const serviceSchema = new mongoose.Schema(
     },
 
     icon: {
-      type: String, // Cloudinary URL
+      type: String,
       required: true,
     },
 
     bannerImage: {
-      type: String, // Large service banner
+      type: String,
     },
 
     description: {
@@ -42,6 +42,38 @@ const serviceSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
       index: true,
+    },
+
+    /* ---------- NEW: INSPECTION AT SERVICE LEVEL ---------- */
+
+    inspectionAvailable: {
+      type: Boolean,
+      default: false,
+    },
+
+    inspectionWorkerPrice: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    inspectionPlatformFee: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    inspectionPrice: {
+      type: Number,
+      default: 0,
+    },
+
+    inspectionDescription: {
+      type: String,
+    },
+
+    inspectionDuration: {
+      type: Number, // in minutes
     },
   },
   { timestamps: true }
