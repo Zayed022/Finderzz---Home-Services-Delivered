@@ -26,18 +26,24 @@ export default function CartScreen() {
     0
   );
 
+  /* 🔥 HELPER */
+  const getPayload = (item: any) => ({
+    subServiceId: item.subServiceId,
+    serviceId: item.serviceId,
+    bookingType: item.bookingType,
+  });
+
   if (items.length === 0) {
     return (
       <SafeAreaView style={styles.emptyContainer}>
         <StatusBar barStyle="dark-content" />
-        <Ionicons
-          name="cart-outline"
-          size={80}
-          color="#CBD5E1"
-        />
+
+        <Ionicons name="cart-outline" size={80} color="#CBD5E1" />
+
         <Text style={styles.emptyTitle}>
           Your cart is empty
         </Text>
+
         <Text style={styles.emptySub}>
           Browse services and add items to get started
         </Text>
@@ -60,18 +66,20 @@ export default function CartScreen() {
 
       <FlatList
         data={items}
-        keyExtractor={(item) => `${item._id}_${item.bookingType}`}
+        keyExtractor={(item) =>
+          `${item.subServiceId || item.serviceId}_${item.bookingType}`
+        }
         contentContainerStyle={{
           padding: 20,
           paddingBottom: 160,
         }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
-          const itemTotal =
-            item.price * item.quantity;
+          const itemTotal = item.price * item.quantity;
 
           return (
             <View style={styles.card}>
+              {/* TOP */}
               <View style={styles.cardTop}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.serviceName}>
@@ -83,14 +91,10 @@ export default function CartScreen() {
                   </Text>
                 </View>
 
+                {/* REMOVE */}
                 <Pressable
                   onPress={() =>
-                    dispatch(
-                      removeFromCart({
-                        _id: item._id,
-                        bookingType: item.bookingType!,
-                      })
-                    )
+                    dispatch(removeFromCart(getPayload(item)))
                   }
                 >
                   <Ionicons
@@ -101,26 +105,24 @@ export default function CartScreen() {
                 </Pressable>
               </View>
 
+              {/* BOTTOM */}
               <View style={styles.cardBottom}>
                 <View>
                   <Text style={styles.unitPrice}>
                     ₹{item.price} / service
                   </Text>
+
                   <Text style={styles.totalPrice}>
                     ₹{itemTotal}
                   </Text>
                 </View>
 
+                {/* 🔥 QTY CONTROLS */}
                 <View style={styles.qtyContainer}>
                   <Pressable
                     style={styles.qtyButton}
                     onPress={() =>
-                      dispatch(
-                        decreaseQty({
-                          _id: item._id,
-                          bookingType: item.bookingType!,
-                        })
-                      )
+                      dispatch(decreaseQty(getPayload(item)))
                     }
                   >
                     <Ionicons
@@ -137,12 +139,7 @@ export default function CartScreen() {
                   <Pressable
                     style={styles.qtyButton}
                     onPress={() =>
-                      dispatch(
-                        increaseQty({
-                          _id: item._id,
-                          bookingType: item.bookingType!,
-                        })
-                      )
+                      dispatch(increaseQty(getPayload(item)))
                     }
                   >
                     <Ionicons
@@ -158,12 +155,13 @@ export default function CartScreen() {
         }}
       />
 
-      {/* ===== PREMIUM SUMMARY SECTION ===== */}
+      {/* ===== CHECKOUT ===== */}
       <View style={styles.checkoutContainer}>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>
             Subtotal
           </Text>
+
           <Text style={styles.summaryPrice}>
             ₹{subtotal}
           </Text>
@@ -342,7 +340,7 @@ const styles = StyleSheet.create({
   },
 
   checkoutButton: {
-    backgroundColor: "#0A84FF",
+    backgroundColor: "#0178BD",
     paddingVertical: 18,
     borderRadius: 20,
     alignItems: "center",

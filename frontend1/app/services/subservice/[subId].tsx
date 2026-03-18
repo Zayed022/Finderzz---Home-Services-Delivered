@@ -17,7 +17,6 @@ import {
   addToCart,
   increaseQty,
   decreaseQty,
-  removeFromCart,
 } from "@/store/slices/cartSlice";
 
 export default function SubServiceDetails() {
@@ -44,261 +43,184 @@ export default function SubServiceDetails() {
 
   if (!data) return null;
 
+  /* ================= CART MATCH ================= */
+
   const serviceCartItem = cartItems.find(
     (item) =>
-      item._id === data._id &&
+      item.subServiceId === data._id &&
       item.bookingType === "service"
   );
 
   const inspectionCartItem = cartItems.find(
     (item) =>
-      item._id === data._id &&
+      item.subServiceId === data._id &&
       item.bookingType === "inspection"
   );
 
-  const addService = () => {
+  /* ================= ACTIONS ================= */
+
+  const addService = () =>
     dispatch(
       addToCart({
-        _id: data._id,
+        subServiceId: data._id,
         name: data.name,
         price: data.customerPrice,
         duration: data.durationEstimate,
         bookingType: "service",
+        quantity: 1,
       })
     );
-  };
 
-  const addInspection = () => {
+  const addInspection = () =>
     dispatch(
       addToCart({
-        _id: data._id,
+        subServiceId: data._id,
         name: `${data.name} (Inspection)`,
         price: data.inspectionPrice,
         duration: data.inspectionDuration,
         bookingType: "inspection",
+        quantity: 1,
       })
     );
-  };
 
   const increaseService = () =>
-    dispatch(increaseQty(data._id));
+    dispatch(
+      increaseQty({
+        subServiceId: data._id,
+        bookingType: "service",
+      })
+    );
 
-  const decreaseService = () => {
-    if (serviceCartItem?.quantity === 1) {
-      dispatch(removeFromCart(data._id));
-    } else {
-      dispatch(decreaseQty(data._id));
-    }
-  };
+  const decreaseService = () =>
+    dispatch(
+      decreaseQty({
+        subServiceId: data._id,
+        bookingType: "service",
+      })
+    );
 
   const increaseInspection = () =>
-    dispatch(increaseQty(data._id));
-  
-  const decreaseInspection = () => {
-    if (inspectionCartItem?.quantity === 1) {
-      dispatch(removeFromCart(data._id));
-    } else {
-      dispatch(decreaseQty(data._id));
-    }
-  };
+    dispatch(
+      increaseQty({
+        subServiceId: data._id,
+        bookingType: "inspection",
+      })
+    );
+
+  const decreaseInspection = () =>
+    dispatch(
+      decreaseQty({
+        subServiceId: data._id,
+        bookingType: "inspection",
+      })
+    );
+
+  /* ================= UI ================= */
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#FFFFFF"
-      />
-
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+  
       <View style={{ flex: 1 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
-        >
-          {/* HERO */}
+        <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
+          
+          {/* 🔥 HERO */}
           <View style={styles.hero}>
             <Text style={styles.title}>{data.name}</Text>
-
+  
             <Text style={styles.price}>
               ₹{data.customerPrice}
             </Text>
-
+  
             <Text style={styles.subPrice}>
               Inclusive of platform fee
             </Text>
-
+  
             {data.inspectionAvailable && (
               <View style={styles.badge}>
-                <Ionicons
-                  name="search"
-                  size={14}
-                  color="#B45309"
-                />
+                <Ionicons name="search" size={14} color="#B45309" />
                 <Text style={styles.badgeText}>
                   Inspection Available
                 </Text>
               </View>
             )}
-
+  
+            {/* META */}
             <View style={styles.metaRow}>
               <View style={styles.metaChip}>
-                <Ionicons
-                  name="time-outline"
-                  size={14}
-                  color="#64748B"
-                />
+                <Ionicons name="time-outline" size={14} color="#64748B" />
                 <Text style={styles.metaText}>
                   {data.durationEstimate} mins
                 </Text>
               </View>
-
+  
               <View style={styles.metaChip}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={14}
-                  color="#64748B"
-                />
+                <Ionicons name="shield-checkmark-outline" size={14} color="#64748B" />
                 <Text style={styles.metaText}>
                   Verified Professional
                 </Text>
               </View>
             </View>
-          </View>
-
-          {/* SERVICE CARD */}
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>
-              Book Service
-            </Text>
-
-            {data.description && (
-              <Text style={styles.description}>
-                {data.description}
-              </Text>
-            )}
-
-            <View style={styles.row}>
-              <Text style={styles.label}>
-                Service Fee
-              </Text>
-              <Text style={styles.value}>
-                ₹{data.customerPrice}
-              </Text>
+  
+            {/* TRUST */}
+            <View style={styles.trustBox}>
+              <Text style={styles.trustText}>✔ 100% Verified Professionals</Text>
+              <Text style={styles.trustText}>✔ Transparent Pricing</Text>
+              <Text style={styles.trustText}>✔ Service Warranty Included</Text>
             </View>
-
-            {!serviceCartItem ? (
-              <Pressable
-                style={styles.primaryBtn}
-                onPress={addService}
-              >
-                <Text style={styles.primaryText}>
-                  Add Service
-                </Text>
-              </Pressable>
-            ) : (
-              <View style={styles.stepper}>
-                <Pressable
-                  onPress={decreaseService}
-                  style={styles.stepBtn}
-                >
-                  <Ionicons
-                    name="remove"
-                    size={20}
-                    color="#0A84FF"
-                  />
-                </Pressable>
-
-                <Text style={styles.qty}>
-                  {serviceCartItem.quantity}
-                </Text>
-
-                <Pressable
-                  onPress={increaseService}
-                  style={styles.stepBtn}
-                >
-                  <Ionicons
-                    name="add"
-                    size={20}
-                    color="#0A84FF"
-                  />
-                </Pressable>
-              </View>
-            )}
           </View>
-
-          {/* INSPECTION CARD */}
-          {data.inspectionAvailable && (
-            <View style={styles.card}>
-              <View style={styles.inspectHeader}>
-                <Ionicons
-                  name="search-outline"
-                  size={18}
-                  color="#F59E0B"
-                />
-                <Text style={styles.sectionTitle}>
-                  Request Inspection
-                </Text>
-              </View>
-
-              {data.inspectionDescription && (
-                <Text style={styles.description}>
-                  {data.inspectionDescription}
-                </Text>
-              )}
-
-              <View style={styles.row}>
-                <Text style={styles.label}>
-                  Inspection Fee
-                </Text>
-                <Text style={styles.inspectPrice}>
-                  ₹{data.inspectionPrice}
-                </Text>
-              </View>
-
-              {!inspectionCartItem ? (
-  <Pressable
-    style={styles.inspectBtn}
-    onPress={addInspection}
-  >
-    <Text style={styles.inspectBtnText}>
-      Request Inspection
-    </Text>
-  </Pressable>
-) : (
-  <View style={styles.stepper}>
-    <Pressable
-      onPress={decreaseInspection}
-      style={styles.stepBtn}
-    >
-      <Ionicons
-        name="remove"
-        size={20}
-        color="#F59E0B"
-      />
-    </Pressable>
-
-    <Text style={styles.qty}>
-      {inspectionCartItem.quantity}
-    </Text>
-
-    <Pressable
-      onPress={increaseInspection}
-      style={styles.stepBtn}
-    >
-      <Ionicons
-        name="add"
-        size={20}
-        color="#F59E0B"
-      />
-    </Pressable>
-  </View>
-)}
+  
+          {/* 🔥 DESCRIPTION CARD */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Service Details</Text>
+  
+            <Text style={styles.description}>
+              {data.description ||
+                "Professional service delivered by trained experts using high-quality tools."}
+            </Text>
+  
+            <Text style={styles.infoNote}>
+              Final pricing may vary after inspection.
+            </Text>
+  
+            <View style={styles.row}>
+              <Text style={styles.label}>Service Fee</Text>
+              <Text style={styles.value}>₹{data.customerPrice}</Text>
+            </View>
+          </View>
+  
+        </ScrollView>
+  
+        {/* 🔥 FIXED BOTTOM CTA */}
+        <View style={styles.bottomBar}>
+          {!serviceCartItem ? (
+            <Pressable style={styles.primaryBtn} onPress={addService}>
+              <Text style={styles.primaryText}>
+                Add Service • ₹{data.customerPrice}
+              </Text>
+            </Pressable>
+          ) : (
+            <View style={styles.stepperBottom}>
+              <Pressable onPress={decreaseService} style={styles.stepBtn}>
+                <Ionicons name="remove" size={22} color="#0A84FF" />
+              </Pressable>
+  
+              <Text style={styles.qty}>
+                {serviceCartItem.quantity}
+              </Text>
+  
+              <Pressable onPress={increaseService} style={styles.stepBtn}>
+                <Ionicons name="add" size={22} color="#0A84FF" />
+              </Pressable>
             </View>
           )}
-        </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
+
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#F8FAFC" },
@@ -375,6 +297,17 @@ const styles = StyleSheet.create({
     color: "#334155",
   },
 
+  trustBox: {
+    marginTop: 16,
+  },
+
+  trustText: {
+    fontSize: 12,
+    color: "#16A34A",
+    marginBottom: 4,
+    fontWeight: "600",
+  },
+
   card: {
     backgroundColor: "#FFFFFF",
     marginTop: 20,
@@ -393,8 +326,14 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     color: "#475569",
-    marginBottom: 14,
+    marginBottom: 10,
     lineHeight: 20,
+  },
+
+  infoNote: {
+    fontSize: 12,
+    color: "#64748B",
+    marginBottom: 10,
   },
 
   row: {
@@ -422,6 +361,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#F59E0B",
+  },
+
+  inspectInfoBox: {
+    backgroundColor: "#FFFBEB",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+
+  inspectInfoText: {
+    fontSize: 13,
+    color: "#92400E",
+    fontWeight: "600",
+  },
+
+  inspectInfoSub: {
+    fontSize: 12,
+    color: "#B45309",
+    marginTop: 6,
   },
 
   primaryBtn: {
@@ -466,5 +424,30 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     width: 40,
     textAlign: "center",
+  },
+  bottomBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginBottom: 20,
+    elevation: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -4 },
+  },
+  
+  stepperBottom: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EEF6FF",
+    borderRadius: 20,
+    paddingVertical: 10,
   },
 });

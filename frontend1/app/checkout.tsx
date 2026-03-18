@@ -165,6 +165,7 @@ export default function CheckoutScreen() {
           <Text style={styles.header}>Confirm Booking</Text>
 
           {/* AREA */}
+          <Pressable onPress={() => router.push("/select-location")}>
           <View style={styles.card}>
             <View style={styles.row}>
               <Ionicons
@@ -178,6 +179,7 @@ export default function CheckoutScreen() {
               {area?.name || "Not Selected"}
             </Text>
           </View>
+          </Pressable>
 
           {/* SERVICES */}
           <View style={styles.card}>
@@ -196,7 +198,7 @@ export default function CheckoutScreen() {
       </Text>
     </View>
   ))}
-</View>  {/* ✅ FIX */}
+</View> 
 
           {/* DATE */}
           <View style={styles.card}>
@@ -430,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   periodButton: { padding: 12 },
-  periodActive: { backgroundColor: "#0A84FF" },
+  periodActive: { backgroundColor: "#0178BD" },
   periodText: { color: "#334155" },
   periodTextActive: { color: "#FFF" },
   summary: { marginTop: 10 },
@@ -448,10 +450,10 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#0A84FF",
+    color: "#0178BD",
   },
   confirmButton: {
-    backgroundColor: "#0A84FF",
+    backgroundColor: "#0178BD",
     paddingVertical: 18,
     borderRadius: 22,
     alignItems: "center",

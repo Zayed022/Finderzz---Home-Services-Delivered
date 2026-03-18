@@ -20,7 +20,8 @@ const initialState: CartState = {
   items: [],
 };
 
-const findItem = (items: CartItem[], payload: CartItem) => {
+/* 🔥 FIND ITEM (CORE LOGIC) */
+const findItem = (items: CartItem[], payload: Partial<CartItem>) => {
   return items.find(
     (item) =>
       item.bookingType === payload.bookingType &&
@@ -37,6 +38,7 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
+    /* ADD */
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const existing = findItem(state.items, action.payload);
 
@@ -50,17 +52,38 @@ const cartSlice = createSlice({
       }
     },
 
-    increaseQty: (state, action: PayloadAction<CartItem>) => {
+    /* INCREASE */
+    increaseQty: (state, action: PayloadAction<Partial<CartItem>>) => {
       const item = findItem(state.items, action.payload);
       if (item) item.quantity += 1;
     },
 
-    decreaseQty: (state, action: PayloadAction<CartItem>) => {
+    /* DECREASE (AUTO REMOVE) */
+    decreaseQty: (state, action: PayloadAction<Partial<CartItem>>) => {
       const item = findItem(state.items, action.payload);
-      if (item && item.quantity > 1) item.quantity -= 1;
+
+      if (!item) return;
+
+      if (item.quantity === 1) {
+        state.items = state.items.filter(
+          (i) =>
+            !(
+              i.bookingType === action.payload.bookingType &&
+              (
+                (action.payload.subServiceId &&
+                  i.subServiceId === action.payload.subServiceId) ||
+                (action.payload.serviceId &&
+                  i.serviceId === action.payload.serviceId)
+              )
+            )
+        );
+      } else {
+        item.quantity -= 1;
+      }
     },
 
-    removeFromCart: (state, action: PayloadAction<CartItem>) => {
+    /* REMOVE */
+    removeFromCart: (state, action: PayloadAction<Partial<CartItem>>) => {
       state.items = state.items.filter(
         (item) =>
           !(

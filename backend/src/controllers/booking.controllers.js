@@ -332,6 +332,30 @@ export const getBookingsByStatus = async (req,res,next)=>{
   }
 };
 
+export const getBookingStatus = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findById(bookingId).select("status");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        status: booking.status,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const assignWorker = async (req,res,next)=>{
   try{
 

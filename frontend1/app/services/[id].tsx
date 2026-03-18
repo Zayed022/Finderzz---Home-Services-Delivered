@@ -90,81 +90,121 @@ export default function ServiceDetails() {
 
           {/* 🔥 GLOBAL INSPECTION */}
           {service.inspection?.available && (
-            <View style={styles.inspectionGlobalBox}>
-              <Text style={styles.inspectionTitle}>
-                Inspection Available
-              </Text>
+  <View style={styles.inspectionCard}>
+    
+    {/* HEADER */}
+    <View style={styles.inspectionHeader}>
+      <Text style={styles.inspectionTitle}>
+        Inspection Available
+      </Text>
 
-              {service.inspection.description && (
-                <Text style={styles.inspectionDesc}>
-                  {service.inspection.description}
-                </Text>
-              )}
+      <Text style={styles.inspectionPrice}>
+        ₹{service.inspection.price}
+      </Text>
+    </View>
 
-              <View style={styles.inspectionRow}>
-                <Text style={styles.inspectionPrice}>
-                  ₹{service.inspection.price}
-                </Text>
+    {/* DESCRIPTION */}
+    {service.inspection.description ? (
+      <Text style={styles.inspectionDesc}>
+        {service.inspection.description}
+      </Text>
+    ) : null}
 
-                <Pressable
-                  style={styles.inspectButton}
-                  onPress={() => addInspectionToCart(service)}
-                >
-                  <Text style={styles.inspectText}>
-                    Add Inspection
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
+    {/* ACTIONS */}
+    <View style={styles.inspectionActions}>
+      
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: "/inspection-details",
+            params: {
+              serviceId: service._id,
+              name: service.name,
+              price: service.inspection.price,
+              description: service.inspection.description,
+              duration: service.inspection.duration,
+            },
+          })
+        }
+        style={styles.detailsButton}
+      >
+        <Text style={styles.detailsText}>
+          View Details
+        </Text>
+      </Pressable>
 
-          {/* Subservices */}
-          <View style={styles.listContainer}>
-            {subServices.map((sub: any) => (
-              <View key={sub._id} style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <View>
-                    <Text style={styles.subTitle}>{sub.name}</Text>
+      <Pressable
+        style={styles.inspectButton}
+        onPress={() => addInspectionToCart(service)}
+      >
+        <Text style={styles.inspectText}>
+          Add Inspection
+        </Text>
+      </Pressable>
 
-                    <View style={styles.metaChip}>
-                      <Ionicons
-                        name="time-outline"
-                        size={13}
-                        color="#6B7280"
-                      />
-                      <Text style={styles.metaText}>
-                        {sub.durationEstimate} mins
-                      </Text>
-                    </View>
-                  </View>
+    </View>
+  </View>
+)}
 
-                  <Text style={styles.price}>
-                    ₹{sub.customerPrice}
-                  </Text>
-                </View>
 
-                <View style={styles.buttonRow}>
-                  <Pressable
-                    onPress={() =>
-                      router.push(`/services/subservice/${sub._id}`)
-                    }
-                    style={styles.detailsButton}
-                  >
-                    <Text style={styles.detailsText}>
-                      Details
-                    </Text>
-                  </Pressable>
+          {/* 🔥 SUBSERVICES SECTION */}
+<View style={styles.sectionHeader}>
+  <Text style={styles.sectionTitleMain}>
+    Available Services
+  </Text>
 
-                  <Pressable
-                    onPress={() => addServiceToCart(sub)}
-                    style={styles.bookButton}
-                  >
-                    <Text style={styles.bookText}>Add</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))}
+  <Text style={styles.sectionSubtitle}>
+    Choose from a range of professional services tailored to your needs
+  </Text>
+</View>
+
+{/* Subservices */}
+<View style={styles.listContainer}>
+  {subServices.map((sub: any) => (
+    <View key={sub._id} style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View>
+          <Text style={styles.subTitle}>{sub.name}</Text>
+
+          <View style={styles.metaChip}>
+            <Ionicons
+              name="time-outline"
+              size={13}
+              color="#6B7280"
+            />
+            <Text style={styles.metaText}>
+              {sub.durationEstimate} mins
+            </Text>
           </View>
+        </View>
+
+        <Text style={styles.price}>
+          ₹{sub.customerPrice}
+        </Text>
+      </View>
+
+      <View style={styles.buttonRow}>
+        <Pressable
+          onPress={() =>
+            router.push(`/services/subservice/${sub._id}`)
+          }
+          style={styles.detailsButton}
+        >
+          <Text style={styles.detailsText}>
+            Details
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => addServiceToCart(sub)}
+          style={styles.bookButton}
+        >
+          <Text style={styles.bookText}>Add</Text>
+        </Pressable>
+      </View>
+    </View>
+  ))}
+</View>
         </ScrollView>
 
         <CartPreviewBar />
@@ -256,7 +296,7 @@ const styles = StyleSheet.create({
 
   bookButton: {
     flex: 1,
-    backgroundColor: "#0A84FF",
+    backgroundColor: "#368DC5",
     paddingVertical: 10,
     borderRadius: 12,
     alignItems: "center",
@@ -276,15 +316,61 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
 
-  inspectionTitle: {
-    fontWeight: "700",
-    fontSize: 16,
-  },
+  
 
+  
+
+  inspectionCard: {
+    margin: 16,
+    backgroundColor: "#F8FAFC",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  
+  inspectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  
+  inspectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  
+  inspectionPrice: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#F59E0B",
+  },
+  
   inspectionDesc: {
-    marginTop: 6,
+    marginTop: 8,
     fontSize: 13,
     color: "#6B7280",
+    lineHeight: 18,
+  },
+  
+  inspectionActions: {
+    flexDirection: "row",
+    marginTop: 14,
+    gap: 10,
+  },
+  
+  inspectButton: {
+    flex: 1,
+    backgroundColor: "#F59E0B",
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  
+  inspectText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
 
   inspectionRow: {
@@ -294,21 +380,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  inspectionPrice: {
-    fontSize: 16,
+  sectionHeader: {
+    paddingHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  
+  sectionTitleMain: {
+    fontSize: 18,
     fontWeight: "700",
-    color: "#F59E0B",
+    color: "#0F172A",
+  },
+  
+  sectionSubtitle: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 4,
   },
 
-  inspectButton: {
-    backgroundColor: "#F59E0B",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-  },
+  
 
-  inspectText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
+  
+
+  
 });

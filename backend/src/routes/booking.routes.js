@@ -1,5 +1,5 @@
 import express from "express";
-import { assignWorker, cancelBooking, createBooking, deleteBooking, getAllBookings, getBookingById, getBookingsByStatus, getBookingStats, updateBookingStatus } from "../controllers/booking.controllers.js";
+import { assignWorker, cancelBooking, createBooking, deleteBooking, getAllBookings, getBookingById, getBookingsByStatus, getBookingStats, getBookingStatus, updateBookingStatus } from "../controllers/booking.controllers.js";
 
 const router = express.Router();
 
@@ -18,6 +18,8 @@ router.patch("/:id/status", updateBookingStatus);
 router.patch("/:id/assign-worker", assignWorker);
 
 router.patch("/:id/cancel", cancelBooking);
+
+router.get("/status/:bookingId", getBookingStatus);
 
 router.delete("/:id", deleteBooking);
 

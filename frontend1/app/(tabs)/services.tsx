@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
 
   subPrice: {
     fontWeight: "700",
-    color: "#0A84FF",
+    color: "#0178BD",
   },
 
   emptySubText: {

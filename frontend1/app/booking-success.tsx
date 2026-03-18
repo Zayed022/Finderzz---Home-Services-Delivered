@@ -142,11 +142,11 @@ export default function BookingSuccessScreen() {
   {booking.services?.map((service: any, index: number) => (
     <View key={index} style={styles.serviceTile}>
       <View>
-        <Text style={styles.serviceName}>
-          {service.bookingType === "inspection"
-            ? `${service.subServiceId?.name} (Inspection)`
-            : service.subServiceId?.name}
-        </Text>
+      <Text style={styles.serviceName}>
+  {service.bookingType === "inspection"
+    ? `${service.serviceId?.name || "Inspection"} (Inspection)`
+    : service.subServiceId?.name || "Service"}
+</Text>
 
         <Text style={styles.serviceMeta}>
           Qty {service.quantity}
@@ -424,9 +424,9 @@ const styles = StyleSheet.create({
   },
 
   primaryButton: {
-    backgroundColor: "#0A84FF",
+    backgroundColor: "#0178BD",
     paddingVertical: 18,
-    borderRadius: 28,
+    borderRadius: 16,
     alignItems: "center",
     marginBottom: 14,
   },
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#0A84FF",
     paddingVertical: 16,
-    borderRadius: 28,
+    borderRadius: 16,
     alignItems: "center",
   },
 
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#16A34A",
     paddingVertical: 16,
-    borderRadius: 22,
+    borderRadius: 16,
     marginBottom: 14,
     gap: 8,
   },

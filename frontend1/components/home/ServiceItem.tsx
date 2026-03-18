@@ -57,7 +57,7 @@ export function ServiceItem({ item, index, scrollX }: Props) {
               position: "absolute",
               top: 0,
               alignSelf: "center",
-              backgroundColor: "#16A34A",
+              backgroundColor: "#0178BD",
               paddingHorizontal: 10,
               height: BADGE_HEIGHT,
               borderRadius: BADGE_HEIGHT / 2,
@@ -89,7 +89,7 @@ export function ServiceItem({ item, index, scrollX }: Props) {
             justifyContent: "center",
             borderWidth: 1.5,
             borderColor: item.isPopular
-              ? "#16A34A"
+              ? "#0178BD"
               : "#E5E7EB",
             shadowColor: "#000",
             shadowOpacity: 0.05,

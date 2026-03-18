@@ -159,12 +159,14 @@ export const generateInvoicePDF = async (booking) => {
       .fontSize(12)
       .text("Payment Summary", 360, boxY + 10);
 
-    doc
+      doc
       .fontSize(10)
-      .text(`Service Charges: ₹${booking.subtotal}`, 360, boxY + 35)
-      .text(`Area Charges: ₹${booking.extraCharge}`, 360);
-
+      .text(`Service Charges: ₹${booking.subtotal}`, 360, boxY + 35);
+    
     doc
+      .text(`Area Charges: ₹${booking.extraCharge}`, 360, boxY + 50);
+
+      doc
       .fontSize(12)
       .text(`Total Paid: ₹${booking.totalPrice}`, 360, boxY + 70);
 
@@ -172,40 +174,86 @@ export const generateInvoicePDF = async (booking) => {
 
     /* ================= TERMS ================= */
 
-    const termsY = boxY + 140;
+    let termsY = boxY + 140;
 
-    doc
-      .fontSize(13)
-      .text("Terms & Conditions", 50, termsY);
+/* 🔥 PAGE BREAK FIX */
+if (termsY > 700) {
+  doc.addPage();
+  termsY = 50;
+}
 
-    doc.moveDown();
+doc
+  .fontSize(13)
+  .text("Terms & Conditions", 50, termsY);
 
-    doc
-      .fontSize(9)
-      .text(
+termsY += 20;
+
+doc
+  .fontSize(9)
+  .text(
 `1. Finderzz is a technology marketplace platform connecting customers with independent service professionals.
 
-2. Finderzz does not directly provide services. Services are performed by verified third-party professionals.
+2. Finderzz does not directly provide services and all services are executed by verified third-party professionals.
 
-3. Inspection fees are non-refundable once the inspection service is completed.
+3. Inspection fees are strictly non-refundable once the inspection service has been completed.
 
-4. Final repair pricing may vary based on on-site diagnosis.
+4. Final service pricing may vary based on on-site inspection, complexity, and material requirements.
 
-5. Finderzz shall not be liable for damages arising from incorrect information provided by the customer.
+5. Finderzz is not liable for any damages, delays, or issues caused due to incorrect or incomplete information provided by the customer.
 
-6. Any service disputes must be reported within 24 hours through Finderzz support.
+6. All service-related complaints must be reported within 24 hours of service completion via Finderzz support.
 
-7. Finderzz reserves the right to cancel or reschedule services due to operational constraints.
+7. Finderzz reserves the right to cancel, delay, or reschedule services due to operational or unforeseen circumstances.
 
-8. Payments made through Finderzz confirm acceptance of platform policies and service agreements.
+8. Payments made through Finderzz confirm acceptance of all platform policies and service agreements.
 
-9. This invoice serves as a digital confirmation of the service request.
+9. This invoice acts as a digital confirmation of the service request and agreement.
 
-10. All disputes shall be governed under applicable Indian law.`
-      ,50,termsY+25,{
-        width:500,
-        align:"left"
-      });
+10. A minimum of 50% of the total service cost must be paid in advance before the service begins.
+
+11. The remaining 50% payment must be completed within 24 hours prior to service completion.
+
+12. Failure to complete payments on time may result in service cancellation.
+
+13. Booking a service constitutes a legally binding agreement.
+
+14. Customers agree to revised quotation after inspection.
+
+15. No negotiation outside Finderzz platform.
+
+16. Refunds are subject to approval and deductions.
+
+17. All payments act as proof of agreement.
+
+18. This invoice is a legally binding digital agreement.
+
+19. Finderzz may take legal action in case of fraud.
+
+20. Cancellation >24h may get partial refund.
+
+21. Cancellation <24h may incur charges.
+
+22. Post-dispatch cancellation = full inspection charge.
+
+23. No-show will incur penalty.
+
+24. No refund after service start.
+
+25. One-time rescheduling allowed.
+
+26. Late rescheduling may incur charges.
+
+27. Disputes governed by Indian law.
+
+28. Finderzz acts as facilitator only.
+`,
+    50,
+    termsY,
+    {
+      width: 500,
+      align: "left",
+    }
+  );
 
     doc.moveDown(3);
 
