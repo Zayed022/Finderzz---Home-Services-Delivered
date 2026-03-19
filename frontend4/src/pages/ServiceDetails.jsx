@@ -7,6 +7,9 @@ import {
   increaseQty,
   decreaseQty,
 } from "../store/cartSlice";
+import { Clock, IndianRupee, Sparkles } from "lucide-react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function ServiceDetails() {
   const { id } = useParams();
@@ -18,15 +21,17 @@ export default function ServiceDetails() {
 
   if (isLoading) {
     return (
-      <div className="py-32 text-center">
-        <p className="text-gray-500 text-lg">Loading service...</p>
+      <div className="h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-lg animate-pulse">
+          Loading service...
+        </p>
       </div>
     );
   }
 
   const { service, subServices } = data;
 
-  /* 🔥 FIND ITEM */
+  /* 🔍 FIND ITEM */
   const getItem = (subServiceId) => {
     return cartItems.find(
       (item) =>
@@ -35,98 +40,128 @@ export default function ServiceDetails() {
     );
   };
 
-  /* 🔥 TOTAL */
+  /* 💰 TOTAL */
   const total = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
 
   return (
-    <div className="bg-[#f8fafc] min-h-screen">
+    <>
+    <Navbar/>
+    <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
 
       {/* 🔷 HERO */}
-      <div className="relative py-20 bg-gradient-to-b from-white via-blue-50/30 to-white">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-10 left-10 w-72 h-72 bg-blue-400/10 blur-3xl rounded-full" />
-          <div className="absolute bottom-10 right-10 w-72 h-72 bg-cyan-400/10 blur-3xl rounded-full" />
-        </div>
+      <div className="relative py-20 text-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/40 to-cyan-100/40 blur-3xl" />
 
-        <div className="relative max-w-5xl mx-auto px-6 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-bold text-gray-900"
-          >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
             {service.name}
-          </motion.h1>
+          </h1>
 
-          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="mt-4 text-gray-600 max-w-xl mx-auto text-lg">
             {service.description}
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* 🔷 CONTENT */}
-      <div className="max-w-7xl mx-auto px-6 py-12 grid lg:grid-cols-[2fr_1fr] gap-12">
+      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-[2fr_1fr] gap-12 pb-24">
 
-        {/* LEFT */}
-        <div className="space-y-10">
+        {/* 🔷 LEFT */}
+        <div className="space-y-8">
 
-          {/* 🔷 Inspection */}
+          {/* 🔷 INSPECTION */}
           {service.inspection?.available && (
-            <div className="rounded-3xl p-7 bg-white shadow border border-blue-100 flex justify-between items-center">
+            <div className="p-6 rounded-3xl bg-white/80 backdrop-blur border shadow-md hover:shadow-xl transition">
               
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Inspection Service
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  {service.inspection.description}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  ~{service.inspection.duration} mins
-                </p>
-              </div>
+              <div className="flex justify-between items-center">
+                
+                {/* LEFT */}
+                <div>
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Sparkles size={18} className="text-blue-500"/>
+                    Inspection Service
+                  </h2>
 
-              <div className="text-right">
-                <p className="text-xl font-bold text-[#0077B6]">
-                  ₹{service.inspection.price}
-                </p>
+                  <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+                    {service.inspection.description}
+                  </p>
 
-                <button
-                  onClick={() =>
-                    dispatch(
-                      addToCart({
-                        serviceId: service._id,
-                        name: "Inspection",
-                        price: service.inspection.price,
-                        duration: service.inspection.duration,
-                        bookingType: "inspection",
-                      })
-                    )
-                  }
-                  className="mt-2 bg-[#0077B6] text-white px-5 py-2 rounded-xl"
-                >
-                  Book
-                </button>
+                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+                    <Clock size={14}/> {service.inspection.duration} mins
+                  </div>
+                </div>
+
+                {/* RIGHT */}
+                <div className="text-left">
+                  <p className="text-xl font-bold text-blue-600 flex items-center gap-1">
+                    <IndianRupee size={16}/> {service.inspection.price}
+                  </p>
+
+                  <div className="flex gap-2 mt-3 justify-end">
+
+                    {/* 🔘 VIEW DETAILS */}
+                    <button
+                      onClick={() =>
+                        navigate(`/inspection/${service._id}`, {
+                          state: {
+                            serviceId: service._id,
+                            name: service.name,
+                            price: service.inspection.price,
+                            description: service.inspection.description,
+                            duration: service.inspection.duration,
+                          },
+                        })
+                      }
+                      className="text-sm px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
+                    >
+                      View Details
+                    </button>
+
+                    {/* 🔘 BOOK */}
+                    <button
+                      onClick={() =>
+                        dispatch(
+                          addToCart({
+                            serviceId: service._id,
+                            name: "Inspection",
+                            price: service.inspection.price,
+                            duration: service.inspection.duration,
+                            bookingType: "inspection",
+                          })
+                        )
+                      }
+                      className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow"
+                    >
+                      Book
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* 🔷 Sub Services */}
+          {/* 🔷 SUB SERVICES */}
           <div>
-            <h2 className="text-2xl font-semibold mb-6">
+            <h2 className="text-2xl font-semibold mb-4">
               Available Services
             </h2>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               {subServices.map((sub) => {
                 const item = getItem(sub._id);
 
                 return (
                   <motion.div
                     key={sub._id}
-                    className="bg-white p-6 rounded-3xl border shadow-sm flex justify-between items-center"
+                    whileHover={{ y: -3 }}
+                    className="p-6 rounded-2xl bg-white border shadow-sm hover:shadow-lg transition flex justify-between"
                   >
 
                     {/* LEFT */}
@@ -135,76 +170,92 @@ export default function ServiceDetails() {
                         {sub.name}
                       </h3>
 
-                      <p className="text-sm text-gray-500">
+                      {/* 🔥 TRUNCATED DESCRIPTION */}
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                         {sub.description}
                       </p>
 
-                      <p className="text-xs text-gray-400 mt-1">
-                        ~{sub.durationEstimate} mins
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+                        <Clock size={14}/> {sub.durationEstimate} mins
+                      </div>
                     </div>
 
                     {/* RIGHT */}
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end justify-between">
 
-                      <p className="font-bold text-[#0077B6] text-lg">
-                        ₹{sub.customerPrice}
+                      <p className="text-lg font-bold text-blue-600 flex items-center gap-1">
+                        <IndianRupee size={16}/> {sub.customerPrice}
                       </p>
 
-                      {/* 🔥 CART UI */}
-                      {item ? (
-                        <div className="flex items-center gap-3 mt-2">
-                          <button
-                            onClick={() =>
-                              dispatch(
-                                decreaseQty({
-                                  subServiceId: sub._id,
-                                  bookingType: "service",
-                                })
-                              )
-                            }
-                            className="px-3 py-1 border rounded"
-                          >
-                            -
-                          </button>
+                      {/* 🔘 ACTION BUTTONS */}
+                      <div className="flex gap-2 mt-3">
 
-                          <span>{item.quantity}</span>
-
-                          <button
-                            onClick={() =>
-                              dispatch(
-                                increaseQty({
-                                  subServiceId: sub._id,
-                                  bookingType: "service",
-                                })
-                              )
-                            }
-                            className="px-3 py-1 border rounded"
-                          >
-                            +
-                          </button>
-                        </div>
-                      ) : (
+                        {/* VIEW DETAILS */}
                         <button
                           onClick={() =>
-                            dispatch(
-                              addToCart({
-                                subServiceId: sub._id,
-                                name: sub.name,
-                                price: sub.customerPrice,
-                                duration: sub.durationEstimate,
-                                bookingType: "service",
-                              })
-                            )
+                            navigate(`/sub-service/${sub._id}`)
                           }
-                          className="mt-2 border border-[#0077B6] text-[#0077B6] px-4 py-2 rounded-xl"
+                          className="text-sm px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
                         >
-                          Add
+                          View Details
                         </button>
-                      )}
 
+                        {/* CART UI */}
+                        {item ? (
+                          <div className="flex items-center gap-3 bg-gray-100 px-3 py-1 rounded-xl">
+                            <button
+                              onClick={() =>
+                                dispatch(
+                                  decreaseQty({
+                                    subServiceId: sub._id,
+                                    bookingType: "service",
+                                  })
+                                )
+                              }
+                              className="text-lg"
+                            >
+                              −
+                            </button>
+
+                            <span className="font-medium">
+                              {item.quantity}
+                            </span>
+
+                            <button
+                              onClick={() =>
+                                dispatch(
+                                  increaseQty({
+                                    subServiceId: sub._id,
+                                    bookingType: "service",
+                                  })
+                                )
+                              }
+                              className="text-lg"
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              dispatch(
+                                addToCart({
+                                  subServiceId: sub._id,
+                                  name: sub.name,
+                                  price: sub.customerPrice,
+                                  duration: sub.durationEstimate,
+                                  bookingType: "service",
+                                })
+                              )
+                            }
+                            className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
+                          >
+                            Add
+                          </button>
+                        )}
+
+                      </div>
                     </div>
-
                   </motion.div>
                 );
               })}
@@ -215,53 +266,53 @@ export default function ServiceDetails() {
 
         {/* 🔷 RIGHT SIDEBAR */}
         <div className="hidden lg:block">
-          <div className="sticky top-24 bg-white p-6 rounded-3xl shadow border">
+          <div className="sticky top-24 p-6 rounded-3xl bg-white shadow-xl border">
 
-            <h3 className="font-semibold mb-4">Booking Summary</h3>
+            <h3 className="font-semibold text-lg mb-4">
+              Booking Summary
+            </h3>
 
             {cartItems.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-gray-500 text-sm">
                 No items added yet
               </p>
             ) : (
               <>
                 {cartItems.map((item, i) => (
                   <div key={i} className="flex justify-between text-sm mb-2">
-                    <span>
-                      {item.name} x {item.quantity}
-                    </span>
+                    <span>{item.name} × {item.quantity}</span>
                     <span>₹{item.price * item.quantity}</span>
                   </div>
                 ))}
 
-                <div className="border-t mt-4 pt-4 font-semibold">
-                  Total: ₹{total}
+                <div className="border-t mt-4 pt-4 flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>₹{total}</span>
                 </div>
               </>
             )}
 
-<button
-  onClick={() => navigate("/cart")}
-  className="w-full mt-6 bg-[#0077B6] text-white py-3 rounded-xl"
->
-  Continue
-</button>
-
+            <button
+              onClick={() => navigate("/cart")}
+              className="mt-6 w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow"
+            >
+              Continue Booking
+            </button>
           </div>
         </div>
-
       </div>
 
       {/* 🔷 MOBILE CTA */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t p-4 lg:hidden">
-      <button
-  onClick={() => navigate("/cart")}
-  className="w-full bg-[#0077B6] text-white py-3 rounded-xl"
->
-  Continue Booking (₹{total})
-</button>
+      <div className="lg:hidden fixed bottom-0 w-full p-4 bg-white border-t shadow">
+        <button
+          onClick={() => navigate("/cart")}
+          className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold"
+        >
+          Continue • ₹{total}
+        </button>
       </div>
-
     </div>
+    <Footer/>
+    </>
   );
 }

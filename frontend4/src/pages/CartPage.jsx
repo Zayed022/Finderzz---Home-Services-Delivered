@@ -4,9 +4,19 @@ import {
   decreaseQty,
   removeFromCart,
 } from "../store/cartSlice";
+import { useNavigate } from "react-router-dom";
+import {
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  ShieldCheck,
+} from "lucide-react";
 
 export default function CartPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const cartItems = useSelector((state) => state.cart.items);
 
   const total = cartItems.reduce(
@@ -15,55 +25,99 @@ export default function CartPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
 
-      {/* HEADER */}
-      <div className="bg-white border-b py-6 px-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Your Cart
-        </h1>
+      {/* 🔷 HEADER */}
+      <div className="bg-white border-b px-6 py-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <ShoppingCart className="text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900">
+            Your Cart
+          </h1>
+        </div>
+
+        {cartItems.length > 0 && (
+          <span className="text-sm text-gray-500">
+            {cartItems.length} items
+          </span>
+        )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-[2fr_1fr] gap-10">
+      <div className="max-w-7xl mx-auto px-6 py-10 grid lg:grid-cols-[2fr_1fr] gap-10">
 
-        {/* LEFT - ITEMS */}
+        {/* 🔷 LEFT - ITEMS */}
         <div className="space-y-6">
 
           {cartItems.length === 0 ? (
-            <div className="text-center py-20 text-gray-500">
-              Your cart is empty
+            <div className="flex flex-col items-center justify-center py-28 text-gray-500">
+              <ShoppingCart size={56} className="opacity-30 mb-4" />
+              <p className="text-lg font-medium">
+                Your cart is empty
+              </p>
+
+              <button
+                onClick={() => navigate("/")}
+                className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow"
+              >
+                Explore Services
+              </button>
             </div>
           ) : (
             cartItems.map((item, i) => (
               <div
                 key={i}
-                className="bg-white p-6 rounded-2xl shadow-sm border flex justify-between items-center"
+                className="group bg-white p-6 rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300"
               >
 
-                {/* INFO */}
-                <div>
-                  <h3 className="font-semibold text-lg">
-                    {item.name}
-                  </h3>
+                <div className="flex justify-between items-start">
 
-                  <p className="text-sm text-gray-500">
-                    {item.bookingType}
-                  </p>
+                  {/* LEFT */}
+                  <div>
+                    <h3 className="font-semibold text-lg text-gray-900">
+                      {item.name}
+                    </h3>
 
-                  <p className="text-xs text-gray-400 mt-1">
-                    ~{item.duration} mins
+                    <div className="flex items-center gap-3 mt-2 text-xs">
+
+                      <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-medium">
+                        {item.bookingType}
+                      </span>
+
+                      <span className="text-gray-400">
+                        ⏱ {item.duration} mins
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* PRICE */}
+                  <p className="font-bold text-blue-600 text-lg">
+                    ₹{item.price * item.quantity}
                   </p>
                 </div>
 
-                {/* ACTIONS */}
-                <div className="text-right">
+                {/* ACTION ROW */}
+                <div className="flex justify-between items-center mt-5">
 
-                  <p className="font-bold text-[#0077B6] text-lg mb-2">
-                    ₹{item.price * item.quantity}
-                  </p>
+                  {/* REMOVE */}
+                  <button
+                    onClick={() =>
+                      dispatch(
+                        removeFromCart({
+                          subServiceId: item.subServiceId,
+                          serviceId: item.serviceId,
+                          bookingType: item.bookingType,
+                        })
+                      )
+                    }
+                    className="flex items-center gap-1 text-sm text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={14} />
+                    Remove
+                  </button>
 
-                  {/* Quantity */}
-                  <div className="flex items-center justify-end gap-3 mb-3">
+                  {/* QUANTITY */}
+                  <div className="flex items-center gap-3 bg-gray-100 px-3 py-1.5 rounded-xl">
+
                     <button
                       onClick={() =>
                         dispatch(
@@ -74,12 +128,14 @@ export default function CartPage() {
                           })
                         )
                       }
-                      className="px-3 py-1 border rounded"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-gray-50"
                     >
-                      -
+                      <Minus size={14} />
                     </button>
 
-                    <span>{item.quantity}</span>
+                    <span className="font-semibold text-gray-800 w-5 text-center">
+                      {item.quantity}
+                    </span>
 
                     <button
                       onClick={() =>
@@ -91,68 +147,80 @@ export default function CartPage() {
                           })
                         )
                       }
-                      className="px-3 py-1 border rounded"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-white shadow-sm hover:bg-gray-50"
                     >
-                      +
+                      <Plus size={14} />
                     </button>
                   </div>
 
-                  {/* Remove */}
-                  <button
-                    onClick={() =>
-                      dispatch(
-                        removeFromCart({
-                          subServiceId: item.subServiceId,
-                          serviceId: item.serviceId,
-                          bookingType: item.bookingType,
-                        })
-                      )
-                    }
-                    className="text-sm text-red-500 hover:underline"
-                  >
-                    Remove
-                  </button>
-
                 </div>
-
               </div>
             ))
           )}
-
         </div>
 
-        {/* RIGHT - SUMMARY */}
-        <div>
+        {/* 🔷 RIGHT - SUMMARY */}
+        {cartItems.length > 0 && (
+          <div>
+            <div className="sticky top-24 bg-white p-6 rounded-3xl shadow-xl border">
 
-          <div className="bg-white p-6 rounded-2xl shadow-sm border sticky top-24">
+              <h2 className="font-semibold text-lg mb-4">
+                Order Summary
+              </h2>
 
-            <h2 className="font-semibold text-lg mb-4">
-              Order Summary
-            </h2>
-
-            {cartItems.map((item, i) => (
-              <div key={i} className="flex justify-between text-sm mb-2">
-                <span>
-                  {item.name} x {item.quantity}
-                </span>
-                <span>₹{item.price * item.quantity}</span>
+              {/* ITEMS */}
+              <div className="space-y-3">
+                {cartItems.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between text-sm text-gray-600"
+                  >
+                    <span className="truncate max-w-[70%]">
+                      {item.name} × {item.quantity}
+                    </span>
+                    <span>₹{item.price * item.quantity}</span>
+                  </div>
+                ))}
               </div>
-            ))}
 
-            <div className="border-t mt-4 pt-4 font-semibold text-lg">
-              Total: ₹{total}
+              {/* DIVIDER */}
+              <div className="border-t my-5" />
+
+              {/* TOTAL */}
+              <div className="flex justify-between items-center text-lg font-bold">
+                <span>Total</span>
+                <span className="text-blue-600">₹{total}</span>
+              </div>
+
+              {/* TRUST BADGE */}
+              <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
+                <ShieldCheck size={14} className="text-green-500" />
+                Secure checkout & verified professionals
+              </div>
+
+              {/* CTA */}
+              <button
+                onClick={() => navigate("/checkout")}
+                className="w-full mt-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-lg"
+              >
+                Proceed to Checkout
+              </button>
             </div>
-
-            <button className="w-full mt-6 bg-[#0077B6] text-white py-3 rounded-xl font-medium hover:shadow-md transition">
-              Proceed to Checkout
-            </button>
-
           </div>
-
-        </div>
-
+        )}
       </div>
 
+      {/* 🔷 MOBILE CTA */}
+      {cartItems.length > 0 && (
+        <div className="lg:hidden fixed bottom-0 w-full bg-white border-t p-4 shadow">
+          <button
+            onClick={() => navigate("/checkout")}
+            className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold shadow"
+          >
+            Checkout • ₹{total}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

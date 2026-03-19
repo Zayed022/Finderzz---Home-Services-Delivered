@@ -1,9 +1,11 @@
 import express from "express";
-import { createSubService, deleteSubService, getSubServiceById, getSubServicesByService, updateSubService } from "../controllers/subService.controllers.js";
+import { createSubService, deleteSubService, getAllSubService, getSubServiceById, getSubServicesByService, updateSubService } from "../controllers/subService.controllers.js";
 
 
 const router = express.Router();
 router.post("/", createSubService);
+
+router.get("/", getAllSubService)
 
 router.get("/service/:serviceId", getSubServicesByService);
 

@@ -60,6 +60,18 @@ export const createSubService = async (req, res, next) => {
   }
 };
 
+export const getAllSubService = async (req, res, next) => {
+    try {
+      const subServices = await SubService.find({  })
+        .sort({ order: 1 })
+        .lean();
+  
+      res.json({ success: true, data: subServices });
+    } catch (error) {
+      next(error);
+    }
+};
+
 export const getSubServicesByService = async (req, res, next) => {
   try {
     const { serviceId } = req.params;
