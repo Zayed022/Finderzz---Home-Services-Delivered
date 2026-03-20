@@ -368,6 +368,11 @@ export default function CheckoutScreen() {
               </Text>
             </View>
 
+            <Text style={styles.termsText}>
+  By confirming this booking, you agree to our{" "}
+  <Text style={styles.linkText}>Terms & Conditions</Text>.
+</Text>
+
             <Pressable
               style={styles.confirmButton}
               onPress={handleBooking}
@@ -463,5 +468,17 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "700",
     fontSize: 16,
+  },
+  termsText: {
+    fontSize: 13,
+    color: "#64748B",
+    textAlign: "center",
+    marginTop: 12,
+    lineHeight: 18,
+  },
+  
+  linkText: {
+    color: "#0A84FF",
+    fontWeight: "600",
   },
 });

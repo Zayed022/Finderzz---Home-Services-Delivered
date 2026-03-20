@@ -340,9 +340,11 @@ export default function ManageBookings(){
                     className="text-sm text-gray-600 flex justify-between"
                   >
 
-                    <span>
-                      {s.subServiceId?.name}
-                    </span>
+<span>
+  {s.bookingType === "inspection"
+    ? `${s.serviceId?.name || "Service"} (Inspection)`
+    : s.subServiceId?.name || "Service"}
+</span>
 
                     <span>
                       x{s.quantity}
