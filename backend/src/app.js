@@ -7,7 +7,8 @@ const app = express()
 app.use(cors({
     origin: ["http://localhost:5174",
       "http://localhost:5173",
-      "https://finderzz-home-services-delivered.vercel.app"
+      "https://finderzz-home-services-delivered.vercel.app",
+      "https://finderzz-home-services-delivered-mn.vercel.app"
     ],
     credentials: true,
 }))
