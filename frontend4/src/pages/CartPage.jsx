@@ -210,17 +210,7 @@ export default function CartPage() {
         )}
       </div>
 
-      {/* 🔷 MOBILE CTA */}
-      {cartItems.length > 0 && (
-        <div className="lg:hidden fixed bottom-0 w-full bg-white border-t p-4 shadow">
-          <button
-            onClick={() => navigate("/checkout")}
-            className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold shadow"
-          >
-            Checkout • ₹{total}
-          </button>
-        </div>
-      )}
+      
     </div>
   );
 }
