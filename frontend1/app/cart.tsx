@@ -167,6 +167,8 @@ export default function CartScreen() {
           </Text>
         </View>
 
+        
+
         <View style={styles.divider} />
 
         <Pressable
