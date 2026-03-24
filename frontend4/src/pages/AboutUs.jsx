@@ -2,20 +2,26 @@ import { Users, ShieldCheck, Clock, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Helmet } from "react-helmet-async";
 
 export default function About() {
   const navigate = useNavigate();
 
   return (
     <>
+<Helmet>
+  <title>About Finderzz | Home Services in Bhiwandi</title>
+  <meta name="description" content="Finderzz connects you with verified home service professionals in Bhiwandi for cleaning, repair, and inspection services." />
+  <link rel="canonical" href="https://finderzz.com/about" />
+</Helmet>
     <Navbar/>
     <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
 
       {/* 🔷 HERO */}
       <div className="max-w-6xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-          About Finderzz
-        </h1>
+      <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+  About Finderzz – Home Services in Bhiwandi
+</h1>
 
         <p className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto">
           Finderzz is a modern home services platform connecting

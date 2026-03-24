@@ -3,6 +3,7 @@ import API from "../api/axios";
 import { Calendar, Clock, FileText } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Helmet } from "react-helmet-async";
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
@@ -96,6 +97,10 @@ export default function MyBookings() {
 
   return (
     <>
+    <Helmet>
+  <title>My Bookings | Finderzz</title>
+  <meta name="robots" content="noindex, nofollow" />
+</Helmet>
     <Navbar/>
     <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
 

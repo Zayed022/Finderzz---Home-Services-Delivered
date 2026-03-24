@@ -1,18 +1,24 @@
 import { Phone, Mail, MessageCircle } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Helmet } from "react-helmet-async";
 
 export default function CustomerCare() {
   return (
     <>
+    <Helmet>
+  <title>Customer Support in Bhiwandi | Finderzz</title>
+  <meta name="description" content="Contact Finderzz for home service support, bookings, and queries in Bhiwandi. Available 24/7." />
+  <link rel="canonical" href="https://finderzz.com/customer-care" />
+</Helmet>
     <Navbar/>
     <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
 
       <div className="max-w-5xl mx-auto px-6 py-12 text-center">
 
-        <h1 className="text-3xl font-bold text-gray-900">
-          Customer Support
-        </h1>
+      <h1 className="text-3xl font-bold text-gray-900">
+  Customer Support for Home Services in Bhiwandi
+</h1>
 
         <p className="text-gray-500 mt-3">
           We're here to help you 24/7. Reach out to us anytime.

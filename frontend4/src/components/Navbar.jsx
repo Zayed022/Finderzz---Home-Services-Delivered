@@ -45,7 +45,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b shadow-sm">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur  shadow-sm">
 
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 

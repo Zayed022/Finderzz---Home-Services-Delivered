@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
@@ -35,13 +36,17 @@ export default function Terms() {
   
     return (
         <>
+        <Helmet>
+  <title>Terms & Conditions | Finderzz</title>
+  <meta name="robots" content="noindex, follow" />
+</Helmet>
         <Navbar/>
       <div className="bg-slate-50 min-h-screen">
         <div className="max-w-4xl mx-auto px-6 py-12">
   
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            Terms & Conditions
-          </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+  Terms & Conditions – Finderzz Services
+</h1>
   
           <div className="space-y-4">
             {TERMS.map((term, index) => (

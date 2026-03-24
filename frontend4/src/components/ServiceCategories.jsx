@@ -48,8 +48,12 @@ export default function ServiceCategories() {
 
         {/* Heading */}
         <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-          Our Service Categories
-        </h2>
+  Explore Home Services in Bhiwandi
+</h2>
+
+<h3 className="text-gray-600 mt-4 mb-16 max-w-2xl mx-auto text-lg">
+  Choose from a wide range of professional services including cleaning, repair, and inspection.
+</h3>
 
         <p className="text-gray-600 mt-4 mb-16 max-w-2xl mx-auto text-lg">
           Professional services for every need, delivered by verified experts in Bhiwandi.

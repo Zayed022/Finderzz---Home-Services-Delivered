@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Helmet } from "react-helmet-async";
 
 export default function ServicesPage() {
   const navigate = useNavigate();
@@ -70,14 +71,23 @@ export default function ServicesPage() {
 
   return (
     <>
+    <Helmet>
+  <title>All Home Services in Bhiwandi | Finderzz</title>
+  <meta name="description" content="Explore maid, plumbing, painting, and inspection services in Bhiwandi. Affordable pricing and verified professionals." />
+  <link rel="canonical" href="https://finderzz.com/services" />
+</Helmet>
     <Navbar/>
     <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
 
       {/* 🔷 HERO */}
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-4xl font-bold text-gray-900">
-          All Services
-        </h1>
+      <h1 className="text-4xl font-bold text-gray-900">
+  Home Services in Bhiwandi
+</h1>
+
+<h2 className="text-gray-500 mt-2 text-lg">
+  Explore maid, plumbing, painting & inspection services
+</h2>
 
         <p className="text-gray-500 mt-2 text-lg">
           Find the right professional for your home needs

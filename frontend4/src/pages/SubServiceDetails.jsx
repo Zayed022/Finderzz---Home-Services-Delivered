@@ -10,6 +10,7 @@ import {
 } from "../store/cartSlice";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Helmet } from "react-helmet-async";
 
 /* 🔥 UI ENRICHMENT */
 const badges = ["Most Booked", "Recommended", "Top Rated", null];
@@ -70,6 +71,47 @@ export default function SubServiceDetails() {
   return (
     <>
     <Navbar/>
+    <Helmet>
+  <title>{sub?.name} in Bhiwandi | Finderzz</title>
+
+  <meta
+    name="description"
+    content={`Book ${sub?.name} in Bhiwandi starting at ₹${sub?.customerPrice}. Fast and verified home service.`}
+  />
+
+  <link
+    rel="canonical"
+    href={`https://finderzz.com/sub-service/${id}`}
+  />
+
+  <meta name="robots" content="index, follow" />
+
+  {/* 🔥 SERVICE SCHEMA */}
+  <script type="application/ld+json">
+{JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: `What is the cost of ${sub?.name} in Bhiwandi?`,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Pricing depends on service type and inspection."
+      }
+    },
+    {
+      "@type": "Question",
+      name: "Do you provide inspection before service?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, inspection is available before final pricing."
+      }
+    }
+  ]
+})}
+</script>
+</Helmet>
     <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
 
       {/* 🔷 HERO */}
@@ -85,9 +127,9 @@ export default function SubServiceDetails() {
             </span>
           )}
 
-          <h1 className="text-4xl font-bold mt-3 leading-tight">
-            {sub.name}
-          </h1>
+<h1 className="text-4xl font-bold mt-3 leading-tight">
+  {sub.name} in Bhiwandi
+</h1>
 
           <div className="flex gap-4 mt-3 text-sm opacity-90">
             <span>⭐ {sub.rating}</span>
@@ -205,6 +247,16 @@ export default function SubServiceDetails() {
           </p>
         </div>
 
+        <div className="bg-white p-6 rounded-2xl shadow border">
+  <h2 className="text-xl font-semibold mb-3">
+    {sub.name} Service in Bhiwandi
+  </h2>
+
+  <p className="text-gray-600 leading-relaxed">
+    Looking for {sub.name} in Bhiwandi? Finderzz provides trusted and verified professionals for all your home service needs. Book instantly and get fast service at your doorstep.
+  </p>
+</div>
+
         {/* HIGHLIGHTS */}
         <div className="bg-white p-6 rounded-2xl shadow border">
           <h2 className="text-xl font-semibold mb-4">
@@ -268,6 +320,34 @@ export default function SubServiceDetails() {
         )}
       </div>
     </div>
+    <div className="bg-white p-6 rounded-2xl shadow border mt-8">
+  <h2 className="text-xl font-semibold mb-4">
+    Frequently Asked Questions
+  </h2>
+
+  <div className="space-y-4 text-sm text-gray-600">
+    <div>
+      <p className="font-medium">
+        What is the cost of { sub?.name} in Bhiwandi?
+      </p>
+      <p>Pricing depends on service type and inspection requirements.</p>
+    </div>
+
+    <div>
+      <p className="font-medium">
+        Do you provide inspection before service?
+      </p>
+      <p>Yes, inspection services are available to give accurate pricing.</p>
+    </div>
+
+    <div>
+      <p className="font-medium">
+        Are professionals verified?
+      </p>
+      <p>All professionals are background-verified and trained.</p>
+    </div>
+  </div>
+</div>
     <Footer/>
     </>
   );

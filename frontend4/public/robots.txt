@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# ❌ BLOCK NON-SEO PAGES
+Disallow: /my-bookings
+Disallow: /cart
+Disallow: /checkout
+Disallow: /admin
+
+# ✅ SITEMAP
+Sitemap: https://finderzz.com/sitemap.xml

@@ -1,4 +1,4 @@
-import React from 'react'
+import { Helmet } from "react-helmet-async";
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import Stats from '../components/Stats'
@@ -11,14 +11,20 @@ import ServiceCategories from '../components/ServiceCategories'
 function Home() {
   return (
     <>
-    <Navbar/>
-    <Hero/>
-    <Stats/>
-    <ServiceCategories/>
-    <HowItWorks/>
-    <Testimonials/>
-    <CTA/>
-    <Footer/>
+      <Helmet>
+        <title>Home Services in Bhiwandi | Finderzz</title>
+        <meta name="description" content="Book trusted home services in Bhiwandi including maid, plumbing, painting & inspection services. Verified professionals." />
+        <link rel="canonical" href="https://finderzz.com/" />
+      </Helmet>
+
+      <Navbar/>
+      <Hero/>
+      <Stats/>
+      <ServiceCategories/>
+      <HowItWorks/>
+      <Testimonials/>
+      <CTA/>
+      <Footer/>
     </>
   )
 }

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- 🔷 MAIN PAGES -->
+  <url>
+    <loc>https://finderzz.com/</loc>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://finderzz.com/services</loc>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://finderzz.com/about</loc>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://finderzz.com/customer-care</loc>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 🔷 SEO SERVICE PAGES (IMPORTANT) -->
+  <url>
+    <loc>https://finderzz.com/services/plumber-bhiwandi</loc>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://finderzz.com/services/maid-service-bhiwandi</loc>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://finderzz.com/services/painting-bhiwandi</loc>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://finderzz.com/services/home-cleaning-bhiwandi</loc>
+    <priority>0.9</priority>
+  </url>
+
+</urlset>

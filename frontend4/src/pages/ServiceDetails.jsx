@@ -10,6 +10,7 @@ import {
 import { Clock, IndianRupee, Sparkles } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Helmet } from "react-helmet-async";
 
 export default function ServiceDetails() {
   const { id } = useParams();
@@ -49,6 +50,36 @@ export default function ServiceDetails() {
   return (
     <>
     <Navbar/>
+
+    <Helmet>
+  <title>{service?.name} Services in Bhiwandi | Finderzz</title>
+
+  <meta
+    name="description"
+    content={`Book ${service?.name} services in Bhiwandi with verified professionals. Affordable pricing and quick service.`}
+  />
+
+  <link
+    rel="canonical"
+    href={`https://finderzz.com/service/${id}`}
+  />
+
+  <meta name="robots" content="index, follow" />
+
+  {/* 🔥 STRUCTURED DATA */}
+  <script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: service?.name,
+      areaServed: "Bhiwandi",
+      provider: {
+        "@type": "Organization",
+        name: "Finderzz",
+      },
+    })}
+  </script>
+</Helmet>
     <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
 
       {/* 🔷 HERO */}
@@ -61,8 +92,8 @@ export default function ServiceDetails() {
           className="relative"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-            {service.name}
-          </h1>
+  {service.name} Services in Bhiwandi
+</h1>
 
           <p className="mt-4 text-gray-600 max-w-xl mx-auto text-lg">
             {service.description}
@@ -264,6 +295,35 @@ export default function ServiceDetails() {
 
         </div>
 
+        <div className="bg-white p-6 rounded-2xl shadow border mt-8">
+  <h2 className="text-xl font-semibold mb-4">
+    Frequently Asked Questions
+  </h2>
+
+  <div className="space-y-4 text-sm text-gray-600">
+    <div>
+      <p className="font-medium">
+        What is the cost of {service?.name } in Bhiwandi?
+      </p>
+      <p>Pricing depends on service type and inspection requirements.</p>
+    </div>
+
+    <div>
+      <p className="font-medium">
+        Do you provide inspection before service?
+      </p>
+      <p>Yes, inspection services are available to give accurate pricing.</p>
+    </div>
+
+    <div>
+      <p className="font-medium">
+        Are professionals verified?
+      </p>
+      <p>All professionals are background-verified and trained.</p>
+    </div>
+  </div>
+</div>
+
         {/* 🔷 RIGHT SIDEBAR */}
         <div className="hidden lg:block">
           <div className="sticky top-24 p-6 rounded-3xl bg-white shadow-xl border">
@@ -312,6 +372,8 @@ export default function ServiceDetails() {
         </button>
       </div>
     </div>
+
+
     <Footer/>
     </>
   );

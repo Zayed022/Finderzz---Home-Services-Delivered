@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
@@ -32,13 +33,17 @@ export default function Privacy() {
   
     return (
         <>
+        <Helmet>
+  <title>Privacy Policy | Finderzz</title>
+  <meta name="robots" content="noindex, follow" />
+</Helmet>
         <Navbar/>
       <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
         <div className="max-w-5xl mx-auto px-6 py-12">
   
-          <h1 className="text-3xl font-bold text-gray-900">
-            Privacy Policy
-          </h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+  Privacy Policy – Finderzz
+</h1>
   
           <p className="text-sm text-gray-400 mt-2 mb-8">
             Last Updated: March 2026
