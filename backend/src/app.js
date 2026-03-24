@@ -9,7 +9,7 @@ app.use(cors({
       "http://localhost:5173",
       "https://finderzz-home-services-delivered.vercel.app",
       "https://finderzz-home-services-delivered-mn.vercel.app",
-      "https://www.finderzz.com/"
+      "https://www.finderzz.com"
     ],
     credentials: true,
 }))
