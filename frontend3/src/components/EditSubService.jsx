@@ -2,337 +2,229 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../api/api";
 
-export default function EditSubService(){
-
+export default function EditSubService() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [subService,setSubService] = useState(null);
+  const [subService, setSubService] = useState(null);
 
-  const [name,setName] = useState("");
-  const [description,setDescription] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
 
-  const [workerPrice,setWorkerPrice] = useState(0);
-  const [platformFee,setPlatformFee] = useState(0);
+  const [workerPrice, setWorkerPrice] = useState("");
+  const [platformFee, setPlatformFee] = useState("");
+  const [durationEstimate, setDurationEstimate] = useState("");
 
-  const [durationEstimate,setDurationEstimate] = useState("");
+  const [active, setActive] = useState(true);
 
-  const [inspectionAvailable,setInspectionAvailable] = useState(false);
-  const [inspectionPrice,setInspectionPrice] = useState(0);
-  const [inspectionDescription,setInspectionDescription] = useState("");
-  const [inspectionDuration,setInspectionDuration] = useState("");
-
-  const [active,setActive] = useState(true);
-
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   /* ================= FETCH ================= */
 
-  const fetchSubService = async()=>{
-
-    try{
-
+  const fetchSubService = async () => {
+    try {
       const res = await API.get(`/subService/${id}`);
       const data = res.data.data;
 
       setSubService(data);
 
-      setName(data.name);
+      setName(data.name || "");
       setDescription(data.description || "");
 
-      setWorkerPrice(data.workerPrice);
-      setPlatformFee(data.platformFee);
+      setWorkerPrice(data.workerPrice || "");
+      setPlatformFee(data.platformFee || "");
 
       setDurationEstimate(data.durationEstimate || "");
 
-      setInspectionAvailable(data.inspectionAvailable);
-      setInspectionPrice(data.inspectionPrice || 0);
-      setInspectionDescription(data.inspectionDescription || "");
-      setInspectionDuration(data.inspectionDuration || "");
-
       setActive(data.active);
-
-    }catch(err){
-      console.error("Fetch subservice failed",err);
+    } catch (err) {
+      console.error("Fetch subservice failed", err);
     }
-
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchSubService();
-  },[]);
-
+  }, []);
 
   /* ================= UPDATE ================= */
 
-  const handleSubmit = async(e)=>{
-
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try{
-
+    try {
       setLoading(true);
 
-      await API.patch(`/subService/${id}`,{
-
+      await API.patch(`/subService/${id}`, {
         name,
         description,
-
-        workerPrice:Number(workerPrice),
-        platformFee:Number(platformFee),
-
-        durationEstimate,
-
-        inspectionAvailable,
-        inspectionPrice:Number(inspectionPrice),
-        inspectionDescription,
-        inspectionDuration,
-
-        active
-
+        workerPrice: Number(workerPrice),
+        platformFee: Number(platformFee),
+        durationEstimate: Number(durationEstimate),
+        active,
       });
 
       navigate("/services");
-
-    }catch(err){
-
-      console.error("Update failed",err);
+    } catch (err) {
+      console.error("Update failed", err);
       alert("Update failed");
-
-    }finally{
-
+    } finally {
       setLoading(false);
-
     }
-
   };
 
-
-  if(!subService) return <div className="p-8">Loading...</div>;
+  if (!subService) {
+    return <div className="p-8">Loading subservice...</div>;
+  }
 
   const customerPrice =
-    Number(workerPrice) + Number(platformFee);
+    Number(workerPrice || 0) + Number(platformFee || 0);
 
+  return (
+    <div className="p-8 bg-gray-50 min-h-screen flex justify-center">
+      <div className="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-8">
 
-  return(
-
-    <div className="p-8 bg-gray-50 min-h-screen">
-
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow">
-
-        <h2 className="text-xl font-semibold mb-6">
+        {/* HEADER */}
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
           Edit SubService
-        </h2>
+        </h1>
+        <p className="text-gray-500 text-sm mb-6">
+          Update pricing, details and availability
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* NAME */}
-
-          <div>
-
-            <label className="text-sm block mb-1">
-              Name
-            </label>
-
-            <input
-              value={name}
-              onChange={(e)=>setName(e.target.value)}
-              className="w-full border rounded p-2"
-            />
-
-          </div>
-
-
-          {/* DESCRIPTION */}
-
-          <div>
-
-            <label className="text-sm block mb-1">
-              Description
-            </label>
-
-            <textarea
-              value={description}
-              onChange={(e)=>setDescription(e.target.value)}
-              className="w-full border rounded p-2"
-            />
-
-          </div>
-
-
-          {/* PRICES */}
-
-          <div className="grid grid-cols-2 gap-4">
+          {/* BASIC INFO */}
+          <div className="space-y-4">
+            <h2 className="font-semibold text-gray-700">
+              SubService Details
+            </h2>
 
             <div>
-
-              <label className="text-sm block mb-1">
-                Worker Price
+              <label className="block text-sm mb-1">
+                SubService Name
               </label>
-
               <input
-                type="number"
-                value={workerPrice}
-                onChange={(e)=>setWorkerPrice(e.target.value)}
-                className="w-full border rounded p-2"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Pipe Leakage Repair, AC Cleaning"
+                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
               />
-
             </div>
 
             <div>
-
-              <label className="text-sm block mb-1">
-                Platform Fee
+              <label className="block text-sm mb-1">
+                Description
               </label>
-
-              <input
-                type="number"
-                value={platformFee}
-                onChange={(e)=>setPlatformFee(e.target.value)}
-                className="w-full border rounded p-2"
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Explain what this subservice includes..."
+                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                rows="3"
               />
+            </div>
+          </div>
+
+          {/* PRICING */}
+          <div className="space-y-4">
+            <h2 className="font-semibold text-gray-700">
+              Pricing
+            </h2>
+
+            <div className="grid grid-cols-2 gap-4">
+
+              <div>
+                <label className="block text-sm mb-1">
+                  Worker Price (₹)
+                </label>
+                <input
+                  type="number"
+                  value={workerPrice}
+                  onChange={(e) => setWorkerPrice(e.target.value)}
+                  placeholder="e.g. 300"
+                  className="w-full border rounded-lg p-2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm mb-1">
+                  Platform Fee (₹)
+                </label>
+                <input
+                  type="number"
+                  value={platformFee}
+                  onChange={(e) => setPlatformFee(e.target.value)}
+                  placeholder="e.g. 50"
+                  className="w-full border rounded-lg p-2"
+                />
+              </div>
 
             </div>
 
+            {/* PRICE PREVIEW */}
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">
+                Customer Price (Auto Calculated)
+              </p>
+              <p className="text-xl font-bold text-blue-600">
+                ₹{customerPrice}
+              </p>
+            </div>
           </div>
-
-
-          {/* CUSTOMER PRICE */}
-
-          <div className="bg-gray-100 p-3 rounded text-sm">
-
-            Customer Price :
-            <span className="font-semibold ml-2 text-blue-600">
-              ₹{customerPrice}
-            </span>
-
-          </div>
-
 
           {/* DURATION */}
-
           <div>
-
-            <label className="text-sm block mb-1">
-              Duration Estimate (minutes)
+            <label className="block text-sm mb-1">
+              Estimated Duration (minutes)
             </label>
-
             <input
               type="number"
               value={durationEstimate}
-              onChange={(e)=>setDurationEstimate(e.target.value)}
-              className="w-full border rounded p-2"
+              onChange={(e) => setDurationEstimate(e.target.value)}
+              placeholder="e.g. 30"
+              className="w-full border rounded-lg p-2"
             />
-
           </div>
 
+          {/* STATUS */}
+          <div className="space-y-2">
+            <h2 className="font-semibold text-gray-700">
+              Status
+            </h2>
 
-          {/* INSPECTION TOGGLE */}
-
-          <div className="flex items-center gap-2">
-
-            <input
-              type="checkbox"
-              checked={inspectionAvailable}
-              onChange={(e)=>setInspectionAvailable(e.target.checked)}
-            />
-
-            <label>
-              Inspection Available
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(e) => setActive(e.target.checked)}
+              />
+              Active (visible to users)
             </label>
-
           </div>
 
+          {/* ACTIONS */}
+          <div className="flex gap-3 pt-4">
 
-          {/* INSPECTION FIELDS */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+            >
+              {loading ? "Updating SubService..." : "Update SubService"}
+            </button>
 
-          {inspectionAvailable && (
-
-            <div className="bg-purple-50 p-4 rounded space-y-3">
-
-              <div>
-
-                <label className="text-sm block mb-1">
-                  Inspection Price
-                </label>
-
-                <input
-                  type="number"
-                  value={inspectionPrice}
-                  onChange={(e)=>setInspectionPrice(e.target.value)}
-                  className="w-full border rounded p-2"
-                />
-
-              </div>
-
-              <div>
-
-                <label className="text-sm block mb-1">
-                  Inspection Duration
-                </label>
-
-                <input
-                  type="number"
-                  value={inspectionDuration}
-                  onChange={(e)=>setInspectionDuration(e.target.value)}
-                  className="w-full border rounded p-2"
-                />
-
-              </div>
-
-              <div>
-
-                <label className="text-sm block mb-1">
-                  Inspection Description
-                </label>
-
-                <textarea
-                  value={inspectionDescription}
-                  onChange={(e)=>setInspectionDescription(e.target.value)}
-                  className="w-full border rounded p-2"
-                />
-
-              </div>
-
-            </div>
-
-          )}
-
-
-          {/* ACTIVE */}
-
-          <div className="flex items-center gap-2">
-
-            <input
-              type="checkbox"
-              checked={active}
-              onChange={(e)=>setActive(e.target.checked)}
-            />
-
-            <label>
-              Active
-            </label>
+            <button
+              type="button"
+              onClick={() => navigate("/services")}
+              className="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-100 transition"
+            >
+              Cancel
+            </button>
 
           </div>
-
-
-          {/* BUTTON */}
-
-          <button
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
-          >
-
-            {loading ? "Updating..." : "Update SubService"}
-
-          </button>
 
         </form>
-
       </div>
-
     </div>
-
   );
-
 }

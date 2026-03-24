@@ -3,7 +3,7 @@ import Service from "../models/service.models.js"
 
 export const createCategory = async (req, res, next) => {
   try {
-    const { name, icon, description, order } = req.body;
+    const { name, order } = req.body;
 
     if (!name) {
       return res.status(400).json({ message: "Category name required" });
@@ -16,8 +16,6 @@ export const createCategory = async (req, res, next) => {
 
     const category = await Category.create({
       name,
-      icon,
-      description,
       order,
     });
 
