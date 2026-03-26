@@ -3,143 +3,172 @@ import { useCategories } from "../hooks/useCategories";
 import { useNavigate } from "react-router-dom";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0, y: 24 },
   visible: (i) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.06, duration: 0.5, ease: "easeOut" },
+    transition: { delay: i * 0.04, duration: 0.35 },
   }),
 };
-
-// 🎨 Elegant gradient system (premium tones)
-const gradients = [
-  "from-blue-500/15 to-cyan-400/10",
-  "from-indigo-500/15 to-blue-400/10",
-  "from-emerald-500/15 to-green-400/10",
-  "from-purple-500/15 to-pink-400/10",
-  "from-orange-400/15 to-yellow-300/10",
-  "from-rose-400/15 to-red-300/10",
-];
 
 export default function ServiceCategories() {
   const { data, isLoading } = useCategories();
   const navigate = useNavigate();
 
-  if (isLoading) {
-    return (
-      <section className="py-28 text-center">
-        <p className="text-gray-500">Loading services...</p>
-      </section>
-    );
-  }
-
-  const services = data?.flatMap((cat) => cat.services) || [];
-
   return (
-    <section className="relative py-28 bg-gradient-to-b from-white via-blue-50/30 to-white overflow-hidden">
+    <section className="bg-[#FAFBFC] py-16 md:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      {/* 🔥 subtle background glow */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-10 right-10 w-72 h-72 bg-cyan-400/10 rounded-full blur-3xl" />
-      </div>
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+            Explore Home Services in Bhiwandi
+          </h2>
 
-      <div className="relative max-w-7xl mx-auto px-6 text-center">
+          <p className="text-gray-500 mt-3 text-sm sm:text-base leading-relaxed">
+            Choose from a wide range of professional services including cleaning,
+            repair, and inspection.
+          </p>
+        </div>
 
-        {/* Heading */}
-        <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-  Explore Home Services in Bhiwandi
-</h2>
+        {/* Categories */}
+        <div className="space-y-12">
 
-<h3 className="text-gray-600 mt-4 mb-16 max-w-2xl mx-auto text-lg">
-  Choose from a wide range of professional services including cleaning, repair, and inspection.
-</h3>
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonCategory key={i} />
+              ))
+            : data?.map((category) => (
+                <div key={category._id}>
 
-        <p className="text-gray-600 mt-4 mb-16 max-w-2xl mx-auto text-lg">
-          Professional services for every need, delivered by verified experts in Bhiwandi.
-        </p>
-
-        {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-          {services.map((service, i) => {
-            const isPopular = service.isPopular;
-            const gradient = gradients[i % gradients.length];
-
-            return (
-              <motion.div
-                key={service._id}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                className="group relative"
-              >
-
-                {/* 🌟 Glow Layer */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[#0077B6]/20 to-[#00B4D8]/20 opacity-0 group-hover:opacity-100 blur-xl transition duration-500" />
-
-                {/* Card */}
-                <div
-                onClick={() => navigate(`/service/${service._id}`)}
-                  className={`
-                    relative rounded-3xl p-6 text-left transition-all duration-500
-                    backdrop-blur-xl
-                    bg-gradient-to-br ${gradient}
-                    border
-                    ${isPopular
-                      ? "border-[#0077B6]/60 shadow-lg"
-                      : "border-white/40"}
-                    hover:-translate-y-3 hover:shadow-2xl
-                  `}
-                >
-
-                  {/* Popular Ribbon */}
-                  {isPopular && (
-                    <div className="absolute -top-3 left-4 bg-[#0077B6] text-white text-xs px-3 py-1 rounded-full shadow-md">
-                      ⭐ Most Booked
-                    </div>
-                  )}
-
-                  {/* Icon */}
-                  <div className="w-14 h-14 rounded-xl bg-white/80 backdrop-blur flex items-center justify-center mb-5 shadow-md group-hover:scale-110 transition">
-                    <img
-                      src={service.icon}
-                      alt={service.name}
-                      className="w-7 h-7 object-contain"
-                    />
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="font-semibold text-gray-900 text-lg mb-1 group-hover:text-[#0077B6] transition">
-                    {service.name}
+                  {/* Category Title */}
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-5">
+                    {category.name}
                   </h3>
 
-                  {/* Description */}
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    {getServiceDescription(service.name)}
-                  </p>
+                  {/* Grid per category */}
+                  <div className="
+                    grid 
+                    grid-cols-2 
+                    sm:grid-cols-3 
+                    md:grid-cols-4 
+                    lg:grid-cols-5 
+                    gap-4 sm:gap-5 md:gap-6
+                  ">
+                    {category.services.map((service, i) => {
+                      const isPopular = service.isPopular;
 
-                  {/* CTA */}
-                  <div className="mt-5 text-sm font-medium text-[#0077B6] opacity-0 group-hover:opacity-100 transition">
-                    Book Now →
+                      return (
+                        <motion.div
+                          key={service._id}
+                          custom={i}
+                          initial="hidden"
+                          whileInView="visible"
+                          viewport={{ once: true }}
+                          variants={fadeUp}
+                        >
+                          <div
+                            onClick={() => navigate(`/service/${service._id}`)}
+                            className="
+                              group relative cursor-pointer
+                              bg-white rounded-2xl
+                              p-5 sm:p-6
+                              border border-gray-200/80
+                              shadow-sm
+                              hover:shadow-lg
+                              hover:-translate-y-[3px]
+                              active:scale-[0.98]
+                              transition-all duration-200
+                              h-full flex flex-col justify-between
+                            "
+                          >
+
+                            {/* Badge */}
+                            {isPopular && (
+                              <div className="absolute top-3 left-3 text-[10px] font-medium bg-blue-50 text-blue-600 px-2 py-[3px] rounded-full">
+                                ⭐ Most Booked
+                              </div>
+                            )}
+
+                            {/* Content */}
+                            <div>
+                              {/* Icon */}
+                              <div className="
+                                w-14 h-14 sm:w-16 sm:h-16 mb-4
+                                flex items-center justify-center
+                                rounded-xl
+                                bg-gray-50
+                                border border-gray-100
+                                group-hover:bg-white
+                                transition
+                              ">
+                                <img
+                                  src={service.icon}
+                                  alt={service.name}
+                                  className="w-11 h-11 sm:w-8 sm:h-8 object-contain"
+                                />
+                              </div>
+
+                              {/* Title */}
+                              <h3 className="text-gray-900 text-sm sm:text-base font-medium leading-tight">
+                                {service.name}
+                              </h3>
+
+                              {/* Description */}
+                              <p className="text-gray-500 text-xs sm:text-sm mt-1 leading-snug line-clamp-2">
+                                {getServiceDescription(service.name)}
+                              </p>
+                            </div>
+
+                            {/* CTA */}
+                            <div className="
+                              mt-4 text-xs sm:text-sm font-medium
+                              text-gray-400
+                              group-hover:text-blue-600
+                              transition
+                            ">
+                              View details →
+                            </div>
+
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
 
                 </div>
-
-              </motion.div>
-            );
-          })}
+              ))}
         </div>
-
       </div>
     </section>
   );
 }
 
-/**
- * Temporary helper
- */
+/* ---------------- Skeleton Loader ---------------- */
+
+function SkeletonCategory() {
+  return (
+    <div>
+      <div className="h-5 w-40 bg-gray-200 rounded mb-5 animate-pulse" />
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="bg-white rounded-2xl p-5 border border-gray-200 animate-pulse"
+          >
+            <div className="w-14 h-14 bg-gray-200 rounded-xl mb-4" />
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+            <div className="h-3 bg-gray-100 rounded w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Helper ---------------- */
+
 function getServiceDescription(name) {
   const map = {
     Electrician: "Wiring, switches, fan installation",

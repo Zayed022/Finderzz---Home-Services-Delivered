@@ -1,380 +1,596 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useServiceDetails } from "../hooks/useServiceDetails";
-import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addToCart,
   increaseQty,
   decreaseQty,
 } from "../store/cartSlice";
-import { Clock, IndianRupee, Sparkles } from "lucide-react";
+import { Clock, ShieldCheck, ChevronDown, ShoppingBag, ArrowRight, Minus, Plus, Star } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Helmet } from "react-helmet-async";
+import { useState } from "react";
 
+/* ─── tiny helpers ──────────────────────────────────────────── */
+function Badge({ children }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+      {children}
+    </span>
+  );
+}
+
+function FaqItem({ question, answer }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="border-b border-gray-100 last:border-0"
+      style={{ fontFamily: "inherit" }}
+    >
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between py-4 text-left group"
+      >
+        <span className="text-sm font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
+          {question}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-gray-400 shrink-0 transition-transform duration-300 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ${
+          open ? "max-h-40 pb-4" : "max-h-0"
+        }`}
+      >
+        <p className="text-sm text-gray-500 leading-relaxed">{answer}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── main component ─────────────────────────────────────────── */
 export default function ServiceDetails() {
   const { id } = useParams();
   const { data, isLoading } = useServiceDetails(id);
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
 
+  /* loading */
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-lg animate-pulse">
-          Loading service...
-        </p>
+      <div className="h-screen flex flex-col items-center justify-center gap-3 bg-gray-50">
+        <div className="w-8 h-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+        <p className="text-sm text-gray-400 tracking-wide">Loading service…</p>
       </div>
     );
   }
 
   const { service, subServices } = data;
 
-  /* 🔍 FIND ITEM */
-  const getItem = (subServiceId) => {
-    return cartItems.find(
+  const getItem = (subServiceId) =>
+    cartItems.find(
       (item) =>
-        item.subServiceId === subServiceId &&
-        item.bookingType === "service"
+        item.subServiceId === subServiceId && item.bookingType === "service"
     );
-  };
 
-  /* 💰 TOTAL */
   const total = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
 
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  const faqs = [
+    {
+      question: `What is the cost of ${service.name}?`,
+      answer:
+        "Pricing depends on service type and requirements. You can see individual prices listed next to each service below.",
+    },
+    {
+      question: "Are professionals verified?",
+      answer:
+        "Yes, all our professionals are background-checked, trained, and verified before they're listed on Finderzz.",
+    },
+    {
+      question: "How do I reschedule or cancel?",
+      answer:
+        "You can reschedule or cancel up to 2 hours before the appointment from your bookings page — no questions asked.",
+    },
+    {
+      question: "Is there a warranty on the service?",
+      answer:
+        "Most services come with a 30-day service guarantee. Check individual service details for specifics.",
+    },
+  ];
+
   return (
     <>
-    <Navbar/>
+      <Helmet>
+        <title>{service?.name} Services in Bhiwandi | Finderzz</title>
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+          rel="stylesheet"
+        />
+      </Helmet>
 
-    <Helmet>
-  <title>{service?.name} Services in Bhiwandi | Finderzz</title>
+      <style>{`
+        :root {
+          --blue: #2563eb;
+          --blue-light: #eff6ff;
+          --blue-mid: #dbeafe;
+          --ink: #111827;
+          --ink-soft: #374151;
+          --muted: #6b7280;
+          --border: #e5e7eb;
+          --surface: #f9fafb;
+          --white: #ffffff;
+          --radius: 14px;
+          --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+          --shadow-sticky: 0 4px 24px rgba(0,0,0,.10);
+        }
+        body { font-family: 'DM Sans', sans-serif; }
+        .serif { font-family: 'DM Serif Display', serif; }
+        .add-btn {
+          background: var(--blue);
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          padding: 6px 20px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background .15s, transform .1s;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .add-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .add-btn:active { transform: translateY(0); }
+        .qty-control {
+          display: flex;
+          align-items: center;
+          gap: 0;
+          border: 1.5px solid var(--blue);
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        .qty-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 5px 10px;
+          color: var(--blue);
+          display: flex;
+          align-items: center;
+          transition: background .12s;
+        }
+        .qty-btn:hover { background: var(--blue-light); }
+        .qty-num {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--blue);
+          padding: 0 6px;
+          min-width: 20px;
+          text-align: center;
+        }
+        .card {
+          background: var(--white);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          box-shadow: var(--shadow-card);
+        }
+        .trust-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 11.5px;
+          color: var(--muted);
+          font-weight: 500;
+          padding: 4px 10px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 999px;
+        }
+        @keyframes fadeUp {
+          from { opacity:0; transform: translateY(14px); }
+          to   { opacity:1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp .45s ease both; }
+        .fade-up-1 { animation-delay: .05s; }
+        .fade-up-2 { animation-delay: .12s; }
+        .fade-up-3 { animation-delay: .19s; }
+        .inspection-card {
+          background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+          border: 1px solid #bfdbfe;
+          border-radius: var(--radius);
+          padding: 20px 22px;
+        }
+        .sub-row {
+          padding: 20px 0;
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 24px;
+          transition: background .12s;
+        }
+        .sub-row:last-child { border-bottom: none; }
+        .sub-row:hover { background: var(--surface); border-radius: 10px; padding-left: 10px; padding-right: 10px; margin-left: -10px; margin-right: -10px; }
+        .price-tag {
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--ink);
+          letter-spacing: -.3px;
+        }
+        .link-btn {
+          font-size: 12.5px;
+          color: var(--muted);
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          font-family: 'DM Sans', sans-serif;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+          transition: color .15s;
+        }
+        .link-btn:hover { color: var(--blue); }
+        .sticky-sidebar {
+          position: sticky;
+          top: 88px;
+        }
+        .summary-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 13px;
+          color: var(--ink-soft);
+          padding: 6px 0;
+        }
+        .summary-item span:last-child { font-weight: 600; color: var(--ink); }
+        .continue-btn {
+          width: 100%;
+          padding: 13px;
+          background: var(--blue);
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          font-family: 'DM Sans', sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: background .15s, transform .1s;
+        }
+        .continue-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .continue-btn:active { transform: translateY(0); }
+        .continue-btn:disabled { background: #93c5fd; cursor: not-allowed; transform: none; }
+        .empty-cart {
+          text-align: center;
+          padding: 28px 0 20px;
+          color: var(--muted);
+        }
+        .empty-cart svg { margin: 0 auto 10px; opacity: .35; }
+        .section-label {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+          color: var(--muted);
+          margin-bottom: 14px;
+        }
+      `}</style>
 
-  <meta
-    name="description"
-    content={`Book ${service?.name} services in Bhiwandi with verified professionals. Affordable pricing and quick service.`}
-  />
+      <Navbar />
 
-  <link
-    rel="canonical"
-    href={`https://finderzz.com/service/${id}`}
-  />
+      <div style={{ background: "var(--white)", minHeight: "100vh" }}>
 
-  <meta name="robots" content="index, follow" />
+        {/* ── HERO ─────────────────────────────────────────── */}
+        <div style={{ background: "linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%)", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "52px 24px 40px" }}>
 
-  {/* 🔥 STRUCTURED DATA */}
-  <script type="application/ld+json">
-    {JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Service",
-      name: service?.name,
-      areaServed: "Bhiwandi",
-      provider: {
-        "@type": "Organization",
-        name: "Finderzz",
-      },
-    })}
-  </script>
-</Helmet>
-    <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
+            {/* Breadcrumb */}
+            <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 16, letterSpacing: ".02em" }}>
+              Home &nbsp;/&nbsp; Services &nbsp;/&nbsp;
+              <span style={{ color: "var(--ink-soft)" }}>{service.name}</span>
+            </p>
 
-      {/* 🔷 HERO */}
-      <div className="relative py-20 text-center">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/40 to-cyan-100/40 blur-3xl" />
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-  {service.name} Services in Bhiwandi
-</h1>
-
-          <p className="mt-4 text-gray-600 max-w-xl mx-auto text-lg">
-            {service.description}
-          </p>
-        </motion.div>
-      </div>
-
-      {/* 🔷 CONTENT */}
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-[2fr_1fr] gap-12 pb-24">
-
-        {/* 🔷 LEFT */}
-        <div className="space-y-8">
-
-          {/* 🔷 INSPECTION */}
-          {service.inspection?.available && (
-            <div className="p-6 rounded-3xl bg-white/80 backdrop-blur border shadow-md hover:shadow-xl transition">
+            <div className="fade-up">
+              <h1 className="serif" style={{ fontSize: "clamp(28px, 4vw, 42px)", color: "var(--ink)", lineHeight: 1.2, marginBottom: 12 }}>
+                {service.name}
+              </h1>
               
-              <div className="flex justify-between items-center">
-                
-                {/* LEFT */}
-                <div>
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <Sparkles size={18} className="text-blue-500"/>
-                    Inspection Service
-                  </h2>
 
-                  <p className="text-gray-500 text-sm mt-1 line-clamp-2">
-                    {service.inspection.description}
-                  </p>
+              {/* Trust pills */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <span className="trust-pill"><ShieldCheck size={13} color="#16a34a" /> Verified Professionals</span>
+                <span className="trust-pill"><Star size={12} color="#f59e0b" style={{ fill: "#f59e0b" }} /> 4.8 Avg Rating</span>
+                <span className="trust-pill"><Clock size={12} /> On-time Guarantee</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
-                    <Clock size={14}/> {service.inspection.duration} mins
+        {/* ── MAIN GRID ──────────────────────────────────── */}
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "36px 24px 120px", display: "grid", gridTemplateColumns: "1fr", gap: 36 }}
+          className="service-grid">
+
+          <style>{`
+            @media (min-width: 1024px) {
+              .service-grid { grid-template-columns: 1.65fr 0.95fr !important; }
+            }
+          `}</style>
+
+          {/* ── LEFT COLUMN ─────────────────────────── */}
+          <div>
+
+            {/* INSPECTION */}
+            {service.inspection?.available && (
+              <div className="inspection-card fade-up fade-up-1" style={{ marginBottom: 32 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <Badge><ShieldCheck size={11} /> Inspection Service</Badge>
+                    <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginTop: 10, marginBottom: 4 }}>
+                      Get a Professional Inspection First
+                    </h2>
+                    
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--muted)", fontSize: 12, marginTop: 10 }}>
+                      <Clock size={13} /> {service.inspection.duration} mins
+                    </div>
                   </div>
-                </div>
 
-                {/* RIGHT */}
-                <div className="text-left">
-                  <p className="text-xl font-bold text-blue-600 flex items-center gap-1">
-                    <IndianRupee size={16}/> {service.inspection.price}
-                  </p>
-
-                  <div className="flex gap-2 mt-3 justify-end">
-
-                    {/* 🔘 VIEW DETAILS */}
-                    <button
-                      onClick={() =>
-                        navigate(`/inspection/${service._id}`, {
-                          state: {
-                            serviceId: service._id,
-                            name: service.name,
-                            price: service.inspection.price,
-                            description: service.inspection.description,
-                            duration: service.inspection.duration,
-                          },
-                        })
-                      }
-                      className="text-sm px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
-                    >
-                      View Details
-                    </button>
-
-                    {/* 🔘 BOOK */}
-                    <button
-                      onClick={() =>
-                        dispatch(
-                          addToCart({
-                            serviceId: service._id,
-                            name: "Inspection",
-                            price: service.inspection.price,
-                            duration: service.inspection.duration,
-                            bookingType: "inspection",
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12, minWidth: 130 }}>
+                    <span className="price-tag">₹{service.inspection.price}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <button
+                        className="link-btn"
+                        onClick={() =>
+                          navigate(`/inspection/${service._id}`, {
+                            state: {
+                              serviceId: service._id,
+                              name: service.name,
+                              price: service.inspection.price,
+                              description: service.inspection.description,
+                              duration: service.inspection.duration,
+                            },
                           })
-                        )
-                      }
-                      className="px-5 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition shadow"
-                    >
-                      Book
-                    </button>
+                        }
+                      >
+                        View details
+                      </button>
+                      <button
+                        className="add-btn"
+                        onClick={() =>
+                          dispatch(
+                            addToCart({
+                              serviceId: service._id,
+                              name: "Inspection",
+                              price: service.inspection.price,
+                              duration: service.inspection.duration,
+                              bookingType: "inspection",
+                            })
+                          )
+                        }
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* 🔷 SUB SERVICES */}
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">
-              Available Services
-            </h2>
-
-            <div className="space-y-5">
-              {subServices.map((sub) => {
-                const item = getItem(sub._id);
-
-                return (
-                  <motion.div
-                    key={sub._id}
-                    whileHover={{ y: -3 }}
-                    className="p-6 rounded-2xl bg-white border shadow-sm hover:shadow-lg transition flex justify-between"
-                  >
-
-                    {/* LEFT */}
-                    <div>
-                      <h3 className="font-semibold text-lg">
-                        {sub.name}
-                      </h3>
-
-                      {/* 🔥 TRUNCATED DESCRIPTION */}
-                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                        {sub.description}
-                      </p>
-
-                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
-                        <Clock size={14}/> {sub.durationEstimate} mins
-                      </div>
-                    </div>
-
-                    {/* RIGHT */}
-                    <div className="text-right flex flex-col items-end justify-between">
-
-                      <p className="text-lg font-bold text-blue-600 flex items-center gap-1">
-                        <IndianRupee size={16}/> {sub.customerPrice}
-                      </p>
-
-                      {/* 🔘 ACTION BUTTONS */}
-                      <div className="flex gap-2 mt-3">
-
-                        {/* VIEW DETAILS */}
-                        <button
-                          onClick={() =>
-                            navigate(`/sub-service/${sub._id}`)
-                          }
-                          className="text-sm px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 transition"
-                        >
-                          View Details
-                        </button>
-
-                        {/* CART UI */}
-                        {item ? (
-                          <div className="flex items-center gap-3 bg-gray-100 px-3 py-1 rounded-xl">
-                            <button
-                              onClick={() =>
-                                dispatch(
-                                  decreaseQty({
-                                    subServiceId: sub._id,
-                                    bookingType: "service",
-                                  })
-                                )
-                              }
-                              className="text-lg"
-                            >
-                              −
-                            </button>
-
-                            <span className="font-medium">
-                              {item.quantity}
-                            </span>
-
-                            <button
-                              onClick={() =>
-                                dispatch(
-                                  increaseQty({
-                                    subServiceId: sub._id,
-                                    bookingType: "service",
-                                  })
-                                )
-                              }
-                              className="text-lg"
-                            >
-                              +
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              dispatch(
-                                addToCart({
-                                  subServiceId: sub._id,
-                                  name: sub.name,
-                                  price: sub.customerPrice,
-                                  duration: sub.durationEstimate,
-                                  bookingType: "service",
-                                })
-                              )
-                            }
-                            className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition"
-                          >
-                            Add
-                          </button>
-                        )}
-
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow border mt-8">
-  <h2 className="text-xl font-semibold mb-4">
-    Frequently Asked Questions
-  </h2>
-
-  <div className="space-y-4 text-sm text-gray-600">
-    <div>
-      <p className="font-medium">
-        What is the cost of {service?.name } in Bhiwandi?
-      </p>
-      <p>Pricing depends on service type and inspection requirements.</p>
-    </div>
-
-    <div>
-      <p className="font-medium">
-        Do you provide inspection before service?
-      </p>
-      <p>Yes, inspection services are available to give accurate pricing.</p>
-    </div>
-
-    <div>
-      <p className="font-medium">
-        Are professionals verified?
-      </p>
-      <p>All professionals are background-verified and trained.</p>
-    </div>
-  </div>
-</div>
-
-        {/* 🔷 RIGHT SIDEBAR */}
-        <div className="hidden lg:block">
-          <div className="sticky top-24 p-6 rounded-3xl bg-white shadow-xl border">
-
-            <h3 className="font-semibold text-lg mb-4">
-              Booking Summary
-            </h3>
-
-            {cartItems.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                No items added yet
-              </p>
-            ) : (
-              <>
-                {cartItems.map((item, i) => (
-                  <div key={i} className="flex justify-between text-sm mb-2">
-                    <span>{item.name} × {item.quantity}</span>
-                    <span>₹{item.price * item.quantity}</span>
-                  </div>
-                ))}
-
-                <div className="border-t mt-4 pt-4 flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>₹{total}</span>
-                </div>
-              </>
             )}
 
-            <button
-              onClick={() => navigate("/cart")}
-              className="mt-6 w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow"
-            >
-              Continue Booking
-            </button>
+            {/* SUB SERVICES */}
+            <div className="card fade-up fade-up-2" style={{ padding: "24px 24px 8px" }}>
+              <p className="section-label">Available Services</p>
+
+              <div>
+                {subServices.map((sub) => {
+                  const item = getItem(sub._id);
+                  return (
+                    <div key={sub._id} className="sub-row">
+
+                      {/* LEFT */}
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
+                          {sub.name}
+                        </h3>
+                        
+                        <div style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--muted)", fontSize: 12, marginTop: 8 }}>
+                          <Clock size={13} /> {sub.durationEstimate} mins
+                        </div>
+                      </div>
+
+                      {/* RIGHT */}
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, minWidth: 140 }}>
+                        <span className="price-tag">₹{sub.customerPrice}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <button
+                            className="link-btn"
+                            onClick={() => navigate(`/sub-service/${sub._id}`)}
+                          >
+                            Details
+                          </button>
+
+                          {item ? (
+                            <div className="qty-control">
+                              <button
+                                className="qty-btn"
+                                onClick={() =>
+                                  dispatch(decreaseQty({ subServiceId: sub._id, bookingType: "service" }))
+                                }
+                              >
+                                <Minus size={13} />
+                              </button>
+                              <span className="qty-num">{item.quantity}</span>
+                              <button
+                                className="qty-btn"
+                                onClick={() =>
+                                  dispatch(increaseQty({ subServiceId: sub._id, bookingType: "service" }))
+                                }
+                              >
+                                <Plus size={13} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="add-btn"
+                              onClick={() =>
+                                dispatch(
+                                  addToCart({
+                                    subServiceId: sub._id,
+                                    name: sub.name,
+                                    price: sub.customerPrice,
+                                    duration: sub.durationEstimate,
+                                    bookingType: "service",
+                                  })
+                                )
+                              }
+                            >
+                              Add
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* FAQ */}
+            <div className="fade-up fade-up-3" style={{ marginTop: 28 }}>
+              <p className="section-label">FAQs</p>
+              <div className="card" style={{ padding: "4px 22px" }}>
+                {faqs.map((faq, i) => (
+                  <FaqItem key={i} question={faq.question} answer={faq.answer} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── SIDEBAR ─────────────────────────────── */}
+          <div style={{ display: "none" }} className="sidebar-col">
+            <style>{`@media (min-width: 1024px) { .sidebar-col { display: block !important; } }`}</style>
+
+            <div className="sticky-sidebar">
+              <div className="card" style={{ padding: "22px 22px 20px" }}>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>Booking Summary</h3>
+                  {cartCount > 0 && (
+                    <span style={{
+                      background: "var(--blue)",
+                      color: "#fff",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      borderRadius: 999,
+                      padding: "2px 8px"
+                    }}>
+                      {cartCount} item{cartCount > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+
+                {cartItems.length === 0 ? (
+                  <div className="empty-cart">
+                    <ShoppingBag size={28} />
+                    <p style={{ fontSize: 13 }}>No services added yet</p>
+                    <p style={{ fontSize: 12, marginTop: 4 }}>Select services from the list</p>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ marginBottom: 16 }}>
+                      {cartItems.map((item, i) => (
+                        <div key={i} className="summary-item">
+                          <span style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {item.name} <span style={{ color: "var(--muted)", fontWeight: 400 }}>×{item.quantity}</span>
+                          </span>
+                          <span>₹{item.price * item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14, marginBottom: 18 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
+                        <span>Total</span>
+                        <span>₹{total}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <button
+                  className="continue-btn"
+                  onClick={() => navigate("/cart")}
+                  disabled={cartItems.length === 0}
+                >
+                  {cartItems.length === 0 ? "Add services to continue" : (<>Continue to Checkout <ArrowRight size={15} /></>)}
+                </button>
+
+                <p style={{ fontSize: 11.5, color: "var(--muted)", textAlign: "center", marginTop: 12 }}>
+                  <ShieldCheck size={11} style={{ display: "inline", marginRight: 4, verticalAlign: "middle" }} />
+                  Secure booking · Free cancellation
+                </p>
+              </div>
+
+              {/* Trust card */}
+              <div style={{ marginTop: 14, padding: "14px 18px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>Why Finderzz?</p>
+                {[
+                  ["✓", "Verified & trained professionals"],
+                  ["✓", "Transparent, upfront pricing"],
+                  ["✓", "30-day service guarantee"],
+                ].map(([icon, text]) => (
+                  <p key={text} style={{ fontSize: 12, color: "var(--muted)", marginBottom: 5 }}>
+                    <span style={{ color: "#16a34a", fontWeight: 700, marginRight: 6 }}>{icon}</span>{text}
+                  </p>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 🔷 MOBILE CTA */}
-      <div className="lg:hidden fixed bottom-0 w-full p-4 bg-white border-t shadow">
-        <button
-          onClick={() => navigate("/cart")}
-          className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold"
+        {/* ── MOBILE BOTTOM CTA ─────────────────────── */}
+        <style>{`@media (min-width: 1024px) { .mobile-cta { display: none !important; } }`}</style>
+        <div
+          className="mobile-cta"
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: "12px 16px",
+            background: "rgba(255,255,255,0.92)",
+            backdropFilter: "blur(12px)",
+            borderTop: "1px solid var(--border)",
+            zIndex: 50,
+          }}
         >
-          Continue • ₹{total}
-        </button>
+          <button
+            className="continue-btn"
+            onClick={() => navigate("/cart")}
+            disabled={cartItems.length === 0}
+            style={{ padding: "14px" }}
+          >
+            {cartItems.length === 0
+              ? "Add services to continue"
+              : (<>Continue &nbsp;·&nbsp; ₹{total} <ArrowRight size={15} /></>)
+            }
+          </button>
+        </div>
+
       </div>
-    </div>
 
-
-    <Footer/>
+      <Footer />
     </>
   );
 }
