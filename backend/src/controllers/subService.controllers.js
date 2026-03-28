@@ -11,6 +11,7 @@ export const createSubService = async (req, res, next) => {
       workerPrice,
       platformFee,
       durationEstimate,
+      withMaterial,
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
@@ -45,6 +46,7 @@ export const createSubService = async (req, res, next) => {
       platformFee,
       customerPrice,
       durationEstimate,
+      withMaterial,
     });
 
     res.status(201).json({
@@ -75,22 +77,45 @@ export const getAllSubService = async (req, res, next) => {
 export const getSubServicesByService = async (req, res, next) => {
   try {
     const { serviceId } = req.params;
+    const { withMaterial } = req.query;
 
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-      return res.status(400).json({ message: "Invalid service ID" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid service ID"
+      });
     }
 
-    const subServices = await SubService.find({
+    const filter = {
       serviceId,
       active: true,
-    })
-      .select("name description customerPrice durationEstimate")
+      ...(withMaterial !== undefined && {
+        withMaterial: withMaterial === "true"
+      })
+    };
+
+    const subServices = await SubService.find(filter)
+      .select("name description customerPrice durationEstimate withMaterial")
       .lean();
+
+    const enriched = subServices.map(s => {
+      const withMat = s.withMaterial ?? false;
+
+      return {
+        ...s,
+        withMaterial: withMat,
+        materialLabel: withMat
+          ? "Material Included"
+          : "Material Not Included",
+        badgeType: withMat ? "included" : "excluded"
+      };
+    });
 
     res.json({
       success: true,
-      data: subServices,
+      data: enriched
     });
+
   } catch (error) {
     next(error);
   }

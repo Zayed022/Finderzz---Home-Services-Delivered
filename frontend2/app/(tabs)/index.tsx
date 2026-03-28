@@ -11,6 +11,7 @@ import {
 
 import API from "@/services/api";
 import { getWorker } from "@/utils/worker";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
 
@@ -18,6 +19,7 @@ export default function HomeScreen() {
   const [available,setAvailable] = useState(true);
   const [settlement,setSettlement] = useState<any[]>([]);
   const [loading,setLoading] = useState(true);
+  const router = useRouter();
 
   const fetchDashboard = async () => {
 
@@ -149,6 +151,14 @@ export default function HomeScreen() {
         </View>
 
       </View>
+      <TouchableOpacity
+  style={styles.quotationBtn}
+  onPress={() => router.push("/quotation/create")}
+>
+  <Text style={styles.quotationText}>
+    Create Quotation
+  </Text>
+</TouchableOpacity>
 
       {/* JOB STATS */}
 
@@ -366,6 +376,19 @@ card:{
   elevation:3
 },
 
+quotationBtn: {
+  backgroundColor: "#2563eb",
+  paddingVertical: 14,
+  borderRadius: 12,
+  alignItems: "center",
+  marginBottom: 20,
+},
+
+quotationText: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "600",
+},
 number:{
   fontSize:22,
   fontWeight:"700"

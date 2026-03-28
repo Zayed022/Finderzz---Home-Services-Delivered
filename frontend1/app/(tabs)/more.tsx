@@ -207,10 +207,10 @@ export default function More() {
         {/* ===== FOOTER ===== */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            YourApp v1.0.0
+            Finderzz v1.0.0
           </Text>
           <Text style={styles.footerSub}>
-            © 2026 YourApp Pvt. Ltd.
+            © 2026 Finderzz Pvt. Ltd.
           </Text>
         </View>
       </ScrollView>

@@ -56,6 +56,7 @@ function FaqItem({ question, answer }) {
 /* ─── main component ─────────────────────────────────────────── */
 export default function ServiceDetails() {
   const { id } = useParams();
+  const [showWithoutMaterial, setShowWithoutMaterial] = useState(false);
   const { data, isLoading } = useServiceDetails(id);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -72,6 +73,11 @@ export default function ServiceDetails() {
   }
 
   const { service, subServices } = data;
+  const filteredSubServices = subServices.filter((sub) =>
+    showWithoutMaterial
+      ? sub.withMaterial === false
+      : sub.withMaterial === true
+  );
 
   const getItem = (subServiceId) =>
     cartItems.find(
@@ -388,12 +394,94 @@ export default function ServiceDetails() {
               </div>
             )}
 
+            {/* ── MATERIAL TOGGLE ─────────────────────────── */}
+            <div
+  className="fade-up fade-up-2"
+  style={{
+    marginBottom: 20,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "14px 16px",
+    border: "1px solid var(--border)",
+    borderRadius: 12,
+    background: "var(--surface)",
+  }}
+>
+  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+    Filter by material
+  </span>
+
+  {/* SEGMENTED TOGGLE */}
+  <div
+    style={{
+      display: "flex",
+      background: "#eef2f7",
+      borderRadius: 999,
+      padding: 4,
+      position: "relative",
+      minWidth: 170,
+      cursor: "pointer",
+      userSelect: "none",
+    }}
+  >
+    {/* Sliding Indicator */}
+    <div
+      style={{
+        position: "absolute",
+        top: 4,
+        bottom: 4,
+        left: showWithoutMaterial ? "50%" : "4px",
+        width: "calc(50% - 4px)",
+        background: "#ffffff",
+        borderRadius: 999,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        transition: "all 0.28s cubic-bezier(0.4,0,0.2,1)",
+      }}
+    />
+
+    {/* WITH MATERIAL */}
+    <div
+      onClick={() => setShowWithoutMaterial(false)}
+      style={{
+        flex: 1,
+        textAlign: "center",
+        fontSize: 12,
+        fontWeight: 600,
+        padding: "6px 10px",
+        zIndex: 2,
+        color: !showWithoutMaterial ? "#111827" : "#6b7280",
+        transition: "color 0.2s",
+      }}
+    >
+      With Material
+    </div>
+
+    {/* WITHOUT MATERIAL */}
+    <div
+      onClick={() => setShowWithoutMaterial(true)}
+      style={{
+        flex: 1,
+        textAlign: "center",
+        fontSize: 12,
+        fontWeight: 600,
+        padding: "6px 10px",
+        zIndex: 2,
+        color: showWithoutMaterial ? "#111827" : "#6b7280",
+        transition: "color 0.2s",
+      }}
+    >
+      Without Material
+    </div>
+  </div>
+</div>
+
             {/* SUB SERVICES */}
             <div className="card fade-up fade-up-2" style={{ padding: "24px 24px 8px" }}>
               <p className="section-label">Available Services</p>
 
               <div>
-                {subServices.map((sub) => {
+                {filteredSubServices.map((sub) => {
                   const item = getItem(sub._id);
                   return (
                     <div key={sub._id} className="sub-row">

@@ -15,6 +15,11 @@ const subServiceSchema = new mongoose.Schema(
 
   description: String,
 
+  withMaterial:{
+    type: Boolean,
+    default: false,
+  },
+
   workerPrice: {
     type: Number,
     required: true,

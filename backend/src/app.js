@@ -61,6 +61,9 @@ app.use("/api/v1/invoice", invoiceRoutes);
 import settlementRoutes from "./routes/settlement.routes.js"
 app.use("/api/v1/settlement", settlementRoutes);
 
+import quotationRoutes from "./routes/quotation.routes.js"
+app.use("/api/v1/quotation", quotationRoutes);
+
 // ================= PRIVACY POLICY =================
 
 app.get("/api/v1/privacy-policy", (req, res) => {

@@ -30,6 +30,8 @@ import Explore from './components/Explore'
 import CreateVertical from './components/vertical/CreateVertical'
 import GetAllVerticals from './components/vertical/GetAllVerticals'
 import GetAllRequest from './components/vertical/GetAllRequest'
+import Quotation from './components/Quotation'
+import GetAllQuotation from './components/quotation.jsx/GetAllQuotation'
 
 
 
@@ -70,6 +72,9 @@ function App() {
       <Route path = "/vertical/create" element={<CreateVertical/>}/>
       <Route path = "/vertical/get" element={<GetAllVerticals/>}/>
       <Route path = "/vertical/request" element={<GetAllRequest/>}/>
+      <Route path = "/quotation" element={<Quotation/>}/>
+      <Route path = "/quotation/all" element={<GetAllQuotation/>}/>
+      
 
       
       
