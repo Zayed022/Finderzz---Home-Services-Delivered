@@ -24,6 +24,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Workers', icon: <Bike size={24} />, to: '/worker' },
     { name: 'Explore', icon: <Package size={24} />, to: '/vertical' },
     { name: 'Banner', icon: <Image size={24} />, to: '/banner' },
+    { name: 'Notice', icon: <Image size={24} />, to: '/notice' },
     { name: 'Quotation', icon: <Image size={24} />, to: '/quotation' },
     { name: 'Settings', icon: <Settings size={24} />, to: '/settings' },
   ];

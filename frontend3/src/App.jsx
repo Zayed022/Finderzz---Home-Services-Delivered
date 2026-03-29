@@ -32,6 +32,10 @@ import GetAllVerticals from './components/vertical/GetAllVerticals'
 import GetAllRequest from './components/vertical/GetAllRequest'
 import Quotation from './components/Quotation'
 import GetAllQuotation from './components/quotation.jsx/GetAllQuotation'
+import Notice from './components/Notice'
+import CreateNotice from './components/Notice/CreateNotice'
+import AllNotices from './components/Notice/AllNotices'
+import EditNotice from './components/Notice/EditNotice'
 
 
 
@@ -74,6 +78,10 @@ function App() {
       <Route path = "/vertical/request" element={<GetAllRequest/>}/>
       <Route path = "/quotation" element={<Quotation/>}/>
       <Route path = "/quotation/all" element={<GetAllQuotation/>}/>
+      <Route path = "/notice" element={<Notice/>}/>
+      <Route path = "/notice/add" element={<CreateNotice/>}/>
+      <Route path = "/notice/all" element={<AllNotices/>}/>
+      <Route path = "/notice/edit" element={<EditNotice/>}/>
       
 
       

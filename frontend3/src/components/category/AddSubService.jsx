@@ -14,6 +14,7 @@ export default function AddSubService() {
   const [workerPrice, setWorkerPrice] = useState("");
   const [platformFee, setPlatformFee] = useState("");
   const [durationEstimate, setDurationEstimate] = useState("");
+  const [withMaterial, setWithMaterial] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -34,6 +35,7 @@ export default function AddSubService() {
         workerPrice: Number(workerPrice),
         platformFee: Number(platformFee),
         durationEstimate: Number(durationEstimate),
+        withMaterial,
       });
 
       navigate("/services");
@@ -147,6 +149,51 @@ export default function AddSubService() {
             </div>
 
           </div>
+
+          {/* MATERIAL TOGGLE */}
+<div className="space-y-2">
+  <h2 className="font-semibold text-gray-700">Material</h2>
+
+  <div className="flex items-center justify-between border rounded-xl p-4 bg-gray-50">
+
+    <div>
+      <p className="text-sm font-medium text-gray-800">
+        Include Material Cost
+      </p>
+      <p className="text-xs text-gray-500">
+        Toggle if materials are included in the service price
+      </p>
+    </div>
+
+    {/* Toggle Switch */}
+    <button
+      type="button"
+      onClick={() => setWithMaterial((prev) => !prev)}
+      className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
+        withMaterial ? "bg-green-500" : "bg-gray-300"
+      }`}
+    >
+      <div
+        className={`bg-white w-4 h-4 rounded-full shadow-md transform transition ${
+          withMaterial ? "translate-x-6" : "translate-x-0"
+        }`}
+      />
+    </button>
+  </div>
+
+  {/* STATUS BADGE */}
+  <div className="text-xs font-medium">
+    {withMaterial ? (
+      <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full">
+        Material Included
+      </span>
+    ) : (
+      <span className="text-red-600 bg-red-50 px-2 py-1 rounded-full">
+        Material Not Included
+      </span>
+    )}
+  </div>
+</div>
 
           {/* DURATION */}
           <div>

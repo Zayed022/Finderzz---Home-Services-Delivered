@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import API from "../api/api";
+import { useNavigate } from "react-router-dom";
+import API from "../api/api.js";
 
-export default function EditSubService() {
-  const { id } = useParams();
+
+export default function AddSubService() {
   const navigate = useNavigate();
 
-  const [subService, setSubService] = useState(null);
+  const [services, setServices] = useState([]);
 
+  const [serviceId, setServiceId] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -15,38 +16,14 @@ export default function EditSubService() {
   const [platformFee, setPlatformFee] = useState("");
   const [durationEstimate, setDurationEstimate] = useState("");
 
-  const [active, setActive] = useState(true);
+  // ✅ NEW STATE
+  const [withMaterial, setWithMaterial] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
-  /* ================= FETCH ================= */
-
-  const fetchSubService = async () => {
-    try {
-      const res = await API.get(`/subService/${id}`);
-      const data = res.data.data;
-
-      setSubService(data);
-
-      setName(data.name || "");
-      setDescription(data.description || "");
-
-      setWorkerPrice(data.workerPrice || "");
-      setPlatformFee(data.platformFee || "");
-
-      setDurationEstimate(data.durationEstimate || "");
-
-      setActive(data.active);
-    } catch (err) {
-      console.error("Fetch subservice failed", err);
-    }
-  };
-
   useEffect(() => {
-    fetchSubService();
+    API.get("/service").then((res) => setServices(res.data.data));
   }, []);
-
-  /* ================= UPDATE ================= */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,30 +31,26 @@ export default function EditSubService() {
     try {
       setLoading(true);
 
-      await API.patch(`/subService/${id}`, {
+      await API.post("/subService", {
+        serviceId,
         name,
         description,
         workerPrice: Number(workerPrice),
         platformFee: Number(platformFee),
         durationEstimate: Number(durationEstimate),
-        active,
+        withMaterial, // ✅ IMPORTANT
       });
 
       navigate("/services");
     } catch (err) {
-      console.error("Update failed", err);
-      alert("Update failed");
+      console.error(err);
+      alert("Failed to create subservice");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!subService) {
-    return <div className="p-8">Loading subservice...</div>;
-  }
-
-  const customerPrice =
-    Number(workerPrice || 0) + Number(platformFee || 0);
+  const customerPrice = Number(workerPrice || 0) + Number(platformFee || 0);
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen flex justify-center">
@@ -85,36 +58,49 @@ export default function EditSubService() {
 
         {/* HEADER */}
         <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          Edit SubService
+          Add SubService
         </h1>
         <p className="text-gray-500 text-sm mb-6">
-          Update pricing, details and availability
+          Create a detailed service under a main service category
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
+          {/* SERVICE SELECTION */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Service</label>
+            <select
+              value={serviceId}
+              onChange={(e) => setServiceId(e.target.value)}
+              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">Choose parent service</option>
+              {services.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* BASIC INFO */}
           <div className="space-y-4">
-            <h2 className="font-semibold text-gray-700">
-              SubService Details
-            </h2>
+            <h2 className="font-semibold text-gray-700">SubService Details</h2>
 
             <div>
-              <label className="block text-sm mb-1">
-                SubService Name
-              </label>
+              <label className="block text-sm mb-1">SubService Name</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Pipe Leakage Repair, AC Cleaning"
+                placeholder="e.g. Pipe Leakage Repair, Fan Installation"
                 className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
 
             <div>
-              <label className="block text-sm mb-1">
-                Description
-              </label>
+              <label className="block text-sm mb-1">Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -127,16 +113,11 @@ export default function EditSubService() {
 
           {/* PRICING */}
           <div className="space-y-4">
-            <h2 className="font-semibold text-gray-700">
-              Pricing
-            </h2>
+            <h2 className="font-semibold text-gray-700">Pricing</h2>
 
             <div className="grid grid-cols-2 gap-4">
-
               <div>
-                <label className="block text-sm mb-1">
-                  Worker Price (₹)
-                </label>
+                <label className="block text-sm mb-1">Worker Price (₹)</label>
                 <input
                   type="number"
                   value={workerPrice}
@@ -147,9 +128,7 @@ export default function EditSubService() {
               </div>
 
               <div>
-                <label className="block text-sm mb-1">
-                  Platform Fee (₹)
-                </label>
+                <label className="block text-sm mb-1">Platform Fee (₹)</label>
                 <input
                   type="number"
                   value={platformFee}
@@ -158,7 +137,6 @@ export default function EditSubService() {
                   className="w-full border rounded-lg p-2"
                 />
               </div>
-
             </div>
 
             {/* PRICE PREVIEW */}
@@ -169,6 +147,48 @@ export default function EditSubService() {
               <p className="text-xl font-bold text-blue-600">
                 ₹{customerPrice}
               </p>
+            </div>
+          </div>
+
+          {/* ✅ MATERIAL TOGGLE */}
+          <div className="space-y-2">
+            <h2 className="font-semibold text-gray-700">Material</h2>
+
+            <div className="flex items-center justify-between border rounded-xl p-4 bg-gray-50">
+              <div>
+                <p className="text-sm font-medium text-gray-800">
+                  Include Material Cost
+                </p>
+                <p className="text-xs text-gray-500">
+                  Toggle if materials are included in the service price
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setWithMaterial((prev) => !prev)}
+                className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
+                  withMaterial ? "bg-green-500" : "bg-gray-300"
+                }`}
+              >
+                <div
+                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition ${
+                    withMaterial ? "translate-x-6" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="text-xs font-medium">
+              {withMaterial ? (
+                <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                  Material Included
+                </span>
+              ) : (
+                <span className="text-red-600 bg-red-50 px-2 py-1 rounded-full">
+                  Material Not Included
+                </span>
+              )}
             </div>
           </div>
 
@@ -186,43 +206,14 @@ export default function EditSubService() {
             />
           </div>
 
-          {/* STATUS */}
-          <div className="space-y-2">
-            <h2 className="font-semibold text-gray-700">
-              Status
-            </h2>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={active}
-                onChange={(e) => setActive(e.target.checked)}
-              />
-              Active (visible to users)
-            </label>
-          </div>
-
-          {/* ACTIONS */}
-          <div className="flex gap-3 pt-4">
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
-            >
-              {loading ? "Updating SubService..." : "Update SubService"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate("/services")}
-              className="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
-
-          </div>
-
+          {/* SUBMIT */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+          >
+            {loading ? "Creating SubService..." : "Create SubService"}
+          </button>
         </form>
       </div>
     </div>

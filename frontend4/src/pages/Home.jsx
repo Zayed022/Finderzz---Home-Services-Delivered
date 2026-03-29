@@ -7,6 +7,10 @@ import Testimonials from '../components/Testimonials'
 import Footer from '../components/Footer'
 import CTA from '../components/CTA'
 import ServiceCategories from '../components/ServiceCategories'
+import Notice from "../components/Notice";
+
+
+
 
 function Home() {
   return (
@@ -19,6 +23,7 @@ function Home() {
 
       <Navbar/>
       <Hero/>
+      <Notice/>
       <Stats/>
       <ServiceCategories/>
       <HowItWorks/>
