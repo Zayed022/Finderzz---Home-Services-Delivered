@@ -15,12 +15,39 @@ export default function AddSubService() {
   const [platformFee, setPlatformFee] = useState("");
   const [durationEstimate, setDurationEstimate] = useState("");
   const [withMaterial, setWithMaterial] = useState(false);
+  const [enableProcess, setEnableProcess] = useState(false);
+const [processSteps, setProcessSteps] = useState([
+  { stepNumber: 1, title: "", description: "" }
+]);
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     API.get("/service").then((res) => setServices(res.data.data));
   }, []);
+
+  const addStep = () => {
+    setProcessSteps(prev => [
+      ...prev,
+      {
+        stepNumber: prev.length + 1,
+        title: "",
+        description: ""
+      }
+    ]);
+  };
+  
+  const removeStep = (index) => {
+    const updated = processSteps.filter((_, i) => i !== index)
+      .map((step, i) => ({ ...step, stepNumber: i + 1 }));
+    setProcessSteps(updated);
+  };
+  
+  const updateStep = (index, field, value) => {
+    const updated = [...processSteps];
+    updated[index][field] = value;
+    setProcessSteps(updated);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +63,7 @@ export default function AddSubService() {
         platformFee: Number(platformFee),
         durationEstimate: Number(durationEstimate),
         withMaterial,
+        processSteps: enableProcess ? processSteps : undefined
       });
 
       navigate("/services");
@@ -206,6 +234,90 @@ export default function AddSubService() {
               className="w-full border rounded-lg p-2"
             />
           </div>
+
+          {/* ── OUR PROCESS ───────────────────────── */}
+<div className="space-y-4">
+  <h2 className="font-semibold text-gray-700">Our Process</h2>
+
+  {/* Toggle */}
+  <div className="flex items-center justify-between border rounded-xl p-4 bg-gray-50">
+    <div>
+      <p className="text-sm font-medium text-gray-800">
+        Add Process Steps
+      </p>
+      <p className="text-xs text-gray-500">
+        Show step-by-step process to users
+      </p>
+    </div>
+
+    <button
+      type="button"
+      onClick={() => setEnableProcess(prev => !prev)}
+      className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
+        enableProcess ? "bg-blue-600" : "bg-gray-300"
+      }`}
+    >
+      <div
+        className={`bg-white w-4 h-4 rounded-full shadow-md transform transition ${
+          enableProcess ? "translate-x-6" : "translate-x-0"
+        }`}
+      />
+    </button>
+  </div>
+
+  {/* Steps */}
+  {enableProcess && (
+    <div className="space-y-4">
+
+      {processSteps.map((step, index) => (
+        <div key={index} className="border rounded-xl p-4 bg-white space-y-3">
+
+          <div className="flex justify-between items-center">
+            <p className="text-sm font-semibold text-gray-700">
+              Step {index + 1}
+            </p>
+
+            {processSteps.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeStep(index)}
+                className="text-red-500 text-xs"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+
+          <input
+            type="text"
+            placeholder="Step Title (e.g. Inspection)"
+            value={step.title}
+            onChange={(e) => updateStep(index, "title", e.target.value)}
+            className="w-full border rounded-lg p-2"
+          />
+
+          <textarea
+            placeholder="Step Description"
+            value={step.description}
+            onChange={(e) => updateStep(index, "description", e.target.value)}
+            className="w-full border rounded-lg p-2"
+            rows="2"
+          />
+        </div>
+      ))}
+
+      {/* Add Step Button */}
+      <button
+        type="button"
+        onClick={addStep}
+        className="text-blue-600 text-sm font-medium"
+      >
+        + Add Step
+      </button>
+
+    </div>
+  )}
+</div>
 
           {/* SUBMIT */}
           <button

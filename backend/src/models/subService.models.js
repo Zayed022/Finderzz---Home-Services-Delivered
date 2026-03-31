@@ -43,6 +43,11 @@ const subServiceSchema = new mongoose.Schema(
   active: {
     type: Boolean,
     default: true
+  },
+  processId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Process",
+    default: null
   }
 
 },

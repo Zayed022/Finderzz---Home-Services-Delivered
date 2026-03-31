@@ -263,6 +263,77 @@ export default function SubServiceDetails() {
               </View>
             )}
 
+            {/* ── OUR PROCESS ─────────────────────────── */}
+{data?.processId?.steps?.length > 0 && (
+  <View style={s.card}>
+    <SectionLabel text="Our Process" />
+
+    <View style={{ position: "relative", paddingLeft: 6 }}>
+
+      {/* Vertical Line */}
+      <View
+        style={{
+          position: "absolute",
+          left: 12,
+          top: 6,
+          bottom: 6,
+          width: 2,
+          backgroundColor: "#e5e7eb",
+        }}
+      />
+
+      <View style={{ gap: 22 }}>
+        {data.processId.steps.map((step: any, index: number) => (
+          <View key={index} style={{ flexDirection: "row", gap: 12 }}>
+
+            {/* Step Circle */}
+            <View
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 999,
+                backgroundColor: "#f3f4f6",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1,
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: "600", color: "#111827" }}>
+                {step.stepNumber}
+              </Text>
+            </View>
+
+            {/* Content */}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "600",
+                  color: "#111827",
+                  marginBottom: 4,
+                }}
+              >
+                {step.title}
+              </Text>
+
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: "#6b7280",
+                  lineHeight: 18,
+                }}
+              >
+                {step.description}
+              </Text>
+            </View>
+
+          </View>
+        ))}
+      </View>
+    </View>
+  </View>
+)}
+
             {/* ── WHY FINDERZZ ────────────────────────── */}
             <View style={s.card}>
               <SectionLabel text="Why Finderzz?" />

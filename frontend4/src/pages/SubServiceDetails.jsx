@@ -542,6 +542,80 @@ export default function SubServiceDetails() {
             </div>
           </Section>
 
+          {/* ── OUR PROCESS ─────────────────────────── */}
+{sub?.processId && sub.processId.steps?.length > 0 && (
+  <Section title="Our Process" delay={180}>
+    <div className="card" style={{ padding: "22px 20px" }}>
+      <div style={{ position: "relative" }}>
+
+        {/* Vertical Line */}
+        <div
+          style={{
+            position: "absolute",
+            left: 14,
+            top: 6,
+            bottom: 6,
+            width: 2,
+            background: "#e5e7eb"
+          }}
+        />
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          {sub.processId.steps.map((step, index) => (
+            <div key={index} style={{ display: "flex", gap: 14, position: "relative" }}>
+
+              {/* STEP NUMBER CIRCLE */}
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  background: "#f3f4f6",
+                  color: "#111827",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 1,
+                  flexShrink: 0
+                }}
+              >
+                {step.stepNumber}
+              </div>
+
+              {/* CONTENT */}
+              <div style={{ flex: 1 }}>
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#111827",
+                    marginBottom: 4
+                  }}
+                >
+                  {step.title}
+                </p>
+
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#6b7280",
+                    lineHeight: 1.6
+                  }}
+                >
+                  {step.description}
+                </p>
+              </div>
+
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </Section>
+)}
+
           {/* Features */}
           {sub.features?.length > 0 && (
             <Section title="What's included" delay={200}>

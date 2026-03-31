@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import API from "../api/api.js";
 
-
-export default function AddSubService() {
+export default function EditSubService() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [services, setServices] = useState([]);
 
@@ -16,63 +16,120 @@ export default function AddSubService() {
   const [platformFee, setPlatformFee] = useState("");
   const [durationEstimate, setDurationEstimate] = useState("");
 
-  // ✅ NEW STATE
   const [withMaterial, setWithMaterial] = useState(false);
+
+  // ✅ PROCESS STATE
+  const [enableProcess, setEnableProcess] = useState(false);
+  const [processSteps, setProcessSteps] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
+  // Load services
   useEffect(() => {
     API.get("/service").then((res) => setServices(res.data.data));
   }, []);
 
+  // ✅ LOAD EXISTING SUBSERVICE
+  useEffect(() => {
+    if (!id) return;
+
+    API.get(`/subService/${id}`).then((res) => {
+      const data = res.data.data;
+
+      setServiceId(data.serviceId);
+      setName(data.name);
+      setDescription(data.description);
+      setWorkerPrice(data.workerPrice);
+      setPlatformFee(data.platformFee);
+      setDurationEstimate(data.durationEstimate);
+      setWithMaterial(data.withMaterial);
+
+      // ✅ LOAD PROCESS
+      if (data.processId?.steps?.length > 0) {
+        setEnableProcess(true);
+        setProcessSteps(data.processId.steps);
+      }
+    });
+  }, [id]);
+
+  // =========================
+  // PROCESS HANDLERS
+  // =========================
+  const addStep = () => {
+    setProcessSteps((prev) => [
+      ...prev,
+      { stepNumber: prev.length + 1, title: "", description: "" },
+    ]);
+  };
+
+  const removeStep = (index) => {
+    const updated = processSteps
+      .filter((_, i) => i !== index)
+      .map((step, i) => ({ ...step, stepNumber: i + 1 }));
+
+    setProcessSteps(updated);
+  };
+
+  const updateStep = (index, field, value) => {
+    const updated = [...processSteps];
+    updated[index][field] = value;
+    setProcessSteps(updated);
+  };
+
+  // =========================
+  // SUBMIT (UPDATE)
+  // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      await API.post("/subService", {
+      await API.put(`/subService/${id}`, {
         serviceId,
         name,
         description,
         workerPrice: Number(workerPrice),
         platformFee: Number(platformFee),
         durationEstimate: Number(durationEstimate),
-        withMaterial, // ✅ IMPORTANT
+        withMaterial,
+
+        // ✅ PROCESS CONTROL
+        processSteps: enableProcess ? processSteps : [],
       });
 
       navigate("/services");
     } catch (err) {
       console.error(err);
-      alert("Failed to create subservice");
+      alert("Failed to update subservice");
     } finally {
       setLoading(false);
     }
   };
 
-  const customerPrice = Number(workerPrice || 0) + Number(platformFee || 0);
+  const customerPrice =
+    Number(workerPrice || 0) + Number(platformFee || 0);
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen flex justify-center">
       <div className="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-8">
 
-        {/* HEADER */}
         <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          Add SubService
+          Edit SubService
         </h1>
         <p className="text-gray-500 text-sm mb-6">
-          Create a detailed service under a main service category
+          Update subservice details
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* SERVICE SELECTION */}
+          {/* SERVICE */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Select Service</label>
             <select
               value={serviceId}
               onChange={(e) => setServiceId(e.target.value)}
-              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg p-2"
               required
             >
               <option value="">Choose parent service</option>
@@ -84,135 +141,125 @@ export default function AddSubService() {
             </select>
           </div>
 
-          {/* BASIC INFO */}
+          {/* BASIC */}
           <div className="space-y-4">
             <h2 className="font-semibold text-gray-700">SubService Details</h2>
 
-            <div>
-              <label className="block text-sm mb-1">SubService Name</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Pipe Leakage Repair, Fan Installation"
-                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border rounded-lg p-2"
+              placeholder="Name"
+            />
 
-            <div>
-              <label className="block text-sm mb-1">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Explain what this subservice includes..."
-                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-                rows="3"
-              />
-            </div>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full border rounded-lg p-2"
+              rows="3"
+            />
           </div>
 
           {/* PRICING */}
-          <div className="space-y-4">
-            <h2 className="font-semibold text-gray-700">Pricing</h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm mb-1">Worker Price (₹)</label>
-                <input
-                  type="number"
-                  value={workerPrice}
-                  onChange={(e) => setWorkerPrice(e.target.value)}
-                  placeholder="e.g. 300"
-                  className="w-full border rounded-lg p-2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-1">Platform Fee (₹)</label>
-                <input
-                  type="number"
-                  value={platformFee}
-                  onChange={(e) => setPlatformFee(e.target.value)}
-                  placeholder="e.g. 50"
-                  className="w-full border rounded-lg p-2"
-                />
-              </div>
-            </div>
-
-            {/* PRICE PREVIEW */}
-            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">
-                Customer Price (Auto Calculated)
-              </p>
-              <p className="text-xl font-bold text-blue-600">
-                ₹{customerPrice}
-              </p>
-            </div>
-          </div>
-
-          {/* ✅ MATERIAL TOGGLE */}
-          <div className="space-y-2">
-            <h2 className="font-semibold text-gray-700">Material</h2>
-
-            <div className="flex items-center justify-between border rounded-xl p-4 bg-gray-50">
-              <div>
-                <p className="text-sm font-medium text-gray-800">
-                  Include Material Cost
-                </p>
-                <p className="text-xs text-gray-500">
-                  Toggle if materials are included in the service price
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setWithMaterial((prev) => !prev)}
-                className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-                  withMaterial ? "bg-green-500" : "bg-gray-300"
-                }`}
-              >
-                <div
-                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition ${
-                    withMaterial ? "translate-x-6" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="text-xs font-medium">
-              {withMaterial ? (
-                <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                  Material Included
-                </span>
-              ) : (
-                <span className="text-red-600 bg-red-50 px-2 py-1 rounded-full">
-                  Material Not Included
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* DURATION */}
-          <div>
-            <label className="block text-sm mb-1">
-              Estimated Duration (minutes)
-            </label>
+          <div className="grid grid-cols-2 gap-4">
             <input
               type="number"
-              value={durationEstimate}
-              onChange={(e) => setDurationEstimate(e.target.value)}
-              placeholder="e.g. 30"
-              className="w-full border rounded-lg p-2"
+              value={workerPrice}
+              onChange={(e) => setWorkerPrice(e.target.value)}
+              className="border rounded-lg p-2"
+              placeholder="Worker Price"
             />
+
+            <input
+              type="number"
+              value={platformFee}
+              onChange={(e) => setPlatformFee(e.target.value)}
+              className="border rounded-lg p-2"
+              placeholder="Platform Fee"
+            />
+          </div>
+
+          {/* MATERIAL */}
+          <button
+            type="button"
+            onClick={() => setWithMaterial((p) => !p)}
+          >
+            Toggle Material ({withMaterial ? "Yes" : "No"})
+          </button>
+
+          {/* DURATION */}
+          <input
+            type="number"
+            value={durationEstimate}
+            onChange={(e) => setDurationEstimate(e.target.value)}
+            className="w-full border rounded-lg p-2"
+          />
+
+          {/* ========================= */}
+          {/* PROCESS (NO UI CHANGE STYLE) */}
+          {/* ========================= */}
+          <div>
+            <h2 className="font-semibold text-gray-700">Our Process</h2>
+
+            <button
+              type="button"
+              onClick={() => setEnableProcess((p) => !p)}
+              className="text-sm text-blue-600"
+            >
+              {enableProcess ? "Disable" : "Enable"} Process
+            </button>
+
+            {enableProcess && (
+              <div className="space-y-4 mt-4">
+                {processSteps.map((step, index) => (
+                  <div key={index} className="border p-3 rounded-lg">
+
+                    <input
+                      value={step.title}
+                      onChange={(e) =>
+                        updateStep(index, "title", e.target.value)
+                      }
+                      placeholder="Step Title"
+                      className="w-full border p-2 mb-2"
+                    />
+
+                    <textarea
+                      value={step.description}
+                      onChange={(e) =>
+                        updateStep(index, "description", e.target.value)
+                      }
+                      placeholder="Step Description"
+                      className="w-full border p-2"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => removeStep(index)}
+                      className="text-red-500 text-xs mt-2"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addStep}
+                  className="text-blue-600 text-sm"
+                >
+                  + Add Step
+                </button>
+              </div>
+            )}
           </div>
 
           {/* SUBMIT */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg"
           >
-            {loading ? "Creating SubService..." : "Create SubService"}
+            {loading ? "Updating..." : "Update SubService"}
           </button>
         </form>
       </div>

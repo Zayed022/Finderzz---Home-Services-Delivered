@@ -1,5 +1,6 @@
 import SubService from "../models/subService.models.js";
 import Service from "../models/service.models.js";
+import Process from "../models/process.models.js"
 import mongoose from "mongoose";
 
 export const createSubService = async (req, res, next) => {
@@ -12,8 +13,10 @@ export const createSubService = async (req, res, next) => {
       platformFee,
       durationEstimate,
       withMaterial,
+      processSteps // ✅ NEW (optional)
     } = req.body;
 
+    // ✅ VALIDATIONS
     if (!mongoose.Types.ObjectId.isValid(serviceId)) {
       return res.status(400).json({ message: "Invalid service ID" });
     }
@@ -31,14 +34,14 @@ export const createSubService = async (req, res, next) => {
     }
 
     const service = await Service.findById(serviceId).lean();
-
     if (!service || !service.active) {
       return res.status(400).json({ message: "Invalid service" });
     }
 
+    // ✅ CREATE SUB SERVICE FIRST
     const customerPrice = workerPrice + platformFee;
 
-    const subService = await SubService.create({
+    let subService = await SubService.create({
       serviceId,
       name,
       description,
@@ -49,10 +52,45 @@ export const createSubService = async (req, res, next) => {
       withMaterial,
     });
 
+    // =====================================================
+    // ✅ OPTIONAL: CREATE PROCESS IF PROVIDED
+    // =====================================================
+    if (processSteps && Array.isArray(processSteps)) {
+
+      if (processSteps.length === 0) {
+        return res.status(400).json({
+          message: "Process steps cannot be empty if provided",
+        });
+      }
+
+      // validate each step
+      for (const step of processSteps) {
+        if (!step.stepNumber || !step.title || !step.description) {
+          return res.status(400).json({
+            message: "Each process step must have stepNumber, title, description",
+          });
+        }
+      }
+
+      const process = await Process.create({
+        subServiceId: subService._id,
+        steps: processSteps,
+      });
+
+      // link process to subService
+      subService.processId = process._id;
+      await subService.save();
+    }
+
+    // ✅ FETCH WITH PROCESS (OPTIONAL BUT BETTER)
+    subService = await SubService.findById(subService._id)
+      .populate("processId");
+
     res.status(201).json({
       success: true,
       data: subService,
     });
+
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -95,7 +133,7 @@ export const getSubServicesByService = async (req, res, next) => {
     };
 
     const subServices = await SubService.find(filter)
-      .select("name description customerPrice durationEstimate withMaterial")
+      .select("name description customerPrice durationEstimate withMaterial processId")
       .lean();
 
     const enriched = subServices.map(s => {
@@ -107,7 +145,10 @@ export const getSubServicesByService = async (req, res, next) => {
         materialLabel: withMat
           ? "Material Included"
           : "Material Not Included",
-        badgeType: withMat ? "included" : "excluded"
+        badgeType: withMat ? "included" : "excluded",
+
+        // ✅ NEW: Process indicator
+        hasProcess: !!s.processId
       };
     });
 
@@ -131,6 +172,7 @@ export const updateSubService = async (req, res, next) => {
       platformFee,
       durationEstimate,
       active,
+      processSteps // ✅ NEW
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -143,6 +185,9 @@ export const updateSubService = async (req, res, next) => {
       return res.status(404).json({ message: "SubService not found" });
     }
 
+    // =========================
+    // ✅ BASIC FIELD UPDATES
+    // =========================
     if (name !== undefined) subService.name = name;
     if (description !== undefined) subService.description = description;
     if (durationEstimate !== undefined)
@@ -163,16 +208,77 @@ export const updateSubService = async (req, res, next) => {
       subService.platformFee = platformFee;
     }
 
-    // Always recalculate
+    // ✅ Always recalculate
     subService.customerPrice =
       subService.workerPrice + subService.platformFee;
 
     await subService.save();
 
+    // =====================================================
+    // 🔥 PROCESS HANDLING
+    // =====================================================
+    if (processSteps !== undefined) {
+
+      // ❌ CASE 1: DELETE PROCESS
+      if (Array.isArray(processSteps) && processSteps.length === 0) {
+        if (subService.processId) {
+          await Process.findByIdAndDelete(subService.processId);
+          subService.processId = null;
+          await subService.save();
+        }
+      }
+
+      // ✅ CASE 2: CREATE OR UPDATE PROCESS
+      else if (Array.isArray(processSteps)) {
+
+        // validation
+        for (const step of processSteps) {
+          if (!step.stepNumber || !step.title || !step.description) {
+            return res.status(400).json({
+              message: "Each step must have stepNumber, title, description",
+            });
+          }
+        }
+
+        // optional: unique step numbers
+        const stepNumbers = processSteps.map(s => s.stepNumber);
+        if (new Set(stepNumbers).size !== stepNumbers.length) {
+          return res.status(400).json({
+            message: "Step numbers must be unique",
+          });
+        }
+
+        // 🔄 UPDATE EXISTING
+        if (subService.processId) {
+          await Process.findByIdAndUpdate(
+            subService.processId,
+            { steps: processSteps },
+            { new: true }
+          );
+        }
+
+        // ➕ CREATE NEW
+        else {
+          const process = await Process.create({
+            subServiceId: subService._id,
+            steps: processSteps,
+          });
+
+          subService.processId = process._id;
+          await subService.save();
+        }
+      }
+    }
+
+    // ✅ FINAL RESPONSE WITH PROCESS
+    const updated = await SubService.findById(subService._id)
+      .populate("processId");
+
     res.json({
       success: true,
-      data: subService,
+      data: updated,
     });
+
   } catch (error) {
     next(error);
   }
@@ -217,7 +323,9 @@ export const getSubServiceById = async (req, res, next) => {
       });
     }
 
-    const subService = await SubService.findById(id).lean();
+    const subService = await SubService.findById(id)
+    .populate("processId")
+    .lean();
 
     if (!subService) {
       return res.status(404).json({
