@@ -57,6 +57,7 @@ function FaqItem({ question, answer }) {
 export default function ServiceDetails() {
   const { id } = useParams();
   const [showWithoutMaterial, setShowWithoutMaterial] = useState(false);
+  const [expanded, setExpanded] = useState({});
   const { data, isLoading } = useServiceDetails(id);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -477,81 +478,179 @@ export default function ServiceDetails() {
 </div>
 
             {/* SUB SERVICES */}
-            <div className="card fade-up fade-up-2" style={{ padding: "24px 24px 8px" }}>
-              <p className="section-label">Available Services</p>
+            {/* SUB SERVICES */}
+            <div className="card fade-up delay-2" style={{ padding: "22px 24px 12px" }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "#aaa",
+                  marginBottom: 4,
+                }}
+              >
+                Available Services
+              </p>
+              <p style={{ fontSize: 12.5, color: "#888", marginBottom: 18 }}>
+                {filteredSubServices.length} service{filteredSubServices.length !== 1 ? "s" : ""} available
+              </p>
 
-              <div>
-                {filteredSubServices.map((sub) => {
-                  const item = getItem(sub._id);
-                  return (
-                    <div key={sub._id} className="sub-row">
+              {filteredSubServices.map((sub) => {
+                const item = getItem(sub._id);
+                return (
+                  <div key={sub._id} className="sub-row">
 
-                      {/* LEFT */}
-                      <div style={{ flex: 1 }}>
-                        <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
-                          {sub.name}
-                        </h3>
+                    {/* Thumbnail */}
+                    
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2e", marginBottom: 4 }}>
+                        {sub.name}
+                      </h3>
+
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1a2e", letterSpacing: "-0.4px" }}>
+                        ₹{sub.customerPrice}
+                      </span>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "#888" }}>
+                          <Clock size={12} /> {sub.durationEstimate} mins
+                        </span>
+
                         
-                        <div style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--muted)", fontSize: 12, marginTop: 8 }}>
-                          <Clock size={13} /> {sub.durationEstimate} mins
-                        </div>
+                        {/* Fake review pill */}
+                        <span style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11.5, color: "#f59e0b", fontWeight: 600 }}>
+                          <Star size={11} style={{ fill: "#f59e0b" }} /> 4.8
+                          <span style={{ color: "#bbb", fontWeight: 400 }}>(120)</span>
+                        </span>
                       </div>
 
-                      {/* RIGHT */}
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, minWidth: 140 }}>
-                        <span className="price-tag">₹{sub.customerPrice}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <button
-                            className="link-btn"
-                            onClick={() => navigate(`/sub-service/${sub._id}`)}
-                          >
-                            Details
-                          </button>
+                      {sub.description && (
+                        <p
+                          style={{
+                            fontSize: 12.5,
+                            color: "#888",
+                            lineHeight: 1.6,
+                            display: "-webkit-box",
+                            WebkitLineClamp: expanded[sub._id] ? "unset" : 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {sub.description}
+                        </p>
+                      )}
+                      {sub.description && sub.description.length > 80 && (
+                        <button
+                          onClick={() =>
+                            setExpanded((prev) => ({ ...prev, [sub._id]: !prev[sub._id] }))
+                          }
+                          style={{
+                            marginTop: 4,
+                            fontSize: 12,
+                            color: "#3b5bdb",
+                            fontWeight: 600,
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: 0,
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                          }}
+                        >
+                          {expanded[sub._id] ? "Show less ↑" : "Show more ↓"}
+                        </button>
 
-                          {item ? (
-                            <div className="qty-control">
-                              <button
-                                className="qty-btn"
-                                onClick={() =>
-                                  dispatch(decreaseQty({ subServiceId: sub._id, bookingType: "service" }))
-                                }
-                              >
-                                <Minus size={13} />
-                              </button>
-                              <span className="qty-num">{item.quantity}</span>
-                              <button
-                                className="qty-btn"
-                                onClick={() =>
-                                  dispatch(increaseQty({ subServiceId: sub._id, bookingType: "service" }))
-                                }
-                              >
-                                <Plus size={13} />
-                              </button>
-                            </div>
-                          ) : (
+                      )}
+                      <button
+  className="link-btn"
+  onClick={() => navigate(`/sub-service/${sub._id}`)}
+  style={{
+    fontSize: "13.5px",
+    color: "var(--blue)",
+    fontWeight: 600
+  }}
+>
+  Details
+</button>
+                    </div>
+
+                    {/* Right: price + action */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        gap: 10,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {sub.image && (
+                      <div
+                        style={{
+                          width: 80,
+                          height: 80,
+                          borderRadius: 12,
+                          overflow: "hidden",
+                          flexShrink: 0,
+                          background: "#f3f4f6",
+                          border: "1px solid #ebebeb",
+                        }}
+                      >
+                        <img
+                          src={sub.image}
+                          alt={sub.name}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      </div>
+                    )}
+                      
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        
+                        {item ? (
+                          <div className="qty-control">
                             <button
-                              className="add-btn"
+                              className="qty-btn"
                               onClick={() =>
-                                dispatch(
-                                  addToCart({
-                                    subServiceId: sub._id,
-                                    name: sub.name,
-                                    price: sub.customerPrice,
-                                    duration: sub.durationEstimate,
-                                    bookingType: "service",
-                                  })
-                                )
+                                dispatch(decreaseQty({ subServiceId: sub._id, bookingType: "service" }))
                               }
                             >
-                              Add
+                              <Minus size={13} />
                             </button>
-                          )}
-                        </div>
+                            <span className="qty-num">{item.quantity}</span>
+                            <button
+                              className="qty-btn"
+                              onClick={() =>
+                                dispatch(increaseQty({ subServiceId: sub._id, bookingType: "service" }))
+                              }
+                            >
+                              <Plus size={13} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="add-btn"
+                            onClick={() =>
+                              dispatch(
+                                addToCart({
+                                  subServiceId: sub._id,
+                                  name: sub.name,
+                                  price: sub.customerPrice,
+                                  duration: sub.durationEstimate,
+                                  bookingType: "service",
+                                })
+                              )
+                            }
+                          >
+                            Add
+                          </button>
+                        )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* FAQ */}

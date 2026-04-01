@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Star, Shield, Clock, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Hero() {
   return (
@@ -28,9 +29,11 @@ export default function Hero() {
           </p>
 
           {/* CTA BUTTON */}
+          <Link to = "/services">
           <button className=" bg-white text-[#0077B6] text-primary font-semibold border-white px-6 py-3 rounded-lg flex items-center gap-2  hover:bg-white hover:text-[#0077B6] hover:scale-105 transition">
             Explore Services →
           </button>
+          </Link>
 
           {/* FEATURES */}
           <div className="flex flex-wrap gap-6 mt-8 text-sm text-white/90">

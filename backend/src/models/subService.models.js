@@ -15,6 +15,10 @@ const subServiceSchema = new mongoose.Schema(
 
   description: String,
 
+  image:{
+    type: String,
+  },
+
   withMaterial:{
     type: Boolean,
     default: false,

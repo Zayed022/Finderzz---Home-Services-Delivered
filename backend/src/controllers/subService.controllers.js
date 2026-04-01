@@ -2,6 +2,7 @@ import SubService from "../models/subService.models.js";
 import Service from "../models/service.models.js";
 import Process from "../models/process.models.js"
 import mongoose from "mongoose";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export const createSubService = async (req, res, next) => {
   try {
@@ -41,6 +42,25 @@ export const createSubService = async (req, res, next) => {
     // ✅ CREATE SUB SERVICE FIRST
     const customerPrice = workerPrice + platformFee;
 
+    const imagePath = req.files?.image?.[0]?.path;
+    
+        if (!imagePath) {
+          return res.status(400).json({
+            success:false,
+            message: "Sub-Service image is required"
+          });
+        }
+    
+        const imageUploaded = await uploadOnCloudinary(imagePath);
+    
+        // handle cloudinary failure
+        if (!imageUploaded || !imageUploaded.secure_url) {
+          return res.status(500).json({
+            success:false,
+            message:"Image upload failed. Please try again."
+          });
+        }
+
     let subService = await SubService.create({
       serviceId,
       name,
@@ -50,6 +70,7 @@ export const createSubService = async (req, res, next) => {
       customerPrice,
       durationEstimate,
       withMaterial,
+      image: imageUploaded.secure_url,
     });
 
     // =====================================================
