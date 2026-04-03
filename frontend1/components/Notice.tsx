@@ -46,7 +46,7 @@ export default function Notice() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["notices"],
     queryFn: async () => {
-      const res = await API.get("/notices/active");
+      const res = await API.get("/notice/active");
       return res.data.data;
     },
   });

@@ -4,6 +4,7 @@ import { store } from "@/store";
 import { Provider } from "react-redux";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const queryClient = new QueryClient();
 
@@ -30,10 +31,12 @@ export default function RootLayout() {
   }, []);
 
   return (
+    <SafeAreaProvider>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <Stack screenOptions={{ headerShown: false }} />
       </QueryClientProvider>
     </Provider>
+    </SafeAreaProvider>
   );
 }

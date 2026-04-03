@@ -302,21 +302,52 @@ export default function ServiceDetails() {
 
                   {/* top row */}
                   <View style={s.cardTop}>
-                    <View style={{ flex: 1, marginRight: 12 }}>
-                      <Text style={s.subName}>{sub.name}</Text>
-                      {sub.description ? (
-                        <Text style={s.subDesc} numberOfLines={2}>{sub.description}</Text>
-                      ) : null}
-                      <View style={s.metaRow}>
-                        <Ionicons name="time-outline" size={12} color={T.muted} />
-                        <Text style={s.metaText}>{sub.durationEstimate} mins</Text>
-                      </View>
-                    </View>
 
-                    <View style={s.priceCol}>
-                      <Text style={s.price}>₹{sub.customerPrice}</Text>
-                    </View>
-                  </View>
+  {/* LEFT CONTENT */}
+  <View style={{ flex: 1, marginRight: 12 }}>
+
+    <Text style={s.subName}>{sub.name}</Text>
+
+     {/* PRICE */}
+     <Text style={s.price}>₹{sub.customerPrice}</Text>
+
+    {sub.description ? (
+      <Text style={s.subDesc} numberOfLines={3}>
+        {sub.description}
+      </Text>
+    ) : null}
+
+    <View style={s.metaRow}>
+      <Ionicons name="time-outline" size={12} color={T.muted} />
+      <Text style={s.metaText}>{sub.durationEstimate} mins</Text>
+    </View>
+
+  </View>
+
+  {/* RIGHT SIDE (IMAGE + PRICE) */}
+  <View style={{ alignItems: "flex-end", gap: 8 }}>
+
+    {/* IMAGE */}
+    {sub.image && (
+      <Image
+        source={{ uri: sub.image }}
+        style={{
+          width: 80,
+          height: 80,
+          borderRadius: 12,
+          backgroundColor: "#f3f4f6",
+          borderWidth: 1,
+          borderColor: T.border,
+        }}
+        resizeMode="cover"
+      />
+    )}
+
+   
+
+  </View>
+
+</View>
 
                   {/* divider */}
                   <View style={s.cardDivider} />
@@ -605,6 +636,7 @@ const s = StyleSheet.create({
     fontWeight: "700",
     color: T.ink,
     letterSpacing: -0.4,
+    marginTop: 6
   },
 
   cardDivider: { height: 1, backgroundColor: T.border, marginHorizontal: 0 },
