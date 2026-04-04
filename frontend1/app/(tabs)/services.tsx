@@ -253,9 +253,7 @@ export default function Services() {
                   >
                     <View style={{ flex: 1 }}>
                       <Text style={s.serviceName}>{item.name}</Text>
-                      {item.description ? (
-                        <Text style={s.serviceDesc} numberOfLines={1}>{item.description}</Text>
-                      ) : null}
+                     
                     </View>
 
                     <View style={[s.chevronWrap, isExpanded && s.chevronWrapActive]}>

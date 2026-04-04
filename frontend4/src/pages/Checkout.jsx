@@ -64,11 +64,16 @@ export default function Checkout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const cartItems = useSelector((s) => s.cart.items);
+  const hasInspection = cartItems.some(
+    (item) => item.bookingType === "inspection"
+  );
   const { selectedArea, extraCharge } = useSelector((s) => s.area);
 
   const [openAreaModal, setOpenAreaModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [requirements, setRequirements] = useState("");
+  const [budget, setBudget] = useState("");
 
   const [form, setForm] = useState({
     name: "", phone: "",
@@ -111,6 +116,10 @@ export default function Checkout() {
         customerDetails: { name: form.name, phone: form.phone },
         scheduledDate: form.date,
         timeSlot: form.timeSlot,
+      
+        // ✅ NEW FIELDS
+        requirements: requirements?.trim() || undefined,
+        budget: budget ? Number(budget) : undefined,
       };
       const res = await API.post("/booking", payload);
       const existing = JSON.parse(localStorage.getItem("guest_bookings")) || [];
@@ -444,17 +453,61 @@ export default function Checkout() {
 
           {/* Schedule */}
           <StepCard step={4} title="Schedule" icon={Calendar}>
-            <div className="co-grid2">
-              <Field label="Preferred Date" icon={Calendar} error={errors.date}>
-                <input type="date" name="date" min={today} onChange={handleChange} value={form.date}
-                  className={`co-input${errors.date ? " error" : ""}`} />
-              </Field>
-              <Field label="Preferred Time" icon={Clock} error={errors.timeSlot}>
-                <input type="time" name="timeSlot" onChange={handleChange} value={form.timeSlot}
-                  className={`co-input${errors.timeSlot ? " error" : ""}`} />
-              </Field>
-            </div>
-          </StepCard>
+  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+    {/* DATE & TIME */}
+    <div className="co-grid2">
+      <Field label="Preferred Date" icon={Calendar} error={errors.date}>
+        <input
+          type="date"
+          name="date"
+          min={today}
+          onChange={handleChange}
+          value={form.date}
+          className={`co-input${errors.date ? " error" : ""}`}
+        />
+      </Field>
+
+      <Field label="Preferred Time" icon={Clock} error={errors.timeSlot}>
+        <input
+          type="time"
+          name="timeSlot"
+          onChange={handleChange}
+          value={form.timeSlot}
+          className={`co-input${errors.timeSlot ? " error" : ""}`}
+        />
+      </Field>
+    </div>
+
+    {/* ── REQUIREMENTS ───────────────────────── */}
+    {hasInspection && (
+  <>
+    {/* ── REQUIREMENTS ───────────────────────── */}
+    <Field label="Requirements (Scope of Work)">
+      <textarea
+        placeholder="Describe your issue, preferences or specific instructions..."
+        value={requirements}
+        onChange={(e) => setRequirements(e.target.value)}
+        className="co-input"
+        style={{ minHeight: 90, resize: "vertical" }}
+      />
+    </Field>
+
+    {/* ── BUDGET ───────────────────────── */}
+    <Field label="Your Budget (Optional)">
+      <input
+        type="number"
+        placeholder="Enter your expected budget"
+        value={budget}
+        onChange={(e) => setBudget(e.target.value)}
+        className="co-input"
+      />
+    </Field>
+  </>
+)}
+
+  </div>
+</StepCard>
 
         </div>
 

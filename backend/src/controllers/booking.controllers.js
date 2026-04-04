@@ -13,6 +13,8 @@ export const createBooking = async (req, res, next) => {
       customerDetails,
       scheduledDate,
       timeSlot,
+      requirements,
+      budget,
     } = req.body;
 
     if (!services || !services.length) {
@@ -135,6 +137,8 @@ export const createBooking = async (req, res, next) => {
       subtotal,
       extraCharge,
       totalPrice,
+      requirements,
+      budget,
       status: "pending",
     });
 

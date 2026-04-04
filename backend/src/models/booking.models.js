@@ -53,6 +53,13 @@ const bookingSchema = new mongoose.Schema(
       fullAddress: String,
     },
 
+    requirements:{
+      type: String,
+    },
+    budget:{
+      type: Number,
+    },
+
     scheduledDate: Date,
     timeSlot: String,
 

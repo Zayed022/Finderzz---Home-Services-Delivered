@@ -99,6 +99,9 @@ function Field({
 export default function CheckoutScreen() {
   const router = useRouter();
   const items  = useAppSelector((s: any) => s.cart.items);
+  const hasInspection = items.some(
+    (item: any) => item.bookingType === "inspection"
+  );
   const area   = useLocationStore((s: any) => s.area);
 
   const [date, setDate]             = useState(new Date());
@@ -117,6 +120,8 @@ export default function CheckoutScreen() {
 
   const [errors, setErrors]   = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [requirements, setRequirements] = useState("");
+const [budget, setBudget] = useState("");
 
   /* price */
   const serviceTotal = items.reduce((a: number, i: any) => a + i.price * i.quantity, 0);
@@ -307,26 +312,27 @@ export default function CheckoutScreen() {
 
               {/* ── SCHEDULE ─────────────────────────── */}
               <StepCard step={4} title="Schedule" icon="calendar-outline">
-                {/* date */}
-                <Field label="Preferred Date" icon="calendar-outline">
-                  <Pressable style={s.dateBtn} onPress={() => setShowPicker(true)}>
-                    <Ionicons name="calendar-outline" size={15} color={T.blue} />
-                    <Text style={s.dateBtnText}>{formattedDate}</Text>
-                    <Ionicons name="chevron-down" size={14} color={T.muted} style={{ marginLeft: "auto" }} />
-                  </Pressable>
-                </Field>
 
-                {showPicker && (
-                  <DateTimePicker
-                    value={date}
-                    mode="date"
-                    minimumDate={new Date()}
-                    onChange={(_, d) => { setShowPicker(false); if (d) setDate(d); }}
-                  />
-                )}
+  {/* DATE */}
+  <Field label="Preferred Date" icon="calendar-outline">
+    <Pressable style={s.dateBtn} onPress={() => setShowPicker(true)}>
+      <Ionicons name="calendar-outline" size={15} color={T.blue} />
+      <Text style={s.dateBtnText}>{formattedDate}</Text>
+      <Ionicons name="chevron-down" size={14} color={T.muted} style={{ marginLeft: "auto" }} />
+    </Pressable>
+  </Field>
 
-                {/* time */}
-                <Field label="Preferred Time" icon="time-outline" error={errors.time}>
+  {showPicker && (
+    <DateTimePicker
+      value={date}
+      mode="date"
+      minimumDate={new Date()}
+      onChange={(_, d) => { setShowPicker(false); if (d) setDate(d); }}
+    />
+  )}
+
+  {/* TIME */}
+  <Field label="Preferred Time" icon="time-outline" error={errors.time}>
                   <View style={s.timeRow}>
                     <TextInput
                       placeholder="HH"
@@ -356,7 +362,37 @@ export default function CheckoutScreen() {
                     </View>
                   </View>
                 </Field>
-              </StepCard>
+
+  {/* 🔥 CONDITIONAL FIELDS */}
+  {hasInspection && (
+    <>
+      {/* REQUIREMENTS */}
+      <Field label="Inspection Requirements (Scope of Work)">
+        <TextInput
+          placeholder="Describe the issue so technician can prepare better..."
+          placeholderTextColor={T.muted}
+          value={requirements}
+          onChangeText={setRequirements}
+          multiline
+          style={[s.input, s.inputMulti]}
+        />
+      </Field>
+
+      {/* BUDGET */}
+      <Field label="Your Budget (Optional)">
+        <TextInput
+          placeholder="Enter your expected budget"
+          placeholderTextColor={T.muted}
+          value={budget}
+          onChangeText={setBudget}
+          keyboardType="numeric"
+          style={s.input}
+        />
+      </Field>
+    </>
+  )}
+
+</StepCard>
 
               {/* ── ORDER SUMMARY ────────────────────── */}
               <View style={s.summaryCard}>
@@ -390,10 +426,12 @@ export default function CheckoutScreen() {
                   <Text style={s.totalAmt}>₹{finalTotal}</Text>
                 </View>
 
+                <Pressable onPress={() => router.push("/terms")}>
                 <Text style={s.termsText}>
                   By confirming you agree to our{" "}
                   <Text style={s.termsLink}>Terms & Conditions</Text>.
                 </Text>
+                </Pressable>
 
                 <Pressable
                   style={({ pressed }) => [s.confirmBtn, pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] }]}

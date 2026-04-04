@@ -184,10 +184,10 @@ export default function More() {
           <MenuItem
             icon="call-outline"
             title="Contact Us"
-            subtitle="+91 98765 43210"
+            subtitle="+91 8262990986"
             onPress={() =>
               Linking.openURL(
-                "tel:+919876543210"
+                "tel:+918262990986"
               )
             }
           />
@@ -195,10 +195,10 @@ export default function More() {
           <MenuItem
             icon="mail-outline"
             title="Email"
-            subtitle="hello@yourapp.com"
+            subtitle="support.finderzz@gmail.com"
             onPress={() =>
               Linking.openURL(
-                "mailto:hello@yourapp.com"
+                "mailto:support.finderzz@gmail.com"
               )
             }
           />

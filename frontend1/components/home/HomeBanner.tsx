@@ -46,7 +46,7 @@ export default function HomeBanner() {
           <Pressable
             onPress={() => {
               if (item.redirectUrl) {
-                router.push(item.redirectUrl);
+                router.push("/services");
               }
             }}
             style={{ paddingHorizontal: 20 }}
