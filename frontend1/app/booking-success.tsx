@@ -310,13 +310,10 @@ export default function BookingSuccessScreen() {
               <Ionicons name="shield-checkmark-outline" size={12} color={T.green} />
               <Text style={s.trustText}>Verified professional</Text>
             </View>
-            <View style={s.trustItem}>
-              <Ionicons name="checkmark-circle-outline" size={12} color={T.green} />
-              <Text style={s.trustText}>30-day guarantee</Text>
-            </View>
+            
             <View style={s.trustItem}>
               <Ionicons name="flash-outline" size={12} color={T.amber} />
-              <Text style={s.trustText}>Updates via SMS</Text>
+              <Text style={s.trustText}>Updates via Whatsapp/Call</Text>
             </View>
           </View>
 

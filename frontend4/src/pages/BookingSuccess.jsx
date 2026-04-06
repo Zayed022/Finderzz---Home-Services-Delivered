@@ -306,7 +306,7 @@ export default function BookingSuccess() {
         </div>
 
         <h1 className="bs-hero-title">Booking Confirmed!</h1>
-        <p className="bs-hero-sub">Your service has been successfully scheduled. We'll send updates via SMS.</p>
+        <p className="bs-hero-sub">Your service has been successfully scheduled. We'll send updates via Whatsapp or Call.</p>
 
         <button className="bs-id-pill" onClick={handleCopy}>
           Booking ID: <span>#{shortId}</span>

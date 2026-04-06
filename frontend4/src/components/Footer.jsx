@@ -109,12 +109,12 @@ export default function Footer() {
 
             <div className="flex items-center gap-2">
               <Phone size={14} />
-              <span>+91 9876543210</span>
+              <span>+91 8262990986</span>
             </div>
 
             <div className="flex items-center gap-2">
               <Mail size={14} />
-              <span>support@finderzz.com</span>
+              <span>support.finderzz@gmail.com</span>
             </div>
 
           </div>
@@ -126,7 +126,7 @@ export default function Footer() {
               <Facebook size={18} />
             </a>
 
-            <a href="#" className="hover:text-white transition">
+            <a href="https://www.instagram.com/finder.zz/?hl=en" className="hover:text-white transition">
               <Instagram size={18} />
             </a>
 

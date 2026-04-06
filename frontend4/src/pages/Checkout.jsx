@@ -449,6 +449,32 @@ export default function Checkout() {
                   className={`co-input${errors.street ? " error" : ""}`} />
               </Field>
             </div>
+             {/* ── REQUIREMENTS ───────────────────────── */}
+    {hasInspection && (
+  <>
+    {/* ── REQUIREMENTS ───────────────────────── */}
+    <Field label="Estimate Requirements (Mention all work you want so that we can give accurate service)">
+      <textarea
+        placeholder="Describe your issue, preferences or specific instructions..."
+        value={requirements}
+        onChange={(e) => setRequirements(e.target.value)}
+        className="co-input"
+        style={{ minHeight: 90, resize: "vertical" }}
+      />
+    </Field>
+
+    {/* ── BUDGET ───────────────────────── */}
+    <Field label="Your Budget (Estimated Budget)">
+      <input
+        type="number"
+        placeholder="Enter your expected budget"
+        value={budget}
+        onChange={(e) => setBudget(e.target.value)}
+        className="co-input"
+      />
+    </Field>
+  </>
+)}
           </StepCard>
 
           {/* Schedule */}
@@ -479,32 +505,7 @@ export default function Checkout() {
       </Field>
     </div>
 
-    {/* ── REQUIREMENTS ───────────────────────── */}
-    {hasInspection && (
-  <>
-    {/* ── REQUIREMENTS ───────────────────────── */}
-    <Field label="Requirements (Scope of Work)">
-      <textarea
-        placeholder="Describe your issue, preferences or specific instructions..."
-        value={requirements}
-        onChange={(e) => setRequirements(e.target.value)}
-        className="co-input"
-        style={{ minHeight: 90, resize: "vertical" }}
-      />
-    </Field>
-
-    {/* ── BUDGET ───────────────────────── */}
-    <Field label="Your Budget (Optional)">
-      <input
-        type="number"
-        placeholder="Enter your expected budget"
-        value={budget}
-        onChange={(e) => setBudget(e.target.value)}
-        className="co-input"
-      />
-    </Field>
-  </>
-)}
+   
 
   </div>
 </StepCard>

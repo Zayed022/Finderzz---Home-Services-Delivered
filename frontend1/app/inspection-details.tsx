@@ -12,6 +12,9 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addToCart, increaseQty, decreaseQty } from "@/store/slices/cartSlice";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import API from "@/services/api";
 
 /* ─── design tokens ──────────────────────────────────────────── */
 const T = {
@@ -67,14 +70,30 @@ export default function InspectionDetails() {
   const router   = useRouter();
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector((s: any) => s.cart.items);
+  const [process, setProcess] = useState<any>(null);
 
-  const { serviceId, name, price, description, duration } = params as Record<string, string>;
+  const { serviceId, name, price, description, duration, processId, includedPoints,
+    excludedPoints, } = params as Record<string, string>;
+
+    const parsedIncluded = includedPoints ? JSON.parse(includedPoints) : [];
+const parsedExcluded = excludedPoints ? JSON.parse(excludedPoints) : [];
 
   /* cart state */
   const cartItem = cartItems.find(
     (i: any) => i.serviceId === serviceId && i.bookingType === "inspection"
   );
   const cartTotal = cartItems.reduce((a: number, i: any) => a + i.price * i.quantity, 0);
+
+  useEffect(() => {
+    if (processId) {
+      API
+        .get(`/process/${processId}`)
+        .then((res) => setProcess(res.data.data))
+        .catch((err) => console.error("Process fetch failed", err));
+    }
+  }, [processId]);
+
+
 
   const handleAdd = () =>
     dispatch(addToCart({
@@ -146,6 +165,89 @@ export default function InspectionDetails() {
                 {description || "Our professional will inspect the issue and provide an accurate diagnosis along with repair recommendations."}
               </Text>
             </View>
+
+            {process?.steps?.length > 0 && (
+  <View style={s.card}>
+    <SectionLabel text="Our Process" />
+
+    <View style={{ gap: 18 }}>
+      {process.steps.map((step: any, index: number) => (
+        <View key={index} style={{ flexDirection: "row", gap: 14 }}>
+
+          {/* LEFT: STEP + LINE */}
+          <View style={{ alignItems: "center" }}>
+            <View style={s.stepCircle}>
+              <Text style={s.stepNumber}>{step.stepNumber}</Text>
+            </View>
+
+            {index !== process.steps.length - 1 && (
+              <View style={s.stepLine} />
+            )}
+          </View>
+
+
+
+          {/* RIGHT: CONTENT */}
+          <View style={{ flex: 1, paddingTop: 2 }}>
+            <Text style={s.stepTitle}>{step.title}</Text>
+            <Text style={s.stepDesc}>{step.description}</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  </View>
+)}
+
+{/* ── INCLUDED ───────────────────────── */}
+{parsedIncluded.length > 0 && (
+  <View style={s.card}>
+    <SectionLabel text="What is included" />
+
+    <View style={{ gap: 12 }}>
+      {parsedIncluded.map((point: string, index: number) => (
+        <View key={index} style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+          <Ionicons name="checkmark-circle" size={16} color={T.green} />
+          <Text style={{ fontSize: 13.5, color: T.inkSoft, flex: 1 }}>
+            {point}
+          </Text>
+        </View>
+      ))}
+    </View>
+  </View>
+)}
+
+{/* ── EXCLUDED ───────────────────────── */}
+{parsedExcluded.length > 0 && (
+  <View style={s.card}>
+    <SectionLabel text="What is excluded" />
+
+    <View style={{ gap: 12 }}>
+      {parsedExcluded.map((point: string, index: number) => (
+        <View key={index} style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+          
+          <View
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              backgroundColor: "#fee2e2",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#dc2626", fontSize: 10, fontWeight: "700" }}>
+              ✕
+            </Text>
+          </View>
+
+          <Text style={{ fontSize: 13.5, color: T.muted, flex: 1 }}>
+            {point}
+          </Text>
+        </View>
+      ))}
+    </View>
+  </View>
+)}
 
             {/* ── BENEFITS ────────────────────────────── */}
             <View style={s.card}>
@@ -311,6 +413,44 @@ const s = StyleSheet.create({
     ...cardShadow,
   },
   bodyText: { fontSize: 14, color: T.muted, lineHeight: 21 },
+
+  stepCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#f1f5f9",
+    borderWidth: 1,
+    borderColor: T.border,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+  
+  stepNumber: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: T.ink,
+  },
+  
+  stepLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: T.border,
+    marginTop: 4,
+  },
+  
+  stepTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: T.ink,
+    marginBottom: 4,
+  },
+  
+  stepDesc: {
+    fontSize: 13,
+    color: T.muted,
+    lineHeight: 18,
+  },
 
   /* benefit rows */
   benefitRow: {

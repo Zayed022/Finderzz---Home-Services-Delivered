@@ -75,6 +75,14 @@ const serviceSchema = new mongoose.Schema(
     inspectionDuration: {
       type: Number, // in minutes
     },
+    processId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Process",
+        default: null
+      },
+
+      includedPoints: [{ type: String, trim: true }],
+      excludedPoints: [{ type: String, trim: true }],
   },
   { timestamps: true }
 );

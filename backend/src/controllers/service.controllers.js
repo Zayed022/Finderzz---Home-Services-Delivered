@@ -1,6 +1,7 @@
 import Service from "../models/service.models.js";
 import Category from "../models/category.models.js";
 import SubService from "../models/subService.models.js"
+import Process from "../models/process.models.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export const createService = async (req, res, next) => {
@@ -17,6 +18,9 @@ export const createService = async (req, res, next) => {
       inspectionPlatformFee,
       inspectionDescription,
       inspectionDuration,
+      processSteps,
+      includedPoints: includedPoints,
+      excludedPoints: excludedPoints ,
     } = req.body;
 
     /* ---------------- CATEGORY VALIDATION ---------------- */
@@ -43,7 +47,7 @@ export const createService = async (req, res, next) => {
 
     const bannerUploaded = await uploadOnCloudinary(bannerPath);
 
-    if (!bannerUploaded) {
+    if (!bannerUploaded?.secure_url) {
       return res.status(500).json({
         success: false,
         message: "Banner upload failed",
@@ -63,7 +67,7 @@ export const createService = async (req, res, next) => {
 
     const iconUploaded = await uploadOnCloudinary(iconPath);
 
-    if (!iconUploaded) {
+    if (!iconUploaded?.secure_url) {
       return res.status(500).json({
         success: false,
         message: "Icon upload failed",
@@ -105,6 +109,19 @@ export const createService = async (req, res, next) => {
       ? workerPrice + platformFee
       : 0;
 
+
+      const parseJSON = (value) => {
+        if (!value) return [];
+        try {
+          return typeof value === "string" ? JSON.parse(value) : value;
+        } catch {
+          return [];
+        }
+      };
+      
+      const includedPointsParsed = parseJSON(req.body.includedPoints);
+      const excludedPointsParsed = parseJSON(req.body.excludedPoints);
+
     /* ---------------- CREATE SERVICE ---------------- */
 
     const service = await Service.create({
@@ -115,19 +132,82 @@ export const createService = async (req, res, next) => {
       icon: iconUploaded.secure_url,
       isPopular,
 
-      // inspection
       inspectionAvailable: isInspectionEnabled,
       inspectionWorkerPrice: workerPrice,
       inspectionPlatformFee: platformFee,
       inspectionPrice,
       inspectionDescription,
       inspectionDuration: duration,
+      includedPoints: includedPointsParsed,
+      excludedPoints: excludedPointsParsed,
+    
     });
 
-    res.status(201).json({
+    // =====================================================
+    // ✅ PROCESS CREATION (SAFE + NO DUPLICATE INDEX ISSUE)
+    // =====================================================
+
+    let steps;
+
+    if (processSteps) {
+      try {
+        steps =
+          typeof processSteps === "string"
+            ? JSON.parse(processSteps)
+            : processSteps;
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid processSteps format",
+        });
+      }
+    }
+
+    if (Array.isArray(steps) && steps.length > 0) {
+
+      // normalize step numbers
+      const normalizedSteps = steps.map((step, index) => ({
+        stepNumber: index + 1,
+        title: step.title?.trim(),
+        description: step.description?.trim(),
+      }));
+
+      // validation
+      for (const step of normalizedSteps) {
+        if (!step.title || !step.description) {
+          return res.status(400).json({
+            success: false,
+            message:
+              "Each process step must have title and description",
+          });
+        }
+      }
+
+      // 🔥 IMPORTANT: ensure no existing process (avoid duplicate key error)
+      await Process.deleteOne({ serviceId: service._id });
+
+      const process = await Process.create({
+        serviceId: service._id,
+        steps: normalizedSteps,
+      });
+
+      service.processId = process._id;
+      await service.save();
+    }
+
+    // =====================================================
+    // ✅ FINAL FETCH
+    // =====================================================
+
+    const finalService = await Service.findById(service._id)
+      .populate("processId")
+      .lean();
+
+    return res.status(201).json({
       success: true,
-      data: service,
+      data: finalService,
     });
+
   } catch (error) {
     console.error("Create service error:", error);
     next(error);
@@ -228,15 +308,33 @@ export const updateService = async (req, res, next) => {
 };
 
 export const deleteService = async (req, res, next) => {
-    try {
-      const { id } = req.params;
-  
-      await Service.findByIdAndUpdate(id, { active: false });
-  
-      res.json({ success: true, message: "Service disabled" });
-    } catch (error) {
-      next(error);
+  try {
+    const { id } = req.params;
+
+    // 1. Validate service
+    const service = await Service.findById(id);
+    if (!service) {
+      return res.status(404).json({
+        success: false,
+        message: "Service not found",
+      });
     }
+
+    // 2. Soft delete service
+    service.active = false;
+    await service.save();
+
+    // 3. HARD delete related process (safe cleanup)
+    await Process.findOneAndDelete({ serviceId: id });
+
+    res.json({
+      success: true,
+      message: "Service disabled and process cleaned",
+    });
+  } catch (error) {
+    console.error("Delete service error:", error);
+    next(error);
+  }
 };
 
 export const getServiceWithSubServices = async (req, res, next) => {

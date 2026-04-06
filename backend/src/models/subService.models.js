@@ -44,6 +44,9 @@ const subServiceSchema = new mongoose.Schema(
 
   durationEstimate: Number,
 
+  includedPoints: [{ type: String, trim: true }],
+  excludedPoints: [{ type: String, trim: true }],
+
   active: {
     type: Boolean,
     default: true

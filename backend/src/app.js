@@ -67,6 +67,9 @@ app.use("/api/v1/quotation", quotationRoutes);
 import noticeRoutes from "./routes/notice.routes.js"
 app.use("/api/v1/notice", noticeRoutes);
 
+import processRoutes from "./routes/process.routes.js"
+app.use("/api/v1/process", processRoutes);
+
 // ================= PRIVACY POLICY =================
 
 app.get("/api/v1/privacy-policy", (req, res) => {

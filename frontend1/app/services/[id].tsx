@@ -107,13 +107,10 @@ export default function ServiceDetails() {
 
           {/* ── HERO ────────────────────────────────── */}
           <View style={s.heroWrap}>
-            {service.bannerImage ? (
-              <Image source={{ uri: service.bannerImage }} style={s.banner} resizeMode="cover" />
-            ) : (
-              <View style={s.bannerFallback} />
-            )}
-            {/* gradient overlay */}
-            <View style={s.bannerOverlay} />
+  <View style={s.bannerFallback} />
+
+  {/* gradient overlay */}
+  <View style={s.bannerOverlay} />
 
             {/* back button */}
             <Pressable style={s.backBtn} onPress={() => router.back()}>
@@ -151,7 +148,7 @@ export default function ServiceDetails() {
                   </View>
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={s.inspBadge}>INSPECTION SERVICE</Text>
-                    <Text style={s.inspTitle}>Get a Professional Inspection First</Text>
+                    <Text style={s.inspTitle}>Book a professional expert to check & Estimate</Text>
                   </View>
                   <Text style={s.inspPrice}>₹{service.inspection.price}</Text>
                 </View>
@@ -176,6 +173,9 @@ export default function ServiceDetails() {
                         price: service.inspection.price,
                         description: service.inspection.description,
                         duration: service.inspection.duration,
+                        processId: service.processId,
+                        includedPoints: JSON.stringify(service.includedPoints || []),
+      excludedPoints: JSON.stringify(service.excludedPoints || []),
                       },
                     })}
                   >
@@ -183,7 +183,7 @@ export default function ServiceDetails() {
                   </Pressable>
 
                   <Pressable style={s.addInspBtn} onPress={() => addInspectionToCart(service)}>
-                    <Text style={s.addInspText}>Add Inspection</Text>
+                    <Text style={s.addInspText}>Book Inspection</Text>
                   </Pressable>
                 </View>
               </View>
@@ -380,7 +380,7 @@ export default function ServiceDetails() {
                     ) : (
                       <Pressable style={s.addBtn} onPress={() => addServiceToCart(sub)}>
                         <Ionicons name="add" size={14} color={T.white} />
-                        <Text style={s.addBtnText}>Add</Text>
+                        <Text style={s.addBtnText}>Book</Text>
                       </Pressable>
                     )}
                   </View>

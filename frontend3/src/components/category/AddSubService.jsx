@@ -19,12 +19,44 @@ export default function AddSubService() {
 const [processSteps, setProcessSteps] = useState([
   { stepNumber: 1, title: "", description: "" }
 ]);
-
+const [includedPoints, setIncludedPoints] = useState([""]);
+const [excludedPoints, setExcludedPoints] = useState([""]);
   const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
     API.get("/service").then((res) => setServices(res.data.data));
   }, []);
+
+  // INCLUDED
+const updateIncluded = (index, value) => {
+  const updated = [...includedPoints];
+  updated[index] = value;
+  setIncludedPoints(updated);
+};
+
+const addIncluded = () => {
+  setIncludedPoints([...includedPoints, ""]);
+};
+
+const removeIncluded = (index) => {
+  setIncludedPoints(includedPoints.filter((_, i) => i !== index));
+};
+
+// EXCLUDED
+const updateExcluded = (index, value) => {
+  const updated = [...excludedPoints];
+  updated[index] = value;
+  setExcludedPoints(updated);
+};
+
+const addExcluded = () => {
+  setExcludedPoints([...excludedPoints, ""]);
+};
+
+const removeExcluded = (index) => {
+  setExcludedPoints(excludedPoints.filter((_, i) => i !== index));
+};
 
   const addStep = () => {
     setProcessSteps(prev => [
@@ -49,31 +81,76 @@ const [processSteps, setProcessSteps] = useState([
     setProcessSteps(updated);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ONLY UPDATED handleSubmit + minor logic fixes
 
-    try {
-      setLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-      await API.post("/subService", {
-        serviceId,
-        name,
-        description,
-        workerPrice: Number(workerPrice),
-        platformFee: Number(platformFee),
-        durationEstimate: Number(durationEstimate),
-        withMaterial,
-        processSteps: enableProcess ? processSteps : undefined
-      });
+  try {
+    setLoading(true);
 
-      navigate("/services");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to create subservice");
-    } finally {
-      setLoading(false);
+    // ✅ FILTER EMPTY POINTS
+    const filteredIncluded = includedPoints.filter(p => p.trim() !== "");
+    const filteredExcluded = excludedPoints.filter(p => p.trim() !== "");
+
+    // ✅ FILTER & CLEAN PROCESS STEPS
+    const cleanedSteps = processSteps
+      .filter(step => step.title?.trim() && step.description?.trim())
+      .map((step, index) => ({
+        stepNumber: index + 1,
+        title: step.title.trim(),
+        description: step.description.trim(),
+      }));
+
+    // ✅ CREATE FORM DATA (IMPORTANT FOR ARRAYS)
+    const formData = new FormData();
+
+    formData.append("serviceId", serviceId);
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("workerPrice", Number(workerPrice));
+    formData.append("platformFee", Number(platformFee));
+    formData.append("durationEstimate", Number(durationEstimate));
+    formData.append("withMaterial", withMaterial);
+
+    if (!image) {
+      alert("Please upload an image");
+      return;
     }
-  };
+    
+    formData.append("image", image);
+
+    // ✅ INCLUDED POINTS
+    filteredIncluded.forEach((point, index) => {
+      formData.append(`includedPoints[${index}]`, point);
+    });
+
+    // ✅ EXCLUDED POINTS
+    filteredExcluded.forEach((point, index) => {
+      formData.append(`excludedPoints[${index}]`, point);
+    });
+
+    // ✅ PROCESS STEPS (STRINGIFY)
+    if (enableProcess && cleanedSteps.length > 0) {
+      formData.append("processSteps", JSON.stringify(cleanedSteps));
+    }
+
+    // 🚀 API CALL
+    await API.post("/subService/", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    navigate("/services");
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to create subservice");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const customerPrice = Number(workerPrice || 0) + Number(platformFee || 0);
 
@@ -136,6 +213,13 @@ const [processSteps, setProcessSteps] = useState([
             </div>
           </div>
 
+          <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => setImage(e.target.files[0])}
+  className="w-full border rounded-lg p-2"
+/>
+
           {/* PRICING */}
           <div className="space-y-4">
             <h2 className="font-semibold text-gray-700">Pricing</h2>
@@ -177,6 +261,76 @@ const [processSteps, setProcessSteps] = useState([
             </div>
 
           </div>
+
+          {/* INCLUDED POINTS */}
+<div className="space-y-4">
+  <h2 className="font-semibold text-gray-700">What's Included</h2>
+
+  {includedPoints.map((point, index) => (
+    <div key={index} className="flex gap-2 items-center">
+      <input
+        type="text"
+        value={point}
+        onChange={(e) => updateIncluded(index, e.target.value)}
+        placeholder="e.g. Basic inspection included"
+        className="w-full border rounded-lg p-2"
+      />
+
+      {includedPoints.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeIncluded(index)}
+          className="text-red-500 text-xs"
+        >
+          Remove
+        </button>
+      )}
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={addIncluded}
+    className="text-green-600 text-sm font-medium"
+  >
+    + Add Included Point
+  </button>
+</div>
+
+{/* EXCLUDED POINTS */}
+<div className="space-y-4">
+  <h2 className="font-semibold text-gray-700">What's NOT Included</h2>
+
+  {excludedPoints.map((point, index) => (
+    <div key={index} className="flex gap-2 items-center">
+      <input
+        type="text"
+        value={point}
+        onChange={(e) => updateExcluded(index, e.target.value)}
+        placeholder="e.g. Spare parts cost not included"
+        className="w-full border rounded-lg p-2"
+      />
+
+      {excludedPoints.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeExcluded(index)}
+          className="text-red-500 text-xs"
+        >
+          Remove
+        </button>
+      )}
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={addExcluded}
+    className="text-red-600 text-sm font-medium"
+  >
+    + Add Excluded Point
+  </button>
+</div>
 
           {/* MATERIAL TOGGLE */}
 <div className="space-y-2">

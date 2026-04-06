@@ -34,7 +34,7 @@ export default function CustomerCare() {
           <Phone className="mx-auto text-blue-600 mb-3" />
           <h3 className="font-semibold">Call Us</h3>
           <p className="text-sm text-gray-500 mt-1">
-            +91 9876543210
+            +91 8262990986
           </p>
         </div>
 
@@ -43,7 +43,7 @@ export default function CustomerCare() {
           <Mail className="mx-auto text-green-600 mb-3" />
           <h3 className="font-semibold">Email</h3>
           <p className="text-sm text-gray-500 mt-1">
-            support@finderzz.com
+            support.finderzz@gmail.com
           </p>
         </div>
 

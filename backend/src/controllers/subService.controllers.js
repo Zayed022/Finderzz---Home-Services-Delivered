@@ -14,7 +14,9 @@ export const createSubService = async (req, res, next) => {
       platformFee,
       durationEstimate,
       withMaterial,
-      processSteps // ✅ NEW (optional)
+      processSteps,
+      includedPoints: includedPoints,
+      excludedPoints: excludedPoints , // ✅ NEW (optional)
     } = req.body;
 
     // ✅ VALIDATIONS
@@ -40,7 +42,7 @@ export const createSubService = async (req, res, next) => {
     }
 
     // ✅ CREATE SUB SERVICE FIRST
-    const customerPrice = workerPrice + platformFee;
+    const customerPrice = Number(workerPrice) + Number(platformFee);
 
     const imagePath = req.files?.image?.[0]?.path;
     
@@ -61,6 +63,30 @@ export const createSubService = async (req, res, next) => {
           });
         }
 
+        const normalizeArray = (field) => {
+          if (!field) return [];
+          if (Array.isArray(field)) return field;
+          if (typeof field === "object") return Object.values(field);
+          return [field];
+        };
+        
+        const parsedIncluded = normalizeArray(includedPoints);
+        const parsedExcluded = normalizeArray(excludedPoints);
+        
+        // parse processSteps
+        let parsedSteps = [];
+        if (processSteps) {
+          try {
+            parsedSteps =
+              typeof processSteps === "string"
+                ? JSON.parse(processSteps)
+                : processSteps;
+          } catch {
+            return res.status(400).json({ message: "Invalid processSteps format" });
+          }
+        }
+        
+
     let subService = await SubService.create({
       serviceId,
       name,
@@ -71,34 +97,28 @@ export const createSubService = async (req, res, next) => {
       durationEstimate,
       withMaterial,
       image: imageUploaded.secure_url,
+      includedPoints: parsedIncluded,
+  excludedPoints: parsedExcluded,
     });
 
     // =====================================================
     // ✅ OPTIONAL: CREATE PROCESS IF PROVIDED
     // =====================================================
-    if (processSteps && Array.isArray(processSteps)) {
-
-      if (processSteps.length === 0) {
-        return res.status(400).json({
-          message: "Process steps cannot be empty if provided",
-        });
-      }
-
-      // validate each step
-      for (const step of processSteps) {
-        if (!step.stepNumber || !step.title || !step.description) {
-          return res.status(400).json({
-            message: "Each process step must have stepNumber, title, description",
-          });
-        }
-      }
-
+    if (parsedSteps.length > 0) {
+      const normalizedSteps = parsedSteps.map((step, index) => ({
+        stepNumber: index + 1,
+        title: step.title?.trim(),
+        description: step.description?.trim(),
+      }));
+    
+      // ✅ remove old process if exists
+      await Process.deleteOne({ subServiceId: subService._id });
+    
       const process = await Process.create({
         subServiceId: subService._id,
-        steps: processSteps,
+        steps: normalizedSteps,
       });
-
-      // link process to subService
+    
       subService.processId = process._id;
       await subService.save();
     }

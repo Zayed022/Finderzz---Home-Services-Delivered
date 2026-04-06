@@ -21,6 +21,12 @@ export default function AddService() {
   const [inspectionPlatformFee, setInspectionPlatformFee] = useState("");
   const [inspectionDescription, setInspectionDescription] = useState("");
   const [inspectionDuration, setInspectionDuration] = useState("");
+  const [processSteps, setProcessSteps] = useState([
+    { stepNumber: 1, title: "", description: "" },
+  ]);
+
+  const [includedPoints, setIncludedPoints] = useState([""]);
+const [excludedPoints, setExcludedPoints] = useState([""]);
 
   const [loading, setLoading] = useState(false);
 
@@ -28,34 +34,132 @@ export default function AddService() {
     API.get("/category").then((res) => setCategories(res.data.data));
   }, []);
 
+  const updateIncluded = (index, value) => {
+    const updated = [...includedPoints];
+    updated[index] = value;
+    setIncludedPoints(updated);
+  };
+  
+  const addIncluded = () => {
+    setIncludedPoints([...includedPoints, ""]);
+  };
+  
+  const removeIncluded = (index) => {
+    setIncludedPoints(includedPoints.filter((_, i) => i !== index));
+  };
+  
+  // EXCLUDED
+  const updateExcluded = (index, value) => {
+    const updated = [...excludedPoints];
+    updated[index] = value;
+    setExcludedPoints(updated);
+  };
+  
+  const addExcluded = () => {
+    setExcludedPoints([...excludedPoints, ""]);
+  };
+  
+  const removeExcluded = (index) => {
+    setExcludedPoints(excludedPoints.filter((_, i) => i !== index));
+  };
+
+  const handleStepChange = (index, field, value) => {
+    const updated = [...processSteps];
+    updated[index][field] = value;
+    setProcessSteps(updated);
+  };
+  
+  const addStep = () => {
+    setProcessSteps([
+      ...processSteps,
+      {
+        stepNumber: processSteps.length + 1,
+        title: "",
+        description: "",
+      },
+    ]);
+  };
+  
+  const removeStep = (index) => {
+    const updated = processSteps.filter((_, i) => i !== index);
+    setProcessSteps(
+      updated.map((step, i) => ({ ...step, stepNumber: i + 1 }))
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       setLoading(true);
-
+  
       const formData = new FormData();
-
-      formData.append("categoryId", categoryId);
-      formData.append("name", name);
-      formData.append("description", description);
-      formData.append("isPopular", isPopular);
-
-      formData.append("bannerImage", bannerImage);
-      formData.append("icon", icon);
-
-      formData.append("inspectionAvailable", inspectionAvailable);
-      formData.append("inspectionWorkerPrice", inspectionWorkerPrice);
-      formData.append("inspectionPlatformFee", inspectionPlatformFee);
-      formData.append("inspectionDescription", inspectionDescription);
-      formData.append("inspectionDuration", inspectionDuration);
-
-      await API.post("/service", formData);
-
+  
+      // ✅ Required fields
+      formData.append("categoryId", categoryId || "");
+      formData.append("name", name || "");
+      formData.append("description", description || "");
+  
+      // ✅ Convert booleans to string explicitly
+      formData.append("isPopular", isPopular ? "true" : "false");
+  
+      // ✅ FILES (VERY IMPORTANT)
+      if (bannerImage) {
+        formData.append("bannerImage", bannerImage);
+      }
+  
+      if (icon) {
+        formData.append("icon", icon);
+      }
+  
+      // ✅ Inspection
+      formData.append(
+        "inspectionAvailable",
+        inspectionAvailable ? "true" : "false"
+      );
+  
+      formData.append("inspectionWorkerPrice", inspectionWorkerPrice || "0");
+      formData.append("inspectionPlatformFee", inspectionPlatformFee || "0");
+      formData.append("inspectionDescription", inspectionDescription || "");
+      formData.append("inspectionDuration", inspectionDuration || "");
+  
+      // ✅ Process Steps
+      const filteredSteps = processSteps
+        .filter((s) => s.title.trim() && s.description.trim())
+        .map((step, index) => ({
+          stepNumber: index + 1,
+          title: step.title.trim(),
+          description: step.description.trim(),
+        }));
+  
+      formData.append("processSteps", JSON.stringify(filteredSteps));
+  
+      // ✅ Included / Excluded
+      formData.append(
+        "includedPoints",
+        JSON.stringify(includedPoints.filter((p) => p.trim()))
+      );
+  
+      formData.append(
+        "excludedPoints",
+        JSON.stringify(excludedPoints.filter((p) => p.trim()))
+      );
+  
+      // ✅ DEBUG (VERY IMPORTANT)
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+  
+      await API.post("/service/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
       navigate("/services");
     } catch (err) {
-      console.error(err);
-      alert("Failed to create service");
+      console.error("FULL ERROR:", err.response?.data || err);
+      alert(err.response?.data?.message || "Failed to create service");
     } finally {
       setLoading(false);
     }
@@ -214,6 +318,130 @@ export default function AddService() {
                   />
                 </div>
 
+                 {/* INCLUDED POINTS */}
+<div className="space-y-4">
+  <h2 className="font-semibold text-gray-700">What's Included</h2>
+
+  {includedPoints.map((point, index) => (
+    <div key={index} className="flex gap-2 items-center">
+      <input
+        type="text"
+        value={point}
+        onChange={(e) => updateIncluded(index, e.target.value)}
+        placeholder="e.g. Basic inspection included"
+        className="w-full border rounded-lg p-2"
+      />
+
+      {includedPoints.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeIncluded(index)}
+          className="text-red-500 text-xs"
+        >
+          Remove
+        </button>
+      )}
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={addIncluded}
+    className="text-green-600 text-sm font-medium"
+  >
+    + Add Included Point
+  </button>
+</div>
+
+{/* EXCLUDED POINTS */}
+<div className="space-y-4">
+  <h2 className="font-semibold text-gray-700">What's NOT Included</h2>
+
+  {excludedPoints.map((point, index) => (
+    <div key={index} className="flex gap-2 items-center">
+      <input
+        type="text"
+        value={point}
+        onChange={(e) => updateExcluded(index, e.target.value)}
+        placeholder="e.g. Spare parts cost not included"
+        className="w-full border rounded-lg p-2"
+      />
+
+      {excludedPoints.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeExcluded(index)}
+          className="text-red-500 text-xs"
+        >
+          Remove
+        </button>
+      )}
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={addExcluded}
+    className="text-red-600 text-sm font-medium"
+  >
+    + Add Excluded Point
+  </button>
+</div>
+                {/* PROCESS FLOW */}
+<div className="space-y-4">
+  <h2 className="font-semibold text-gray-700">Process Flow</h2>
+
+  {processSteps.map((step, index) => (
+    <div key={index} className="border rounded-lg p-4 space-y-2 bg-gray-50">
+
+      <div className="flex justify-between items-center">
+        <span className="text-sm font-semibold">
+          Step {step.stepNumber}
+        </span>
+
+        {processSteps.length > 1 && (
+          <button
+            type="button"
+            onClick={() => removeStep(index)}
+            className="text-red-500 text-xs"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+
+      <input
+        type="text"
+        placeholder="Step Title (e.g. Inspection)"
+        value={step.title}
+        onChange={(e) =>
+          handleStepChange(index, "title", e.target.value)
+        }
+        className="w-full border rounded-lg p-2"
+        required
+      />
+
+      <textarea
+        placeholder="Step Description"
+        value={step.description}
+        onChange={(e) =>
+          handleStepChange(index, "description", e.target.value)
+        }
+        className="w-full border rounded-lg p-2"
+        required
+      />
+
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={addStep}
+    className="text-blue-600 text-sm font-semibold"
+  >
+    + Add Step
+  </button>
+</div>
               </div>
             )}
           </div>

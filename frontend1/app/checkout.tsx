@@ -21,6 +21,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FlatList } from "react-native";
 
 /* ─── design tokens ──────────────────────────────────────────── */
 const T = {
@@ -308,7 +309,37 @@ const [budget, setBudget] = useState("");
                     multiline numberOfLines={3}
                   />
                 </Field>
+                {/* 🔥 CONDITIONAL FIELDS */}
+  {hasInspection && (
+    <>
+      {/* REQUIREMENTS */}
+      <Field label="Estimate Requirements (Mention all work you want so that we can give accurate service)">
+        <TextInput
+          placeholder="Describe the issue so technician can prepare better..."
+          placeholderTextColor={T.muted}
+          value={requirements}
+          onChangeText={setRequirements}
+          multiline
+          style={[s.input, s.inputMulti]}
+        />
+      </Field>
+
+      {/* BUDGET */}
+      <Field label="Your Budget (Estimate Budget)">
+        <TextInput
+          placeholder="Enter your expected budget"
+          placeholderTextColor={T.muted}
+          value={budget}
+          onChangeText={setBudget}
+          keyboardType="numeric"
+          style={s.input}
+        />
+      </Field>
+    </>
+  )}
               </StepCard>
+
+              
 
               {/* ── SCHEDULE ─────────────────────────── */}
               <StepCard step={4} title="Schedule" icon="calendar-outline">
@@ -363,34 +394,7 @@ const [budget, setBudget] = useState("");
                   </View>
                 </Field>
 
-  {/* 🔥 CONDITIONAL FIELDS */}
-  {hasInspection && (
-    <>
-      {/* REQUIREMENTS */}
-      <Field label="Inspection Requirements (Scope of Work)">
-        <TextInput
-          placeholder="Describe the issue so technician can prepare better..."
-          placeholderTextColor={T.muted}
-          value={requirements}
-          onChangeText={setRequirements}
-          multiline
-          style={[s.input, s.inputMulti]}
-        />
-      </Field>
-
-      {/* BUDGET */}
-      <Field label="Your Budget (Optional)">
-        <TextInput
-          placeholder="Enter your expected budget"
-          placeholderTextColor={T.muted}
-          value={budget}
-          onChangeText={setBudget}
-          keyboardType="numeric"
-          style={s.input}
-        />
-      </Field>
-    </>
-  )}
+  
 
 </StepCard>
 

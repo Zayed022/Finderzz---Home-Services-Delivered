@@ -346,7 +346,7 @@ export default function ServiceDetails() {
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <Badge><ShieldCheck size={11} /> Inspection Service</Badge>
                     <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginTop: 10, marginBottom: 4 }}>
-                      Get a Professional Inspection First
+                      Book a professional expert to check & Estimate
                     </h2>
                     
                     <div style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--muted)", fontSize: 12, marginTop: 10 }}>
@@ -354,9 +354,27 @@ export default function ServiceDetails() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12, minWidth: 130 }}>
+                  <div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+    gap: 12,
+    minWidth: 130,
+    marginLeft: "auto", // 🔥 IMPORTANT
+  }}
+>
                     <span className="price-tag">₹{service.inspection.price}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    justifyContent: "flex-end", // 🔥 force right
+    width: "100%",
+  }}
+>
                       <button
                         className="link-btn"
                         onClick={() =>
@@ -367,6 +385,9 @@ export default function ServiceDetails() {
                               price: service.inspection.price,
                               description: service.inspection.description,
                               duration: service.inspection.duration,
+                              processId: service.processId,
+                              includedPoints: service.includedPoints,
+    excludedPoints: service.excludedPoints,
                             },
                           })
                         }
@@ -383,11 +404,12 @@ export default function ServiceDetails() {
                               price: service.inspection.price,
                               duration: service.inspection.duration,
                               bookingType: "inspection",
+                              process: service.processId,
                             })
                           )
                         }
                       >
-                        Add
+                        Book
                       </button>
                     </div>
                   </div>
@@ -625,7 +647,7 @@ export default function ServiceDetails() {
                                 dispatch(increaseQty({ subServiceId: sub._id, bookingType: "service" }))
                               }
                             >
-                              <Plus size={13} />
+                              <Plus size={17} />
                             </button>
                           </div>
                         ) : (
@@ -643,7 +665,7 @@ export default function ServiceDetails() {
                               )
                             }
                           >
-                            Add
+                            Book
                           </button>
                         )}
                       </div>

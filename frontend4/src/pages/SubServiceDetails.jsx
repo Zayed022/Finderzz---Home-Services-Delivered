@@ -618,6 +618,76 @@ export default function SubServiceDetails() {
   </Section>
 )}
 
+{/* ── INCLUDED & EXCLUDED ───────────────────────── */}
+
+{/* INCLUDED */}
+{sub?.includedPoints?.length > 0 && (
+  <Section title="What is included?" delay={200}>
+    <div className="card" style={{ padding: "20px 22px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {sub.includedPoints.map((point, index) => (
+          <div key={index} style={{ display: "flex", gap: 10 }}>
+            <CheckCircle2
+              size={16}
+              color="#16a34a"
+              style={{ flexShrink: 0, marginTop: 2 }}
+            />
+            <p
+              style={{
+                fontSize: 13.5,
+                color: "#374151",
+                lineHeight: 1.6,
+              }}
+            >
+              {point}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </Section>
+)}
+
+{/* EXCLUDED */}
+{sub?.excludedPoints?.length > 0 && (
+  <Section title="What is excluded?" delay={220}>
+    <div className="card" style={{ padding: "20px 22px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {sub.excludedPoints.map((point, index) => (
+          <div key={index} style={{ display: "flex", gap: 10 }}>
+            <div
+              style={{
+                width: 16,
+                height: 16,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#dc2626",
+                fontSize: 14,
+                fontWeight: 700,
+                marginTop: 2,
+                flexShrink: 0,
+              }}
+            >
+              ✕
+            </div>
+
+            <p
+              style={{
+                fontSize: 13.5,
+                color: "#6b7280",
+                lineHeight: 1.6,
+              }}
+            >
+              {point}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </Section>
+)}
+
           {/* Features */}
           {sub.features?.length > 0 && (
             <Section title="What's included" delay={200}>
@@ -683,7 +753,7 @@ export default function SubServiceDetails() {
                     className="add-btn"
                     onClick={() => dispatch(addToCart({ subServiceId: sub._id, name: sub.name, price: sub.customerPrice, duration: sub.durationEstimate, bookingType: "service" }))}
                   >
-                    <ShoppingCart size={15} /> Add to Cart
+                    <ShoppingCart size={15} /> Book
                   </button>
                 )}
 

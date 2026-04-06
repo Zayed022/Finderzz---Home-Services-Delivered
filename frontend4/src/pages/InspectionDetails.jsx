@@ -20,6 +20,9 @@ import { addToCart, increaseQty, decreaseQty } from "../store/cartSlice";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Helmet } from "react-helmet-async";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import API from "../api/axios";
 
 /* ─── small reusable pieces ──────────────────────────────────── */
 function CheckItem({ icon: Icon, iconColor = "#16a34a", children }) {
@@ -47,6 +50,21 @@ function Section({ label, children }) {
 /* ═══════════════════════════════════════════════════════════════ */
 export default function InspectionDetails() {
   const { state } = useLocation();
+  const [process, setProcess] = useState(null);
+
+  useEffect(() => {
+    if (state?.processId) {
+      API
+        .get(`/process/${state.processId}`)
+        .then((res) => {
+          setProcess(res.data.data);
+        })
+        .catch((err) => {
+          console.error("Failed to load process", err);
+        });
+    }
+  }, [state?.processId]);
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cartItems = useSelector((s) => s.cart.items);
@@ -64,8 +82,8 @@ export default function InspectionDetails() {
     );
   }
 
-  const { serviceId, name, price, description, duration } = state;
-
+  const { serviceId, name, price, description, duration, processId , includedPoints = [],
+    excludedPoints = [],} = state;
   const item = cartItems.find(
     (i) => i.serviceId === serviceId && i.bookingType === "inspection"
   );
@@ -80,7 +98,7 @@ export default function InspectionDetails() {
 
   const trustPoints = [
     { icon: ShieldCheck, color: "#16a34a", text: "Background-verified professionals" },
-    { icon: CheckCircle2,color: "#16a34a", text: "30-day service guarantee on all work" },
+    
     { icon: Zap,         color: "#d97706", text: "Instant booking confirmation" },
     { icon: Star,        color: "#d97706", text: "4.7 avg. rating across 2,000+ bookings" },
   ];
@@ -430,7 +448,193 @@ export default function InspectionDetails() {
             </p>
           </div>
 
-          {/* Benefits */}
+          {/* DEFINE PROCESS */}
+
+
+
+{process?.steps?.length > 0 && (
+  <div className="id-card id-anim" style={{ animationDelay: "80ms" }}>
+    
+    <p
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: ".09em",
+        textTransform: "uppercase",
+        color: "var(--muted)",
+        marginBottom: 16,
+      }}
+    >
+      Our Process
+    </p>
+
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {process.steps.map((step, index) => (
+        <div key={index} style={{ display: "flex", gap: 14, position: "relative" }}>
+
+          {/* Vertical line */}
+          {index !== process.steps.length - 1 && (
+            <div
+              style={{
+                position: "absolute",
+                left: 13,
+                top: 30,
+                width: 2,
+                height: "calc(100% - 10px)",
+                background: "var(--border)",
+              }}
+            />
+          )}
+
+          {/* Step Number */}
+          <div
+            style={{
+              minWidth: 26,
+              height: 26,
+              borderRadius: "50%",
+              background: "#f1f5f9",
+              color: "var(--ink)",
+              fontSize: 12,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid var(--border)",
+              zIndex: 1,
+            }}
+          >
+            {step.stepNumber}
+          </div>
+
+          {/* Content */}
+          <div style={{ flex: 1 }}>
+            <p
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--ink)",
+                marginBottom: 4,
+              }}
+            >
+              {step.title}
+            </p>
+
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--muted)",
+                lineHeight: 1.6,
+              }}
+            >
+              {step.description}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{/* ── INCLUDED ───────────────────────── */}
+{includedPoints?.length > 0 && (
+  <div className="id-card id-anim" style={{ animationDelay: "120ms" }}>
+    
+    <p className="section-label">What is included?</p>
+
+    <div
+      style={{
+        background: "#f8fafc",
+        border: "1px solid var(--border)",
+        borderRadius: 14,
+        padding: "18px",
+        boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+      }}
+    >
+      {includedPoints.map((point, index) => (
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: index !== includedPoints.length - 1 ? 14 : 0,
+          }}
+        >
+          <CheckCircle2 size={18} color="#16a34a" />
+
+          <span
+            style={{
+              fontSize: 14,
+              color: "#1f2937",
+              fontWeight: 500,
+            }}
+          >
+            {point}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{/* ── EXCLUDED ───────────────────────── */}
+{excludedPoints?.length > 0 && (
+  <div className="id-card id-anim" style={{ animationDelay: "140ms" }}>
+    
+    <p className="section-label">What is excluded?</p>
+
+    <div
+      style={{
+        background: "#fff7f7",
+        border: "1px solid #fecaca",
+        borderRadius: 14,
+        padding: "18px",
+        boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+      }}
+    >
+      {excludedPoints.map((point, index) => (
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: index !== excludedPoints.length - 1 ? 14 : 0,
+          }}
+        >
+          {/* ❌ Red Cross Icon */}
+          <div
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              background: "#fee2e2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#dc2626",
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          >
+            ✕
+          </div>
+
+          <span
+            style={{
+              fontSize: 14,
+              color: "#7f1d1d",
+              fontWeight: 500,
+            }}
+          >
+            {point}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
           <div className="id-card id-anim" style={{ animationDelay: "110ms" }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".09em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 6 }}>
               Why inspection is important

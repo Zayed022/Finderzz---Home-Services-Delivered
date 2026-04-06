@@ -16,7 +16,7 @@ router.get("/service/:serviceId", getSubServicesByService);
 
 router.get("/:id", getSubServiceById);
 
-router.patch("/:id", updateSubService);
+router.put("/:id", updateSubService);
 
 router.delete("/:id", deleteSubService);
 

@@ -115,7 +115,7 @@ export default function SubServiceDetails() {
   const highlights = data.highlights ?? [
     "Professional staff",
     "Eco-friendly products",
-    "30-day service guarantee",
+  
     "Instant booking confirmation",
   ];
 
@@ -334,12 +334,98 @@ export default function SubServiceDetails() {
   </View>
 )}
 
+{/* ── INCLUDED ─────────────────────────── */}
+{data?.includedPoints?.length > 0 && (
+  <View style={s.card}>
+    <SectionLabel text="What is included?" />
+
+    <View style={{ gap: 12 }}>
+      {data.includedPoints.map((point: string, index: number) => (
+        <View key={index} style={{ flexDirection: "row", gap: 10 }}>
+
+          {/* ✔ Icon */}
+          <View
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 6,
+              backgroundColor: T.greenSoft,
+              borderWidth: 1,
+              borderColor: T.greenMid,
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 2,
+            }}
+          >
+            <Ionicons name="checkmark" size={12} color={T.green} />
+          </View>
+
+          <Text
+            style={{
+              fontSize: 13.5,
+              color: T.inkSoft,
+              lineHeight: 20,
+              flex: 1,
+            }}
+          >
+            {point}
+          </Text>
+        </View>
+      ))}
+    </View>
+  </View>
+)}
+
+{/* ── EXCLUDED ─────────────────────────── */}
+{data?.excludedPoints?.length > 0 && (
+  <View style={s.card}>
+    <SectionLabel text="What is excluded?" />
+
+    <View style={{ gap: 12 }}>
+      {data.excludedPoints.map((point: string, index: number) => (
+        <View key={index} style={{ flexDirection: "row", gap: 10 }}>
+
+          {/* ✕ Icon */}
+          <View
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 6,
+              backgroundColor: "#fef2f2",
+              borderWidth: 1,
+              borderColor: "#fecaca",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 2,
+            }}
+          >
+            <Text style={{ color: "#dc2626", fontSize: 12, fontWeight: "700" }}>
+              ✕
+            </Text>
+          </View>
+
+          <Text
+            style={{
+              fontSize: 13.5,
+              color: T.muted,
+              lineHeight: 20,
+              flex: 1,
+            }}
+          >
+            {point}
+          </Text>
+        </View>
+      ))}
+    </View>
+  </View>
+)}
+
             {/* ── WHY FINDERZZ ────────────────────────── */}
             <View style={s.card}>
               <SectionLabel text="Why Finderzz?" />
               {[
                 { icon: "shield-checkmark-outline", text: "Background-verified professionals" },
-                { icon: "checkmark-circle-outline", text: "30-day service guarantee" },
+                
                 { icon: "flash-outline",            text: "Instant booking confirmation" },
                 { icon: "star-outline",             text: "4.8 avg. rating across 2,000+ bookings" },
               ].map((item, i) => (
@@ -380,7 +466,7 @@ export default function SubServiceDetails() {
             ) : (
               <Pressable style={s.addBtn} onPress={addService}>
                 <Ionicons name="cart-outline" size={15} color={T.white} />
-                <Text style={s.addBtnText}>Add to Cart</Text>
+                <Text style={s.addBtnText}>Book</Text>
               </Pressable>
             )}
           </View>
