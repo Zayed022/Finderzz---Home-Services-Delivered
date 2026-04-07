@@ -236,7 +236,7 @@ export default function HomeScreen() {
                     Collected
                   </Text>
                   <Text style={styles.amount}>
-                    ₹{item.totalCollected}
+                    ₹{item.totalCollected || 0}
                   </Text>
                 </View>
 

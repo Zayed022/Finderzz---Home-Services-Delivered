@@ -337,6 +337,8 @@ export const getAssignedJobs = async (req, res) => {
       status: { $in: ["assigned", "in_progress"] },
     })
       .populate("services.subServiceId")
+      
+      .populate("services.serviceId")
       .populate("areaId")
       .sort({ createdAt: -1 });
 
@@ -470,6 +472,7 @@ export const getWorkerHistory = async (req, res) => {
       status: "completed",
     })
       .populate("services.subServiceId")
+      .populate("services.serviceId")
       .populate("areaId")
       .sort({ createdAt: -1 });
 
@@ -509,6 +512,7 @@ export const getWorkerEarnings = async (req, res) => {
       status:"completed"
     })
     .populate("services.subServiceId")
+    .populate("services.serviceId")
     .sort({ createdAt:-1 });
 
     let totalEarnings = 0;
@@ -535,13 +539,13 @@ export const getWorkerEarnings = async (req, res) => {
 
         let workerPrice = 0;
 
-        if(service.bookingType === "inspection"){
-          workerPrice =
-            service.subServiceId?.inspectionWorkerPrice || 0;
-        } else {
-          workerPrice =
-            service.subServiceId?.workerPrice || 0;
-        }
+if (service.bookingType === "inspection") {
+  workerPrice =
+    service.serviceId?.inspectionWorkerPrice || 0; // ✅ CORRECT SOURCE
+} else {
+  workerPrice =
+    service.subServiceId?.workerPrice || 0;
+}
 
         bookingEarning += workerPrice * (service.quantity || 1);
 
@@ -725,6 +729,7 @@ export const getWorkerDailySettlement = async (req,res)=>{
       status:"completed"
     })
     .populate("services.subServiceId")
+    .populate("services.serviceId") 
     .populate("areaId")
     .sort({ createdAt:-1 });
 
@@ -768,23 +773,22 @@ settlements.forEach(s => {
         let workerPrice = 0;
         let platformFee = 0;
 
-        if(service.bookingType === "inspection"){
+        if (service.bookingType === "inspection") {
 
           workerPrice =
-            service.subServiceId?.inspectionWorkerPrice || 0;
-
+            service.serviceId?.inspectionWorkerPrice || 0;
+        
           platformFee =
-            service.subServiceId?.inspectionPlatformFee || 0;
-
-        }else{
-
+            service.serviceId?.inspectionPlatformFee || 0;
+        
+        } else {
+        
           workerPrice =
             service.subServiceId?.workerPrice || 0;
-
+        
           platformFee =
             service.subServiceId?.platformFee || 0;
         }
-
         collected += price;
         workerEarn += workerPrice;
         platformEarn += platformFee;
@@ -968,7 +972,8 @@ export const getSettlementStats = async (req,res)=>{
     const bookings = await Booking.find({
       status:"completed"
     })
-    .populate("services.subServiceId");
+    .populate("services.subServiceId")
+    .populate("services.serviceId")
 
     let totalRevenue = 0;
     let workerEarnings = 0;
@@ -983,22 +988,21 @@ export const getSettlementStats = async (req,res)=>{
         let workerPrice = 0;
         let platformFee = 0;
 
-        if(service.bookingType === "inspection"){
+        if (service.bookingType === "inspection") {
 
           workerPrice =
-            service.subServiceId?.inspectionWorkerPrice || 0;
-
+            service.serviceId?.inspectionWorkerPrice || 0;
+        
           platformFee =
-            service.subServiceId?.inspectionPlatformFee || 0;
-
-        }else{
-
+            service.serviceId?.inspectionPlatformFee || 0;
+        
+        } else {
+        
           workerPrice =
             service.subServiceId?.workerPrice || 0;
-
+        
           platformFee =
             service.subServiceId?.platformFee || 0;
-
         }
 
         totalRevenue += price;
@@ -1040,6 +1044,7 @@ export const getSettlementsByStatus = async (req,res)=>{
     })
     .populate("workerId","name phone")
     .populate("services.subServiceId")
+    .populate("services.serviceId")
     .populate("areaId")
     .sort({createdAt:-1});
 
@@ -1059,7 +1064,7 @@ export const getSettlementsByStatus = async (req,res)=>{
 
     bookings.forEach((booking)=>{
 
-      const date = booking.createdAt.toISOString().split("T")[0];
+      const date = booking.updatedAt.toISOString().split("T")[0];
       const workerId = booking.workerId?._id?.toString();
 
       const key = `${workerId}_${date}`;
@@ -1091,22 +1096,21 @@ export const getSettlementsByStatus = async (req,res)=>{
         let workerPrice = 0;
         let platformFee = 0;
 
-        if(service.bookingType === "inspection"){
+        if (service.bookingType === "inspection") {
 
           workerPrice =
-            service.subServiceId?.inspectionWorkerPrice || 0;
-
+            service.serviceId?.inspectionWorkerPrice || 0;
+        
           platformFee =
-            service.subServiceId?.inspectionPlatformFee || 0;
-
-        }else{
-
+            service.serviceId?.inspectionPlatformFee || 0;
+        
+        } else {
+        
           workerPrice =
             service.subServiceId?.workerPrice || 0;
-
+        
           platformFee =
             service.subServiceId?.platformFee || 0;
-
         }
 
         collected += price;

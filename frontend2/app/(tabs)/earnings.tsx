@@ -82,7 +82,7 @@ export default function EarningsScreen(){
         </Text>
 
         <Text style={styles.totalAmount}>
-          ₹{earnings.totalEarnings}
+          ₹{earnings.totalEarnings || 0}
         </Text>
 
         <Text style={styles.jobs}>

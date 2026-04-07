@@ -117,34 +117,34 @@ export default function JobsScreen() {
 
   const renderServices = (services:any[])=>{
     return services.map((s,index)=>{
-
+  
       const type =
         s.bookingType === "inspection"
         ? t("inspection")
         : t("service");
-
+  
+      const name =
+        s.bookingType === "inspection"
+          ? s.serviceId?.name
+          : s.subServiceId?.name;
+  
       return(
-
         <View key={index} style={styles.serviceRow}>
-
           <View>
             <Text style={styles.serviceName}>
-              {s.subServiceId?.name}
+              {name}
             </Text>
-
+  
             <Text style={styles.serviceType}>
               {type}
             </Text>
           </View>
-
+  
           <Text style={styles.servicePrice}>
             ₹{s.price}
           </Text>
-
         </View>
-
       );
-
     });
   };
 
