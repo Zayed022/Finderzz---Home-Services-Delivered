@@ -103,6 +103,14 @@ export default function HomeScreen() {
     }
 
   };
+  const handleRefresh = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchDashboard(),
+      fetchSettlement()
+    ]);
+    setLoading(false);
+  };
 
   const getSettlementColor = (status:string)=>{
 
@@ -151,6 +159,12 @@ export default function HomeScreen() {
         </View>
 
       </View>
+      <TouchableOpacity
+  style={styles.refreshBtn}
+  onPress={handleRefresh}
+>
+  <Text style={styles.refreshText}>↻</Text>
+</TouchableOpacity>
       <TouchableOpacity
   style={styles.quotationBtn}
   onPress={() => router.push("/quotation/create")}
@@ -325,7 +339,24 @@ center:{
   justifyContent:"center",
   alignItems:"center"
 },
+refreshBtn: {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  zIndex: 999,
+  backgroundColor: "#fff",
+  padding: 10,
+  borderRadius: 50,
+  elevation: 5,
+  shadowColor: "#000",
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+},
 
+refreshText: {
+  fontSize: 18,
+  fontWeight: "700",
+},
 header:{
   marginBottom:20
 },

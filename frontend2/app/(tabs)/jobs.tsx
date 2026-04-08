@@ -92,6 +92,11 @@ export default function JobsScreen() {
     }
 
   };
+  const handleRefreshClick = () => {
+    setRefreshing(true);
+    fetchJobs();
+  };
+  
 
   const getStatusColor = (status:string)=>{
 
@@ -159,10 +164,21 @@ export default function JobsScreen() {
 
   if(jobs.length === 0){
     return(
-      <View style={styles.center}>
-        <Text style={styles.emptyTitle}>
-          {t("noJobs")}
-        </Text>
+      <View style={{flex:1}}>
+  
+        <TouchableOpacity
+          style={styles.refreshBtn}
+          onPress={handleRefreshClick}
+        >
+          <Text style={styles.refreshText}>↻</Text>
+        </TouchableOpacity>
+  
+        <View style={styles.center}>
+          <Text style={styles.emptyTitle}>
+            {t("noJobs")}
+          </Text>
+        </View>
+  
       </View>
     );
   }
@@ -172,6 +188,12 @@ export default function JobsScreen() {
 <View style={{flex:1}}>
 
 {/* Language Switch */}
+<TouchableOpacity
+  style={styles.refreshBtn}
+  onPress={handleRefreshClick}
+>
+  <Text style={styles.refreshText}>↻</Text>
+</TouchableOpacity>
 
 <View style={styles.languageBar}>
 
@@ -379,6 +401,26 @@ flexDirection:"row",
 justifyContent:"center",
 alignItems:"center",
 padding:12
+},
+
+refreshBtn: {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  zIndex: 999,
+  backgroundColor: "#fff",
+  padding: 10,
+  borderRadius: 50,
+  elevation: 5,
+  shadowColor: "#000",
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+  marginTop:14
+},
+
+refreshText: {
+  fontSize: 18,
+  fontWeight: "700",
 },
 
 lang:{

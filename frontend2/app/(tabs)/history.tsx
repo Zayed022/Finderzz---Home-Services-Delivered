@@ -82,6 +82,11 @@ export default function HistoryScreen() {
 
   };
 
+  const handleRefreshClick = () => {
+    setRefreshing(true);
+    fetchHistory();
+  };
+
   const renderServices = (services:any[])=>{
     return services.map((s,index)=>{
   
@@ -142,6 +147,7 @@ export default function HistoryScreen() {
   }
 
   return(
+    
 
     <FlatList
       data={jobs}
