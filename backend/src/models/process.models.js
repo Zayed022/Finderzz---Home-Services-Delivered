@@ -14,13 +14,13 @@ const processSchema = new mongoose.Schema(
     serviceId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Service",
-      default: null,
+      
     },
 
     subServiceId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SubService",
-      default: null,
+      
     },
 
     steps: {
@@ -39,7 +39,19 @@ const processSchema = new mongoose.Schema(
 
 
 // ✅ UNIQUE per entity (NO duplicate processes)
-processSchema.index({ serviceId: 1 }, { unique: true, sparse: true });
-processSchema.index({ subServiceId: 1 }, { unique: true, sparse: true });
+processSchema.index(
+  { serviceId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { serviceId: { $type: "objectId" } },
+  }
+);
 
+processSchema.index(
+  { subServiceId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { subServiceId: { $type: "objectId" } },
+  }
+);
 export default mongoose.model("Process", processSchema);
