@@ -266,11 +266,29 @@ export const updateService = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const {
+    let {
+      name,
+      description,
+      categoryId,
+      isPopular,
+
       inspectionAvailable,
       inspectionWorkerPrice,
       inspectionPlatformFee,
+      inspectionDescription,
+      inspectionDuration,
+      includedPoints,
+      excludedPoints,
     } = req.body;
+
+    const updateData = {
+      name,
+      description,
+      categoryId,
+      isPopular,
+    };
+
+    /* ================= INSPECTION LOGIC ================= */
 
     if (inspectionAvailable === true) {
       if (
@@ -282,13 +300,45 @@ export const updateService = async (req, res, next) => {
         });
       }
 
-      req.body.inspectionPrice =
+      // Ensure numbers
+      inspectionWorkerPrice = Number(inspectionWorkerPrice);
+      inspectionPlatformFee = Number(inspectionPlatformFee);
+
+      updateData.inspectionAvailable = true;
+      updateData.inspectionWorkerPrice = inspectionWorkerPrice;
+      updateData.inspectionPlatformFee = inspectionPlatformFee;
+
+      updateData.inspectionPrice =
         inspectionWorkerPrice + inspectionPlatformFee;
+
+      updateData.inspectionDescription =
+        inspectionDescription || "";
+
+      updateData.inspectionDuration =
+        Number(inspectionDuration) || 0;
+
+      updateData.includedPoints =
+        Array.isArray(includedPoints) ? includedPoints : [];
+
+      updateData.excludedPoints =
+        Array.isArray(excludedPoints) ? excludedPoints : [];
+    } else {
+      // If inspection disabled → clean fields
+      updateData.inspectionAvailable = false;
+      updateData.inspectionWorkerPrice = 0;
+      updateData.inspectionPlatformFee = 0;
+      updateData.inspectionPrice = 0;
+      updateData.inspectionDescription = "";
+      updateData.inspectionDuration = 0;
+      updateData.includedPoints = [];
+      updateData.excludedPoints = [];
     }
+
+    /* ================= UPDATE ================= */
 
     const service = await Service.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       { new: true }
     );
 
@@ -302,6 +352,7 @@ export const updateService = async (req, res, next) => {
       success: true,
       data: service,
     });
+
   } catch (error) {
     next(error);
   }

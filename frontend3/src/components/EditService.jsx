@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../api/api";
@@ -9,11 +10,23 @@ export default function EditService() {
   const [categories, setCategories] = useState([]);
   const [service, setService] = useState(null);
 
+  // BASIC
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [isPopular, setIsPopular] = useState(false);
 
+  // INSPECTION
+  const [inspectionAvailable, setInspectionAvailable] = useState(false);
+  const [inspectionWorkerPrice, setInspectionWorkerPrice] = useState(0);
+  const [inspectionPlatformFee, setInspectionPlatformFee] = useState(0);
+  const [inspectionDescription, setInspectionDescription] = useState("");
+  const [inspectionDuration, setInspectionDuration] = useState(0);
+
+  const [includedPoints, setIncludedPoints] = useState([]);
+  const [excludedPoints, setExcludedPoints] = useState([]);
+
+  // MEDIA
   const [bannerPreview, setBannerPreview] = useState("");
   const [iconPreview, setIconPreview] = useState("");
 
@@ -26,13 +39,26 @@ export default function EditService() {
     const data = res.data.data;
 
     setService(data);
+
+    // BASIC
     setName(data.name || "");
     setDescription(data.description || "");
-    setCategoryId(data.categoryId);
+    setCategoryId(data.categoryId || "");
     setIsPopular(data.isPopular || false);
 
+    // MEDIA
     setBannerPreview(data.bannerImage);
     setIconPreview(data.icon);
+
+    // INSPECTION
+    setInspectionAvailable(data.inspectionAvailable || false);
+    setInspectionWorkerPrice(data.inspectionWorkerPrice || 0);
+    setInspectionPlatformFee(data.inspectionPlatformFee || 0);
+    setInspectionDescription(data.inspectionDescription || "");
+    setInspectionDuration(data.inspectionDuration || 0);
+
+    setIncludedPoints(data.includedPoints || []);
+    setExcludedPoints(data.excludedPoints || []);
   };
 
   const fetchCategories = async () => {
@@ -58,6 +84,15 @@ export default function EditService() {
         description,
         categoryId,
         isPopular,
+
+        inspectionAvailable,
+        inspectionWorkerPrice,
+        inspectionPlatformFee,
+        inspectionDescription,
+        inspectionDuration,
+
+        includedPoints: includedPoints.filter((p) => p.trim()),
+        excludedPoints: excludedPoints.filter((p) => p.trim()),
       });
 
       navigate("/services");
@@ -80,7 +115,7 @@ export default function EditService() {
           Edit Service
         </h1>
         <p className="text-gray-500 text-sm mb-6">
-          Update service details and visibility
+          Update service details and inspection configuration
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -111,8 +146,7 @@ export default function EditService() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Plumbing, Electrician"
-                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg p-2"
               />
             </div>
 
@@ -121,9 +155,7 @@ export default function EditService() {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Explain what this service includes..."
-                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-                rows="3"
+                className="w-full border rounded-lg p-2"
               />
             </div>
           </div>
@@ -144,56 +176,159 @@ export default function EditService() {
             </label>
           </div>
 
-          {/* MEDIA PREVIEW */}
+          {/* INSPECTION */}
+          <div className="space-y-4">
+            <h2 className="font-semibold text-gray-700">
+              Inspection Details
+            </h2>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={inspectionAvailable}
+                onChange={(e) =>
+                  setInspectionAvailable(e.target.checked)
+                }
+              />
+              Enable Inspection
+            </label>
+
+            {inspectionAvailable && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="number"
+                    placeholder="Worker Price"
+                    value={inspectionWorkerPrice}
+                    onChange={(e) =>
+                      setInspectionWorkerPrice(Number(e.target.value))
+                    }
+                    className="border p-2 rounded"
+                  />
+
+                  <input
+                    type="number"
+                    placeholder="Platform Fee"
+                    value={inspectionPlatformFee}
+                    onChange={(e) =>
+                      setInspectionPlatformFee(Number(e.target.value))
+                    }
+                    className="border p-2 rounded"
+                  />
+                </div>
+
+                <input
+                  type="number"
+                  placeholder="Duration (minutes)"
+                  value={inspectionDuration}
+                  onChange={(e) =>
+                    setInspectionDuration(Number(e.target.value))
+                  }
+                  className="w-full border p-2 rounded"
+                />
+
+                <textarea
+                  placeholder="Inspection Description"
+                  value={inspectionDescription}
+                  onChange={(e) =>
+                    setInspectionDescription(e.target.value)
+                  }
+                  className="w-full border p-2 rounded"
+                />
+
+                {/* INCLUDED */}
+                <div>
+                  <p className="text-sm font-medium">Included Points</p>
+                  {includedPoints.map((point, i) => (
+                    <input
+                      key={i}
+                      value={point}
+                      onChange={(e) => {
+                        const updated = [...includedPoints];
+                        updated[i] = e.target.value;
+                        setIncludedPoints(updated);
+                      }}
+                      className="w-full border p-2 rounded mb-2"
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIncludedPoints([...includedPoints, ""])
+                    }
+                    className="text-blue-600 text-sm"
+                  >
+                    + Add Point
+                  </button>
+                </div>
+
+                {/* EXCLUDED */}
+                <div>
+                  <p className="text-sm font-medium">Excluded Points</p>
+                  {excludedPoints.map((point, i) => (
+                    <input
+                      key={i}
+                      value={point}
+                      onChange={(e) => {
+                        const updated = [...excludedPoints];
+                        updated[i] = e.target.value;
+                        setExcludedPoints(updated);
+                      }}
+                      className="w-full border p-2 rounded mb-2"
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExcludedPoints([...excludedPoints, ""])
+                    }
+                    className="text-blue-600 text-sm"
+                  >
+                    + Add Point
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* MEDIA */}
           <div className="space-y-4">
             <h2 className="font-semibold text-gray-700">
               Media Preview
             </h2>
 
             {bannerPreview && (
-              <div>
-                <p className="text-sm text-gray-500 mb-1">
-                  Banner Image
-                </p>
-                <img
-                  src={bannerPreview}
-                  className="w-full h-40 object-cover rounded-lg border"
-                />
-              </div>
+              <img
+                src={bannerPreview}
+                className="w-full h-40 object-cover rounded border"
+              />
             )}
 
             {iconPreview && (
-              <div>
-                <p className="text-sm text-gray-500 mb-1">
-                  Icon Image
-                </p>
-                <img
-                  src={iconPreview}
-                  className="h-16 w-16 object-contain rounded border"
-                />
-              </div>
+              <img
+                src={iconPreview}
+                className="h-16 w-16 object-contain rounded border"
+              />
             )}
           </div>
 
           {/* ACTIONS */}
           <div className="flex gap-3 pt-4">
-
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition"
+              className="flex-1 bg-blue-600 text-white py-3 rounded-lg"
             >
-              {loading ? "Updating Service..." : "Update Service"}
+              {loading ? "Updating..." : "Update Service"}
             </button>
 
             <button
               type="button"
               onClick={() => navigate("/services")}
-              className="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-100 transition"
+              className="flex-1 border py-3 rounded-lg"
             >
               Cancel
             </button>
-
           </div>
 
         </form>
