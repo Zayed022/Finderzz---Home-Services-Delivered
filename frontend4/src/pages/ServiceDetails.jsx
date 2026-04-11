@@ -581,7 +581,7 @@ export default function ServiceDetails() {
                             fontFamily: "'Plus Jakarta Sans', sans-serif",
                           }}
                         >
-                          {expanded[sub._id] ? "Show less ↑" : "Show more ↓"}
+                          
                         </button>
 
                       )}

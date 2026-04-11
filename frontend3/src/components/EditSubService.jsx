@@ -21,6 +21,8 @@ export default function EditSubService() {
   // ✅ PROCESS STATE
   const [enableProcess, setEnableProcess] = useState(false);
   const [processSteps, setProcessSteps] = useState([]);
+  const [includedPoints, setIncludedPoints] = useState([]);
+const [excludedPoints, setExcludedPoints] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +45,8 @@ export default function EditSubService() {
       setPlatformFee(data.platformFee);
       setDurationEstimate(data.durationEstimate);
       setWithMaterial(data.withMaterial);
+      setIncludedPoints(data.includedPoints || []);
+setExcludedPoints(data.excludedPoints || []);
 
       // ✅ LOAD PROCESS
       if (data.processId?.steps?.length > 0) {
@@ -93,6 +97,8 @@ export default function EditSubService() {
         platformFee: Number(platformFee),
         durationEstimate: Number(durationEstimate),
         withMaterial,
+        includedPoints,
+        excludedPoints,
 
         // ✅ PROCESS CONTROL
         processSteps: enableProcess ? processSteps : [],
@@ -252,6 +258,62 @@ export default function EditSubService() {
               </div>
             )}
           </div>
+
+          {/* INCLUDED */}
+<div>
+  <h2 className="font-semibold text-gray-700">Included Points</h2>
+
+  {includedPoints.map((point, i) => (
+    <div key={i} className="flex gap-2 mb-2">
+      <input
+        value={point}
+        onChange={(e) => {
+          const updated = [...includedPoints];
+          updated[i] = e.target.value;
+          setIncludedPoints(updated);
+        }}
+        className="flex-1 border p-2 rounded"
+      />
+      <button onClick={() =>
+        setIncludedPoints(includedPoints.filter((_, idx) => idx !== i))
+      }>
+        ❌
+      </button>
+    </div>
+  ))}
+
+  <button onClick={() => setIncludedPoints([...includedPoints, ""])}>
+    + Add Point
+  </button>
+</div>
+
+{/* EXCLUDED */}
+<div>
+  <h2 className="font-semibold text-gray-700">Excluded Points</h2>
+
+  {excludedPoints.map((point, i) => (
+    <div key={i} className="flex gap-2 mb-2">
+      <input
+        value={point}
+        onChange={(e) => {
+          const updated = [...excludedPoints];
+          updated[i] = e.target.value;
+          setExcludedPoints(updated);
+        }}
+        className="flex-1 border p-2 rounded"
+      />
+      <button onClick={() =>
+        setExcludedPoints(excludedPoints.filter((_, idx) => idx !== i))
+      }>
+        ❌
+      </button>
+    </div>
+  ))}
+
+  <button onClick={() => setExcludedPoints([...excludedPoints, ""])}>
+    + Add Point
+  </button>
+</div>
 
           {/* SUBMIT */}
           <button
