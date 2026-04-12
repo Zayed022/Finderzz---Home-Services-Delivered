@@ -204,9 +204,15 @@ export const getSubServicesByService = async (req, res, next) => {
 };
 
 
+
+
 export const updateSubService = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid subservice ID" });
+    }
 
     const {
       name,
@@ -216,49 +222,49 @@ export const updateSubService = async (req, res, next) => {
       durationEstimate,
       active,
       processSteps,
-      includedPoints,   // ✅ NEW
-      excludedPoints,   // ✅ NEW
+      includedPoints,
+      excludedPoints,
+      withMaterial,
     } = req.body;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid subservice ID" });
-    }
+    /* ================= BUILD UPDATE OBJECT ================= */
 
-    const subService = await SubService.findById(id);
+    const updateData = {};
 
-    if (!subService) {
-      return res.status(404).json({ message: "SubService not found" });
-    }
-
-    /* ================= BASIC ================= */
-
-    if (name !== undefined) subService.name = name;
-    if (description !== undefined) subService.description = description;
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
     if (durationEstimate !== undefined)
-      subService.durationEstimate = Number(durationEstimate);
-    if (active !== undefined) subService.active = active;
+      updateData.durationEstimate = Number(durationEstimate);
+    if (active !== undefined) updateData.active = active;
+
+    // ✅ CRITICAL FIX — ALWAYS INCLUDE FIELD
+    if (typeof withMaterial === "boolean") {
+      updateData.withMaterial = withMaterial;
+    }
 
     if (workerPrice !== undefined) {
       const wp = Number(workerPrice);
-      if (wp < 0) {
+      if (wp < 0)
         return res.status(400).json({ message: "Invalid worker price" });
-      }
-      subService.workerPrice = wp;
+      updateData.workerPrice = wp;
     }
 
     if (platformFee !== undefined) {
       const pf = Number(platformFee);
-      if (pf < 0) {
+      if (pf < 0)
         return res.status(400).json({ message: "Invalid platform fee" });
-      }
-      subService.platformFee = pf;
+      updateData.platformFee = pf;
     }
 
-    // ✅ ALWAYS RECALCULATE
-    subService.customerPrice =
-      subService.workerPrice + subService.platformFee;
-
-    /* ================= INCLUDED / EXCLUDED ================= */
+    // ✅ price recalculation
+    if (
+      updateData.workerPrice !== undefined ||
+      updateData.platformFee !== undefined
+    ) {
+      const wp = updateData.workerPrice ?? 0;
+      const pf = updateData.platformFee ?? 0;
+      updateData.customerPrice = wp + pf;
+    }
 
     if (includedPoints !== undefined) {
       if (!Array.isArray(includedPoints)) {
@@ -266,10 +272,9 @@ export const updateSubService = async (req, res, next) => {
           message: "includedPoints must be an array",
         });
       }
-
-      subService.includedPoints = includedPoints
+      updateData.includedPoints = includedPoints
         .map((p) => p.trim())
-        .filter((p) => p.length > 0);
+        .filter(Boolean);
     }
 
     if (excludedPoints !== undefined) {
@@ -278,29 +283,33 @@ export const updateSubService = async (req, res, next) => {
           message: "excludedPoints must be an array",
         });
       }
-
-      subService.excludedPoints = excludedPoints
+      updateData.excludedPoints = excludedPoints
         .map((p) => p.trim())
-        .filter((p) => p.length > 0);
+        .filter(Boolean);
     }
 
-    await subService.save();
+    /* ================= UPDATE DB ================= */
+
+    const subService = await SubService.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true } // OK for now
+    );
+
+    if (!subService) {
+      return res.status(404).json({ message: "SubService not found" });
+    }
 
     /* ================= PROCESS ================= */
 
     if (processSteps !== undefined) {
 
-      // ❌ DELETE PROCESS
       if (Array.isArray(processSteps) && processSteps.length === 0) {
         if (subService.processId) {
           await Process.findByIdAndDelete(subService.processId);
           subService.processId = null;
-          await subService.save();
         }
-      }
-
-      // ✅ CREATE / UPDATE
-      else if (Array.isArray(processSteps)) {
+      } else if (Array.isArray(processSteps)) {
 
         for (const step of processSteps) {
           if (!step.stepNumber || !step.title || !step.description) {
@@ -321,24 +330,23 @@ export const updateSubService = async (req, res, next) => {
           await Process.findByIdAndUpdate(
             subService.processId,
             { steps: processSteps },
-            { new: true }
+            { returnDocument: "after" }
           );
         } else {
           const process = await Process.create({
             subServiceId: subService._id,
             steps: processSteps,
           });
-
           subService.processId = process._id;
-          await subService.save();
         }
       }
+
+      await subService.save();
     }
 
     /* ================= FINAL RESPONSE ================= */
 
-    const updated = await SubService.findById(subService._id)
-      .populate("processId");
+    const updated = await SubService.findById(id).populate("processId");
 
     res.json({
       success: true,
@@ -349,6 +357,10 @@ export const updateSubService = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
+
 
 
 export const deleteSubService = async (req, res, next) => {

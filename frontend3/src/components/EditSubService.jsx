@@ -44,7 +44,7 @@ const [excludedPoints, setExcludedPoints] = useState([]);
       setWorkerPrice(data.workerPrice);
       setPlatformFee(data.platformFee);
       setDurationEstimate(data.durationEstimate);
-      setWithMaterial(data.withMaterial);
+      setWithMaterial(Boolean(data.withMaterial));
       setIncludedPoints(data.includedPoints || []);
 setExcludedPoints(data.excludedPoints || []);
 
@@ -88,6 +88,9 @@ setExcludedPoints(data.excludedPoints || []);
 
     try {
       setLoading(true);
+      console.log("Payload:", {
+        withMaterial,
+      });
 
       await API.put(`/subService/${id}`, {
         serviceId,
@@ -96,7 +99,7 @@ setExcludedPoints(data.excludedPoints || []);
         workerPrice: Number(workerPrice),
         platformFee: Number(platformFee),
         durationEstimate: Number(durationEstimate),
-        withMaterial,
+        withMaterial: withMaterial ? true : false,
         includedPoints,
         excludedPoints,
 
@@ -185,13 +188,17 @@ setExcludedPoints(data.excludedPoints || []);
             />
           </div>
 
-          {/* MATERIAL */}
           <button
-            type="button"
-            onClick={() => setWithMaterial((p) => !p)}
-          >
-            Toggle Material ({withMaterial ? "Yes" : "No"})
-          </button>
+  type="button"
+  onClick={() => setWithMaterial((prev) => prev === true ? false : true)}
+  className={`px-4 py-2 rounded-lg border ${
+    withMaterial
+      ? "bg-green-100 border-green-400 text-green-700"
+      : "bg-gray-100 border-gray-300 text-gray-600"
+  }`}
+>
+  {withMaterial ? "Material Included" : "Without Material"}
+</button>
 
           {/* DURATION */}
           <input
@@ -259,7 +266,7 @@ setExcludedPoints(data.excludedPoints || []);
             )}
           </div>
 
-          {/* INCLUDED */}
+      {/* INCLUDED */}
 <div>
   <h2 className="font-semibold text-gray-700">Included Points</h2>
 
@@ -274,15 +281,25 @@ setExcludedPoints(data.excludedPoints || []);
         }}
         className="flex-1 border p-2 rounded"
       />
-      <button onClick={() =>
-        setIncludedPoints(includedPoints.filter((_, idx) => idx !== i))
-      }>
+
+      <button
+        type="button"
+        onClick={() =>
+          setIncludedPoints(
+            includedPoints.filter((_, idx) => idx !== i)
+          )
+        }
+      >
         ❌
       </button>
     </div>
   ))}
 
-  <button onClick={() => setIncludedPoints([...includedPoints, ""])}>
+  <button
+    type="button"
+    onClick={() => setIncludedPoints([...includedPoints, ""])}
+    className="text-blue-600 text-sm"
+  >
     + Add Point
   </button>
 </div>
@@ -302,15 +319,25 @@ setExcludedPoints(data.excludedPoints || []);
         }}
         className="flex-1 border p-2 rounded"
       />
-      <button onClick={() =>
-        setExcludedPoints(excludedPoints.filter((_, idx) => idx !== i))
-      }>
+
+      <button
+        type="button"
+        onClick={() =>
+          setExcludedPoints(
+            excludedPoints.filter((_, idx) => idx !== i)
+          )
+        }
+      >
         ❌
       </button>
     </div>
   ))}
 
-  <button onClick={() => setExcludedPoints([...excludedPoints, ""])}>
+  <button
+    type="button"
+    onClick={() => setExcludedPoints([...excludedPoints, ""])}
+    className="text-blue-600 text-sm"
+  >
     + Add Point
   </button>
 </div>
