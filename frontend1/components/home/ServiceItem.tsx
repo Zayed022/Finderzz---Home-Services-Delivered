@@ -1,3 +1,4 @@
+
 import { View, Text, Image, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, {
@@ -47,7 +48,6 @@ export function ServiceItem({ item, index, scrollX }: Props) {
   const pressed = useSharedValue(0);
   const isPopular: boolean = !!item.isPopular;
 
-  // Subtle scale-from-center parallax as the list scrolls
   const scrollStyle = useAnimatedStyle(() => {
     const center = index * (CARD_WIDTH + SPACING);
     const dist = scrollX.value - center;
@@ -60,9 +60,8 @@ export function ServiceItem({ item, index, scrollX }: Props) {
     return { transform: [{ scale }] };
   });
 
-  // Spring press feedback
   const pressStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: withSpring(pressed.value ? 0.96 : 1, { damping: 18, stiffness: 220 }) }],
+    transform: [{ scale: withSpring(pressed.value ? 0.96 : 1) }],
   }));
 
   return (
@@ -74,17 +73,18 @@ export function ServiceItem({ item, index, scrollX }: Props) {
     >
       <Animated.View style={[styles.card, isPopular && styles.cardPopular, scrollStyle]}>
 
-        {/* Popular badge – top pill */}
-        {isPopular && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeDot}>★</Text>
-            <Text style={styles.badgeText}>Most Booked</Text>
-          </View>
-        )}
+        {/* ✅ Reserved badge space (fix) */}
+        <View style={styles.badgeContainer}>
+          {isPopular && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeDot}>★</Text>
+              <Text style={styles.badgeText}>Most Booked</Text>
+            </View>
+          )}
+        </View>
 
-        {/* Icon tile */}
+        {/* Icon */}
         <View style={[styles.iconBox, isPopular && styles.iconBoxPopular]}>
-          {/* Decorative corner blob */}
           <View style={styles.iconBlob} />
           <Image source={{ uri: item.icon }} style={styles.icon} />
         </View>
@@ -94,7 +94,7 @@ export function ServiceItem({ item, index, scrollX }: Props) {
           {item.name}
         </Text>
 
-        {/* Description */}
+        {/* ✅ Fixed height description */}
         <Text numberOfLines={2} style={styles.desc}>
           {getServiceDescription(item.name)}
         </Text>
@@ -102,7 +102,7 @@ export function ServiceItem({ item, index, scrollX }: Props) {
         {/* Divider */}
         <View style={styles.divider} />
 
-        {/* CTA row */}
+        {/* CTA */}
         <View style={styles.ctaRow}>
           <Text style={styles.cta}>View details</Text>
           <View style={styles.ctaArrow}>
@@ -119,6 +119,7 @@ export function ServiceItem({ item, index, scrollX }: Props) {
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
+    height: 210, // ✅ FIXED HEIGHT (main fix)
     backgroundColor: CARD_BG,
     borderRadius: CARD_RADIUS,
     padding: 14,
@@ -139,7 +140,12 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
 
-  // ── Badge ─────────────────────────────────────────────────────
+  // ✅ Badge container (fix)
+  badgeContainer: {
+    height: 20,
+    marginBottom: 8,
+  },
+
   badge: {
     flexDirection: "row",
     alignItems: "center",
@@ -148,18 +154,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    marginBottom: 12,
     gap: 4,
-    shadowColor: "rgba(1,120,189,0.4)",
-    shadowOpacity: 1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
   },
+
   badgeDot: {
     fontSize: 7,
     color: "#FFD700",
   },
+
   badgeText: {
     fontSize: 8.5,
     fontWeight: "700",
@@ -167,23 +169,25 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
 
-  // ── Icon ──────────────────────────────────────────────────────
   iconBox: {
-    width: 58,
-    height: 58,
+    width: 52,    // was 58
+height: 52,   // was 58
+marginBottom: 8,  // was 12
     borderRadius: 16,
     backgroundColor: "#F1F8FD",
     borderWidth: 1.5,
     borderColor: "#DAEEF8",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    
     overflow: "hidden",
   },
+
   iconBoxPopular: {
     backgroundColor: BRAND_LIGHT,
     borderColor: BRAND_MID,
   },
+
   iconBlob: {
     position: "absolute",
     top: -10,
@@ -194,13 +198,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(1,120,189,0.08)",
     transform: [{ rotate: "20deg" }],
   },
+
   icon: {
     width: 32,
     height: 32,
     resizeMode: "contain",
   },
 
-  // ── Text ──────────────────────────────────────────────────────
   title: {
     fontSize: 13.5,
     fontWeight: "700",
@@ -208,32 +212,33 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     marginBottom: 4,
   },
+
+  // ✅ fixed height
   desc: {
     fontSize: 11,
     color: TEXT_SECONDARY,
     lineHeight: 15.5,
-    fontWeight: "400",
+    height: 32,
   },
 
-  // ── Divider ───────────────────────────────────────────────────
   divider: {
     height: 1,
     backgroundColor: "#F1F5F9",
-    marginVertical: 10,
+    marginVertical: 8,
   },
 
-  // ── CTA ───────────────────────────────────────────────────────
   ctaRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
+
   cta: {
     fontSize: 11.5,
     fontWeight: "700",
     color: TEXT_CTA,
-    letterSpacing: 0.1,
   },
+
   ctaArrow: {
     width: 22,
     height: 22,
@@ -242,6 +247,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   ctaArrowText: {
     fontSize: 11,
     color: BRAND,
