@@ -214,7 +214,17 @@ export const updateSubService = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid subservice ID" });
     }
 
-    const {
+    /* ================= IMAGE UPLOAD ================= */
+
+    let imageUrl;
+    if (req.file) {
+      const result = await uploadOnCloudinary(req.file.path);
+      imageUrl = result.secure_url;
+    }
+
+    /* ================= PARSE BODY ================= */
+
+    let {
       name,
       description,
       workerPrice,
@@ -227,36 +237,67 @@ export const updateSubService = async (req, res, next) => {
       withMaterial,
     } = req.body;
 
+    // ✅ SAFE JSON PARSING (FormData → string → array)
+    try {
+      if (typeof includedPoints === "string") {
+        includedPoints = JSON.parse(includedPoints);
+      }
+
+      if (typeof excludedPoints === "string") {
+        excludedPoints = JSON.parse(excludedPoints);
+      }
+
+      if (typeof processSteps === "string") {
+        processSteps = JSON.parse(processSteps);
+      }
+    } catch (err) {
+      return res.status(400).json({
+        message: "Invalid JSON format in included/excluded/processSteps",
+      });
+    }
+
     /* ================= BUILD UPDATE OBJECT ================= */
 
     const updateData = {};
 
+    if (imageUrl) updateData.image = imageUrl;
+
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
-    if (durationEstimate !== undefined)
-      updateData.durationEstimate = Number(durationEstimate);
-    if (active !== undefined) updateData.active = active;
 
-    // ✅ CRITICAL FIX — ALWAYS INCLUDE FIELD
-    if (typeof withMaterial === "boolean") {
-      updateData.withMaterial = withMaterial;
+    if (durationEstimate !== undefined) {
+      updateData.durationEstimate = Number(durationEstimate);
     }
+
+    if (active !== undefined) {
+      updateData.active = active === "true" || active === true;
+    }
+
+    // ✅ FIX BOOLEAN (FormData sends string)
+    if (withMaterial !== undefined) {
+      updateData.withMaterial =
+        withMaterial === "true" || withMaterial === true;
+    }
+
+    /* ================= PRICING ================= */
 
     if (workerPrice !== undefined) {
       const wp = Number(workerPrice);
-      if (wp < 0)
+      if (isNaN(wp) || wp < 0) {
         return res.status(400).json({ message: "Invalid worker price" });
+      }
       updateData.workerPrice = wp;
     }
 
     if (platformFee !== undefined) {
       const pf = Number(platformFee);
-      if (pf < 0)
+      if (isNaN(pf) || pf < 0) {
         return res.status(400).json({ message: "Invalid platform fee" });
+      }
       updateData.platformFee = pf;
     }
 
-    // ✅ price recalculation
+    // ✅ Recalculate price
     if (
       updateData.workerPrice !== undefined ||
       updateData.platformFee !== undefined
@@ -266,14 +307,17 @@ export const updateSubService = async (req, res, next) => {
       updateData.customerPrice = wp + pf;
     }
 
+    /* ================= INCLUDED / EXCLUDED ================= */
+
     if (includedPoints !== undefined) {
       if (!Array.isArray(includedPoints)) {
         return res.status(400).json({
           message: "includedPoints must be an array",
         });
       }
+
       updateData.includedPoints = includedPoints
-        .map((p) => p.trim())
+        .map((p) => String(p).trim())
         .filter(Boolean);
     }
 
@@ -283,8 +327,9 @@ export const updateSubService = async (req, res, next) => {
           message: "excludedPoints must be an array",
         });
       }
+
       updateData.excludedPoints = excludedPoints
-        .map((p) => p.trim())
+        .map((p) => String(p).trim())
         .filter(Boolean);
     }
 
@@ -293,24 +338,23 @@ export const updateSubService = async (req, res, next) => {
     const subService = await SubService.findByIdAndUpdate(
       id,
       updateData,
-      { new: true } // OK for now
+      { new: true }
     );
 
     if (!subService) {
       return res.status(404).json({ message: "SubService not found" });
     }
 
-    /* ================= PROCESS ================= */
+    /* ================= PROCESS HANDLING ================= */
 
     if (processSteps !== undefined) {
-
       if (Array.isArray(processSteps) && processSteps.length === 0) {
         if (subService.processId) {
           await Process.findByIdAndDelete(subService.processId);
           subService.processId = null;
         }
       } else if (Array.isArray(processSteps)) {
-
+        // ✅ validate steps
         for (const step of processSteps) {
           if (!step.stepNumber || !step.title || !step.description) {
             return res.status(400).json({
@@ -330,13 +374,14 @@ export const updateSubService = async (req, res, next) => {
           await Process.findByIdAndUpdate(
             subService.processId,
             { steps: processSteps },
-            { returnDocument: "after" }
+            { new: true }
           );
         } else {
           const process = await Process.create({
             subServiceId: subService._id,
             steps: processSteps,
           });
+
           subService.processId = process._id;
         }
       }
@@ -354,6 +399,7 @@ export const updateSubService = async (req, res, next) => {
     });
 
   } catch (error) {
+    console.error("UPDATE SUBSERVICE ERROR:", error);
     next(error);
   }
 };

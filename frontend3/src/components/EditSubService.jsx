@@ -23,6 +23,8 @@ export default function EditSubService() {
   const [processSteps, setProcessSteps] = useState([]);
   const [includedPoints, setIncludedPoints] = useState([]);
 const [excludedPoints, setExcludedPoints] = useState([]);
+const [image, setImage] = useState(null);
+const [preview, setPreview] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -85,28 +87,37 @@ setExcludedPoints(data.excludedPoints || []);
   // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       setLoading(true);
-      console.log("Payload:", {
-        withMaterial,
+  
+      const formData = new FormData();
+  
+      formData.append("serviceId", serviceId);
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("workerPrice", workerPrice);
+      formData.append("platformFee", platformFee);
+      formData.append("durationEstimate", durationEstimate);
+      formData.append("withMaterial", withMaterial);
+  
+      formData.append("includedPoints", JSON.stringify(includedPoints));
+      formData.append("excludedPoints", JSON.stringify(excludedPoints));
+      formData.append(
+        "processSteps",
+        JSON.stringify(enableProcess ? processSteps : [])
+      );
+  
+      if (image) {
+        formData.append("image", image);
+      }
+  
+      await API.put(`/subService/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-
-      await API.put(`/subService/${id}`, {
-        serviceId,
-        name,
-        description,
-        workerPrice: Number(workerPrice),
-        platformFee: Number(platformFee),
-        durationEstimate: Number(durationEstimate),
-        withMaterial: withMaterial ? true : false,
-        includedPoints,
-        excludedPoints,
-
-        // ✅ PROCESS CONTROL
-        processSteps: enableProcess ? processSteps : [],
-      });
-
+  
       navigate("/services");
     } catch (err) {
       console.error(err);
@@ -187,6 +198,28 @@ setExcludedPoints(data.excludedPoints || []);
               placeholder="Platform Fee"
             />
           </div>
+
+          <div>
+  <h2 className="font-semibold text-gray-700 mb-2">Image</h2>
+
+  {preview && (
+    <img
+      src={preview}
+      alt="preview"
+      className="w-40 h-40 object-cover rounded mb-2"
+    />
+  )}
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files[0];
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+    }}
+  />
+</div>
 
           <button
   type="button"

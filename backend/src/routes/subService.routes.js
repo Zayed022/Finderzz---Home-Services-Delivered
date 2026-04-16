@@ -16,7 +16,7 @@ router.get("/service/:serviceId", getSubServicesByService);
 
 router.get("/:id", getSubServiceById);
 
-router.put("/:id", updateSubService);
+router.put("/:id", upload.single("image"), updateSubService);
 
 router.delete("/:id", deleteSubService);
 
