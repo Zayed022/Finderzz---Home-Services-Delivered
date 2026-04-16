@@ -119,12 +119,53 @@ export default function ServiceDetails() {
   return (
     <>
       <Helmet>
-        <title>{service?.name} Services in Bhiwandi | Finderzz</title>
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
-          rel="stylesheet"
-        />
-      </Helmet>
+  <title>
+    {service?.name} Services in Bhiwandi | Book Online | Finderzz
+  </title>
+
+  <meta
+    name="description"
+    content={`Book ${service?.name} services in Bhiwandi with verified professionals. Affordable pricing, fast service, and 24/7 support only on Finderzz.`}
+  />
+
+  <meta name="robots" content="index, follow" />
+
+  <link
+    rel="canonical"
+    href={`https://finderzz.com/service/${id}`}
+  />
+
+  {/* ✅ SERVICE SCHEMA */}
+  <script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: service?.name,
+      areaServed: "Bhiwandi",
+      provider: {
+        "@type": "Organization",
+        name: "Finderzz",
+        url: "https://finderzz.com",
+      },
+    })}
+  </script>
+
+  {/* ✅ FAQ SCHEMA */}
+  <script type="application/ld+json">
+    {JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: f.answer,
+        },
+      })),
+    })}
+  </script>
+</Helmet>
 
       <style>{`
         :root {

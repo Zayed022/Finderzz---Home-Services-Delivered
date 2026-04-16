@@ -4,42 +4,65 @@
   <!-- 🔷 MAIN PAGES -->
   <url>
     <loc>https://finderzz.com/</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
     <loc>https://finderzz.com/services</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://finderzz.com/about</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
     <loc>https://finderzz.com/customer-care</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
-  <!-- 🔷 SEO SERVICE PAGES (IMPORTANT) -->
+  <url>
+    <loc>https://finderzz.com/terms</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- 🔷 SEO SERVICE LANDING PAGES -->
   <url>
     <loc>https://finderzz.com/services/plumber-bhiwandi</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://finderzz.com/services/maid-service-bhiwandi</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://finderzz.com/services/painting-bhiwandi</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
     <loc>https://finderzz.com/services/home-cleaning-bhiwandi</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
