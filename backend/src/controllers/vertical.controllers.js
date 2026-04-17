@@ -1,5 +1,6 @@
 import Vertical from "../models/vertical.models.js"
 import Request from "../models/request.models.js"
+import mongoose from "mongoose";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 export const getAllVerticals = async (req, res) => {
@@ -120,5 +121,126 @@ export const getAllVerticals = async (req, res) => {
         success: false,
         message: "Failed to fetch requests",
       });
+    }
+  };
+
+  export const updateVertical = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+  
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid vertical ID",
+        });
+      }
+  
+      const vertical = await Vertical.findById(id);
+  
+      if (!vertical) {
+        return res.status(404).json({
+          success: false,
+          message: "Vertical not found",
+        });
+      }
+  
+      let { name, description, active } = req.body;
+  
+      const updateData = {};
+  
+      /* =========================
+         TEXT FIELDS
+      ========================= */
+  
+      if (name !== undefined) {
+        updateData.name = name.trim();
+      }
+  
+      if (description !== undefined) {
+        updateData.description = description.trim();
+      }
+  
+      if (active !== undefined) {
+        updateData.active =
+          active === true ||
+          active === "true" ||
+          active === "1";
+      }
+  
+      /* =========================
+         IMAGE UPLOADS
+      ========================= */
+  
+      // req.files.icon[0]
+      if (req.files?.icon?.[0]) {
+        const uploadedIcon = await uploadOnCloudinary(
+          req.files.icon[0].path
+        );
+  
+        if (uploadedIcon?.secure_url) {
+          updateData.icon = uploadedIcon.secure_url;
+        }
+      }
+  
+      // req.files.bannerImage[0]
+      if (req.files?.bannerImage?.[0]) {
+        const uploadedBanner = await uploadOnCloudinary(
+          req.files.bannerImage[0].path
+        );
+  
+        if (uploadedBanner?.secure_url) {
+          updateData.bannerImage = uploadedBanner.secure_url;
+        }
+      }
+  
+      /* =========================
+         UPDATE DB
+      ========================= */
+  
+      const updated = await Vertical.findByIdAndUpdate(
+        id,
+        updateData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+  
+      return res.status(200).json({
+        success: true,
+        message: "Vertical updated successfully",
+        data: updated,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  export const deleteVertical = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+  
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid vertical ID",
+        });
+      }
+  
+      const deleted = await Vertical.findByIdAndDelete(id);
+  
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: "Vertical not found",
+        });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        message: "Vertical deleted successfully",
+      });
+    } catch (error) {
+      next(error);
     }
   };

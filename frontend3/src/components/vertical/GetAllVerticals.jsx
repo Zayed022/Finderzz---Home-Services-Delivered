@@ -1,114 +1,277 @@
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../../api/api";
 
-export default function GetAllVerticals(){
+export default function GetAllVerticals() {
+  const [verticals, setVerticals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const [verticals,setVerticals] = useState([]);
-const [loading,setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
 
-useEffect(()=>{
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [active, setActive] = useState(true);
 
-fetchVerticals();
+  const [icon, setIcon] = useState(null);
+  const [bannerImage, setBannerImage] = useState(null);
 
-},[]);
+  useEffect(() => {
+    fetchVerticals();
+  }, []);
 
-const fetchVerticals = async ()=>{
+  const fetchVerticals = async () => {
+    try {
+      const res = await API.get("/vertical/verticals");
+      setVerticals(res.data.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-try{
+  /* =========================
+     DELETE
+  ========================= */
 
-const res = await API.get("/vertical/verticals");
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this vertical?"
+    );
 
-setVerticals(res.data.data);
+    if (!confirmDelete) return;
 
-}catch(error){
+    try {
+      await API.delete(`/vertical/${id}`);
 
-console.error(error);
+      setVerticals((prev) => prev.filter((item) => item._id !== id));
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete vertical");
+    }
+  };
 
-}finally{
+  /* =========================
+     OPEN EDIT MODAL
+  ========================= */
 
-setLoading(false);
+  const openEdit = (item) => {
+    setEditing(item);
 
-}
+    setName(item.name || "");
+    setDescription(item.description || "");
+    setActive(item.active ?? true);
 
-};
+    setIcon(null);
+    setBannerImage(null);
+  };
 
-return(
+  /* =========================
+     UPDATE
+  ========================= */
 
-<div className="p-6 bg-gray-50 min-h-screen">
+  const handleUpdate = async (e) => {
+    e.preventDefault();
 
-<h1 className="text-2xl font-semibold mb-6">
-All Verticals
-</h1>
+    try {
+      const formData = new FormData();
 
-<div className="bg-white rounded-xl shadow border overflow-x-auto">
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("active", active);
 
-<table className="w-full text-sm min-w-[800px]">
+      if (icon) {
+        formData.append("icon", icon);
+      }
 
-<thead className="bg-gray-100">
+      if (bannerImage) {
+        formData.append("bannerImage", bannerImage);
+      }
 
-<tr>
+      await API.put(`/vertical/${editing._id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-<th className="p-4 text-left">Icon</th>
-<th className="p-4 text-left">Banner</th>
-<th className="p-4 text-left">Name</th>
-<th className="p-4 text-left">Description</th>
-<th className="p-4 text-left">Active</th>
-<th className="p-4 text-left">Created</th>
+      setEditing(null);
+      fetchVerticals();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update vertical");
+    }
+  };
 
-</tr>
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
 
-</thead>
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-semibold mb-6">All Verticals</h1>
 
-<tbody>
+      <div className="bg-white rounded-xl shadow border overflow-x-auto">
+        <table className="w-full text-sm min-w-[950px]">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-4 text-left">Icon</th>
+              <th className="p-4 text-left">Banner</th>
+              <th className="p-4 text-left">Name</th>
+              <th className="p-4 text-left">Description</th>
+              <th className="p-4 text-left">Active</th>
+              <th className="p-4 text-left">Created</th>
+              <th className="p-4 text-left">Actions</th>
+            </tr>
+          </thead>
 
-{verticals.map((v)=>(
-<tr key={v._id} className="border-t">
+          <tbody>
+            {verticals.map((v) => (
+              <tr key={v._id} className="border-t">
+                <td className="p-4">
+                  <img
+                    src={v.icon}
+                    alt=""
+                    className="w-10 h-10 rounded object-cover"
+                  />
+                </td>
 
-<td className="p-4">
-<img src={v.icon} className="w-10 h-10 rounded"/>
-</td>
+                <td className="p-4">
+                  <img
+                    src={v.bannerImage}
+                    alt=""
+                    className="w-32 h-16 object-cover rounded"
+                  />
+                </td>
 
-<td className="p-4">
-<img src={v.bannerImage} className="w-32 h-16 object-cover rounded"/>
-</td>
+                <td className="p-4 font-medium">{v.name}</td>
 
-<td className="p-4 font-medium">
-{v.name}
-</td>
+                <td className="p-4 text-gray-500 max-w-xs">
+                  {v.description}
+                </td>
 
-<td className="p-4 text-gray-500">
-{v.description}
-</td>
+                <td className="p-4">
+                  <span
+                    className={`px-2 py-1 text-xs rounded ${
+                      v.active
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {v.active ? "Active" : "Inactive"}
+                  </span>
+                </td>
 
-<td className="p-4">
+                <td className="p-4 text-gray-500">
+                  {new Date(v.createdAt).toLocaleDateString()}
+                </td>
 
-<span className={`px-2 py-1 text-xs rounded ${
-v.active
-? "bg-green-100 text-green-700"
-: "bg-red-100 text-red-700"
-}`}>
-{v.active ? "Active" : "Inactive"}
-</span>
+                <td className="p-4">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openEdit(v)}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs"
+                    >
+                      Edit
+                    </button>
 
-</td>
+                    <button
+                      onClick={() => handleDelete(v._id)}
+                      className="px-3 py-1 bg-red-600 text-white rounded text-xs"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
 
-<td className="p-4 text-gray-500">
+            {verticals.length === 0 && (
+              <tr>
+                <td colSpan="7" className="p-6 text-center text-gray-500">
+                  No verticals found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-{new Date(v.createdAt).toLocaleDateString()}
+      {/* =========================
+          EDIT MODAL
+      ========================= */}
 
-</td>
+      {editing && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-xl p-6">
+            <h2 className="text-xl font-semibold mb-4">Edit Vertical</h2>
 
-</tr>
-))}
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+                className="w-full border rounded-lg p-3"
+                required
+              />
 
-</tbody>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Description"
+                rows="4"
+                className="w-full border rounded-lg p-3"
+              />
 
-</table>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Icon
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setIcon(e.target.files[0])}
+                />
+              </div>
 
-</div>
+              <div>
+                <label className="text-sm font-medium block mb-1">
+                  Banner Image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setBannerImage(e.target.files[0])}
+                />
+              </div>
 
-</div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                />
+                Active
+              </label>
 
-);
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(null)}
+                  className="px-4 py-2 border rounded-lg"
+                >
+                  Cancel
+                </button>
 
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                >
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
