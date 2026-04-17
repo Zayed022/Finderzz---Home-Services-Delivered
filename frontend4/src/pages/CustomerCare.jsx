@@ -1,4 +1,12 @@
-import { Phone, Mail, MessageCircle, Clock3, ShieldCheck } from "lucide-react";
+import {
+  Phone,
+  Mail,
+  MessageCircle,
+  Clock3,
+  ShieldCheck,
+  Headphones,
+  CheckCircle2,
+} from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Helmet } from "react-helmet-async";
@@ -7,19 +15,23 @@ export default function CustomerCare() {
   const faqs = [
     {
       q: "How can I cancel my home service booking?",
-      a: "You can cancel your booking from your account dashboard or contact Finderzz customer support for assistance.",
+      a: "You can cancel your booking from your account dashboard or contact Finderzz customer support for quick assistance.",
     },
     {
       q: "When will I receive my refund?",
-      a: "Eligible refunds are generally processed within 3–5 business days depending on your payment method.",
+      a: "Eligible refunds are usually processed within 3 to 5 business days depending on your payment provider.",
     },
     {
-      q: "What services does Finderzz support cover?",
-      a: "We assist with plumbing, maid services, painting, cleaning, inspection bookings, rescheduling, and payment queries.",
+      q: "What services does Finderzz customer support handle?",
+      a: "We help with plumbing, maid services, painting, cleaning, booking rescheduling, payments, refunds and general service assistance.",
     },
     {
-      q: "Is customer support available every day?",
-      a: "Yes, Finderzz support is available 24/7 for customer assistance.",
+      q: "Is Finderzz support available every day?",
+      a: "Yes, Finderzz customer care is available 24/7.",
+    },
+    {
+      q: "How do I contact Finderzz support quickly?",
+      a: "You can call us directly, email us or use live chat support for instant help.",
     },
   ];
 
@@ -41,13 +53,17 @@ export default function CustomerCare() {
     "@type": "Organization",
     name: "Finderzz",
     url: "https://finderzz.com",
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: "+918262990986",
-      contactType: "customer support",
-      areaServed: "IN",
-      availableLanguage: ["English", "Hindi"],
-    },
+    logo: "https://finderzz.com/logo.png",
+    sameAs: ["https://finderzz.com"],
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        telephone: "+918262990986",
+        contactType: "customer support",
+        areaServed: "IN",
+        availableLanguage: ["English", "Hindi"],
+      },
+    ],
   };
 
   const contactPageSchema = {
@@ -56,7 +72,7 @@ export default function CustomerCare() {
     name: "Finderzz Customer Care",
     url: "https://finderzz.com/customer-care",
     description:
-      "Finderzz customer care for bookings, cancellations, refunds, and home service support in Bhiwandi.",
+      "Finderzz customer care for bookings, cancellations, refunds and home services in Bhiwandi.",
   };
 
   const breadcrumbSchema = {
@@ -80,19 +96,20 @@ export default function CustomerCare() {
 
   return (
     <>
-      <Helmet>
+      <Helmet prioritizeSeoTags>
+        {/* PRIMARY SEO */}
         <title>
-          Finderzz Customer Care in Bhiwandi | Booking Help, Refunds & Support
+          Finderzz Customer Care in Bhiwandi | 24/7 Booking Help & Support
         </title>
 
         <meta
           name="description"
-          content="Contact Finderzz customer care in Bhiwandi for bookings, cancellations, refunds, plumbing, maid, painting and cleaning service support. Available 24/7."
+          content="Contact Finderzz customer care in Bhiwandi for booking help, cancellations, refunds, plumbing, maid, painting and cleaning services. 24/7 support available."
         />
 
         <meta
           name="keywords"
-          content="finderzz customer care, customer support bhiwandi, home service support bhiwandi, booking help finderzz, refund support finderzz"
+          content="Finderzz customer care, Finderzz support, customer care Bhiwandi, booking help Finderzz, refund support Finderzz, plumbing support Bhiwandi"
         />
 
         <meta
@@ -100,44 +117,70 @@ export default function CustomerCare() {
           content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
         />
 
+        <meta name="author" content="Finderzz" />
+
         <link
           rel="canonical"
           href="https://finderzz.com/customer-care"
         />
 
-        {/* Open Graph */}
+        {/* OPEN GRAPH */}
+        <meta
+          property="og:type"
+          content="website"
+        />
+        <meta
+          property="og:site_name"
+          content="Finderzz"
+        />
         <meta
           property="og:title"
           content="Finderzz Customer Care in Bhiwandi"
         />
         <meta
           property="og:description"
-          content="24/7 support for bookings, cancellations, refunds and home services."
+          content="24/7 customer support for bookings, cancellations, refunds and home services."
         />
         <meta
           property="og:url"
           content="https://finderzz.com/customer-care"
         />
-        <meta property="og:type" content="website" />
+        <meta
+          property="og:image"
+          content="https://finderzz.com/og-image.jpg"
+        />
 
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
+        {/* TWITTER */}
+        <meta
+          name="twitter:card"
+          content="summary_large_image"
+        />
         <meta
           name="twitter:title"
           content="Finderzz Customer Care in Bhiwandi"
         />
         <meta
           name="twitter:description"
-          content="Need help with Finderzz services? Contact our support team 24/7."
+          content="Need help with Finderzz services? Reach our support team 24/7."
+        />
+        <meta
+          name="twitter:image"
+          content="https://finderzz.com/og-image.jpg"
         />
 
-        {/* Structured Data */}
+        {/* MOBILE */}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+        />
+
+        {/* STRUCTURED DATA */}
         <script type="application/ld+json">
-          {JSON.stringify(contactPageSchema)}
+          {JSON.stringify(orgSchema)}
         </script>
 
         <script type="application/ld+json">
-          {JSON.stringify(orgSchema)}
+          {JSON.stringify(contactPageSchema)}
         </script>
 
         <script type="application/ld+json">
@@ -151,87 +194,111 @@ export default function CustomerCare() {
 
       <Navbar />
 
-      <div className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
+      <main className="bg-gradient-to-b from-slate-50 to-white min-h-screen">
         {/* HERO */}
-        <section className="max-w-5xl mx-auto px-6 py-12 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+        <section className="max-w-5xl mx-auto px-6 py-14 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 leading-tight">
             Finderzz Customer Care & Support in Bhiwandi
           </h1>
 
-          <p className="text-gray-500 mt-4 max-w-3xl mx-auto leading-relaxed">
-            Need help with bookings, cancellations, refunds, technician arrival,
-            rescheduling, or service pricing? Finderzz customer support is
-            available 24/7 to assist customers across Bhiwandi for all home
-            service needs.
+          <p className="text-gray-600 mt-5 max-w-3xl mx-auto leading-relaxed text-lg">
+            Need help with bookings, refunds, cancellations, technician delays,
+            rescheduling or payment issues? Finderzz customer support is
+            available 24/7 for fast assistance.
           </p>
 
-          {/* SEO text block */}
-          <div className="max-w-3xl mx-auto mt-6 text-sm text-gray-600 leading-relaxed">
-            Finderzz support helps customers with plumbing, maid services,
-            painting, cleaning, home inspection bookings, payment assistance,
-            refunds, and general service queries in Bhiwandi.
+          <div className="mt-6 flex justify-center gap-3 flex-wrap">
+            <span className="bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+              24/7 Support
+            </span>
+
+            <span className="bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+              Fast Resolution
+            </span>
+
+            <span className="bg-purple-50 text-purple-700 px-4 py-2 rounded-full text-sm font-medium">
+              Trusted Service
+            </span>
           </div>
         </section>
 
-        {/* CONTACT CARDS */}
+        {/* CONTACT OPTIONS */}
         <section className="max-w-5xl mx-auto px-6 grid md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border shadow text-center">
+          <div className="bg-white border rounded-2xl shadow p-6 text-center">
             <Phone className="mx-auto text-blue-600 mb-3" />
-            <h2 className="font-semibold text-gray-900">
-              Call Customer Support
-            </h2>
+            <h2 className="font-semibold text-lg">Call Support</h2>
 
             <a
               href="tel:+918262990986"
-              className="text-sm text-gray-500 mt-2 block hover:text-blue-600"
+              className="text-gray-500 mt-2 block hover:text-blue-600"
             >
               +91 8262990986
             </a>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border shadow text-center">
+          <div className="bg-white border rounded-2xl shadow p-6 text-center">
             <Mail className="mx-auto text-green-600 mb-3" />
-            <h2 className="font-semibold text-gray-900">Email Support</h2>
+            <h2 className="font-semibold text-lg">Email Support</h2>
 
             <a
               href="mailto:support.finderzz@gmail.com"
-              className="text-sm text-gray-500 mt-2 block hover:text-green-600"
+              className="text-gray-500 mt-2 block hover:text-green-600"
             >
               support.finderzz@gmail.com
             </a>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border shadow text-center">
+          <div className="bg-white border rounded-2xl shadow p-6 text-center">
             <MessageCircle className="mx-auto text-purple-600 mb-3" />
-            <h2 className="font-semibold text-gray-900">Live Chat Support</h2>
+            <h2 className="font-semibold text-lg">Live Chat</h2>
 
-            <p className="text-sm text-gray-500 mt-2">
-              Available 24/7
+            <p className="text-gray-500 mt-2">
+              Instant Help Available
             </p>
           </div>
         </section>
 
-        {/* TRUST STRIP */}
-        <section className="max-w-5xl mx-auto px-6 py-8 grid sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border p-4 text-center">
+        {/* TRUST */}
+        <section className="max-w-5xl mx-auto px-6 py-10 grid md:grid-cols-4 gap-4">
+          <div className="bg-white border rounded-xl p-5 text-center">
             <Clock3 className="mx-auto mb-2 text-blue-600" />
-            <p className="text-sm font-medium">Fast Response Time</p>
+            <p className="font-medium text-sm">Quick Response</p>
           </div>
 
-          <div className="bg-white rounded-xl border p-4 text-center">
+          <div className="bg-white border rounded-xl p-5 text-center">
             <ShieldCheck className="mx-auto mb-2 text-green-600" />
-            <p className="text-sm font-medium">Secure Booking Support</p>
+            <p className="font-medium text-sm">Secure Assistance</p>
           </div>
 
-          <div className="bg-white rounded-xl border p-4 text-center">
-            <MessageCircle className="mx-auto mb-2 text-purple-600" />
-            <p className="text-sm font-medium">24/7 Assistance</p>
+          <div className="bg-white border rounded-xl p-5 text-center">
+            <Headphones className="mx-auto mb-2 text-purple-600" />
+            <p className="font-medium text-sm">Expert Support</p>
+          </div>
+
+          <div className="bg-white border rounded-xl p-5 text-center">
+            <CheckCircle2 className="mx-auto mb-2 text-orange-600" />
+            <p className="font-medium text-sm">Trusted by Customers</p>
           </div>
         </section>
 
+        {/* CONTENT BLOCK FOR SEO */}
+        <section className="max-w-4xl mx-auto px-6 py-4">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Why Contact Finderzz Customer Care?
+          </h2>
+
+          <p className="text-gray-600 leading-relaxed">
+            Finderzz helps customers across Bhiwandi with professional home
+            services including plumbing, maid services, painting, home cleaning,
+            repairs and inspections. Our customer support team helps manage
+            appointments, pricing concerns, refunds, service delays and all
+            booking related requests.
+          </p>
+        </section>
+
         {/* FAQ */}
-        <section className="max-w-4xl mx-auto px-6 py-10">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+        <section className="max-w-4xl mx-auto px-6 py-12">
+          <h2 className="text-2xl font-semibold mb-6">
             Frequently Asked Questions
           </h2>
 
@@ -239,13 +306,13 @@ export default function CustomerCare() {
             {faqs.map((item, index) => (
               <div
                 key={index}
-                className="bg-white p-5 rounded-xl border"
+                className="bg-white border rounded-xl p-5"
               >
-                <h3 className="font-medium text-gray-900">
+                <h3 className="font-semibold text-gray-900">
                   {item.q}
                 </h3>
 
-                <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                <p className="text-gray-500 mt-2 text-sm leading-relaxed">
                   {item.a}
                 </p>
               </div>
@@ -253,16 +320,16 @@ export default function CustomerCare() {
           </div>
         </section>
 
-        {/* INTERNAL LINKING */}
-        <section className="text-center pb-12 px-6">
+        {/* INTERNAL LINKS */}
+        <section className="text-center pb-14 px-6">
           <a
             href="/services"
             className="text-blue-600 font-semibold hover:underline"
           >
-            Explore All Home Services in Bhiwandi →
+            Explore All Home Services →
           </a>
         </section>
-      </div>
+      </main>
 
       <Footer />
     </>
