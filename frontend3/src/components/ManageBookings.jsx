@@ -359,12 +359,24 @@ export default function ManageBookings() {
                             key={i}
                             className="flex items-center justify-between px-4 py-2.5 bg-white"
                           >
-                            <span className="text-sm text-gray-700">
-                            {s.subServiceId?.serviceId?.name || "Service"}
-                              {s.bookingType === "inspection"
-                                ? `${s.serviceId?.name || "Service"} — Inspection`
-                                : s.subServiceId?.name || "Service"}
-                            </span>
+                           <span className="text-sm text-gray-700">
+  {s.bookingType === "inspection" ? (
+    <>
+      {s.serviceId?.name || s.subServiceId?.serviceId?.name || "Service"}
+      <span className="text-gray-400"> — Inspection</span>
+    </>
+  ) : (
+    <>
+      <span className="font-medium">
+        {s.subServiceId?.serviceId?.name || "Service"}
+      </span>
+      <span className="text-gray-400"> — </span>
+      <span>
+        {s.subServiceId?.name || "Sub-service"}
+      </span>
+    </>
+  )}
+</span>
                             <span className="text-xs bg-gray-100 text-gray-500 rounded-md px-2 py-0.5 font-medium">
                               ×{s.quantity}
                             </span>
