@@ -360,6 +360,7 @@ export default function ManageBookings() {
                             className="flex items-center justify-between px-4 py-2.5 bg-white"
                           >
                             <span className="text-sm text-gray-700">
+                            {s.serviceId?.name || "Service"}
                               {s.bookingType === "inspection"
                                 ? `${s.serviceId?.name || "Service"} — Inspection`
                                 : s.subServiceId?.name || "Service"}

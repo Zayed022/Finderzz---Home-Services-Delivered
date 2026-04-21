@@ -63,7 +63,7 @@ export const createBooking = async (req, res, next) => {
 
         enrichedServices.push({
           subServiceId: subService._id,
-          serviceId: null,
+          serviceId: subService.serviceId,
           quantity,
           price,
           bookingType,
