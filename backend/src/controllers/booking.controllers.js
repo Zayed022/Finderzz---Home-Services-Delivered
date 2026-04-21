@@ -239,14 +239,17 @@ export const getAllBookings = async (req,res,next)=>{
     }
 
     const bookings = await Booking.find(query)
-  .populate("areaId","name")
-  .populate("services.subServiceId","name")
+  .populate("areaId", "name")
   .populate({
-    path: "services.serviceId",
-    select: "name"
+    path: "services.subServiceId",
+    select: "name serviceId",
+    populate: {
+      path: "serviceId",
+      select: "name"
+    }
   })
-  .populate("workerId","name phone")
-  .sort({createdAt:-1})
+  .populate("workerId", "name phone")
+  .sort({ createdAt: -1 })
   .skip(skip)
   .limit(Number(limit))
   .lean();
