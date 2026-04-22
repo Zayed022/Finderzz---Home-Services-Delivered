@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, User, ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Wallet, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Search, User, ChevronLeft, ChevronRight, MapPin, Calendar, Clock, Package, Wallet, CheckCircle2, XCircle, Loader2, RefreshCw } from "lucide-react";
 import API from "../api/api";
 
 /* ─── status config ───────────────────────────────────────────── */
@@ -123,6 +123,7 @@ export default function ManageBookings() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [reassigningIds, setReassigningIds] = useState([]);
 
   /* fetch */
   const fetchBookings = async () => {
@@ -174,10 +175,30 @@ export default function ManageBookings() {
     if (!workerId) return;
     try {
       await API.patch(`/booking/${bookingId}/assign-worker`, { workerId });
+      // Close the reassign dropdown after successful assignment
+      setReassigningIds((prev) => prev.filter((id) => id !== bookingId));
       fetchBookings();
     } catch (err) {
       console.error("Assign worker failed", err);
     }
+  };
+
+  const unassignWorker = async (bookingId) => {
+    try {
+      await API.put(`/bookings/${bookingId}/unassign`);
+      setReassigningIds((prev) => prev.filter((id) => id !== bookingId));
+      fetchBookings();
+    } catch (err) {
+      console.error("Unassign worker failed", err);
+    }
+  };
+
+  const toggleReassign = (bookingId) => {
+    setReassigningIds((prev) =>
+      prev.includes(bookingId)
+        ? prev.filter((id) => id !== bookingId)
+        : [...prev, bookingId]
+    );
   };
 
   const handleFilterChange = (s) => {
@@ -272,6 +293,7 @@ export default function ManageBookings() {
           <div className="space-y-4">
             {bookings.map((booking) => {
               const isUpdating = updatingId === booking._id;
+              const isReassigning = reassigningIds.includes(booking._id);
               return (
                 <div
                   key={booking._id}
@@ -448,12 +470,51 @@ export default function ManageBookings() {
                           </p>
                           <p className="text-xs text-green-600">{booking.workerId.phone}</p>
                         </div>
-                        <CheckCircle2 size={18} className="text-green-400 ml-auto" />
+                        <div className="ml-auto flex items-center gap-2">
+                          <button
+                            onClick={() => toggleReassign(booking._id)}
+                            title="Reassign worker"
+                            className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-all ${
+                              isReassigning
+                                ? "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100"
+                                : "bg-white border-gray-200 text-gray-500 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50"
+                            }`}
+                          >
+                            <RefreshCw size={11} />
+                            {isReassigning ? "Cancel" : "Reassign"}
+                          </button>
+                          <CheckCircle2 size={18} className="text-green-400" />
+                        </div>
                       </div>
                     )}
 
-                    {/* assign worker dropdown */}
-                    {booking.status === "pending" && (
+                    {/* reassign worker dropdown — shown when reassign is toggled */}
+                    {booking.workerId && isReassigning && (
+                      <div>
+                        <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">
+                          Select new worker
+                        </p>
+                        <select
+                          defaultValue=""
+                          onChange={(e) => assignWorker(booking._id, e.target.value)}
+                          className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 focus:border-amber-300 transition"
+                        >
+                          <option value="" disabled>
+                            Select a worker to reassign…
+                          </option>
+                          {workers
+                            .filter((w) => w._id !== booking.workerId?._id)
+                            .map((worker) => (
+                              <option key={worker._id} value={worker._id}>
+                                {worker.name} ({worker.phone})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* assign worker dropdown — shown on pending bookings with no worker */}
+                    {booking.status === "pending" && !booking.workerId && (
                       <div>
                         <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wide mb-1.5">
                           Assign worker

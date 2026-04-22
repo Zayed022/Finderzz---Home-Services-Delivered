@@ -397,6 +397,37 @@ export const assignWorker = async (req,res,next)=>{
   }
 };
 
+export const unassignWorker = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const booking = await Booking.findByIdAndUpdate(
+      id,
+      {
+        workerId: null,
+        status: "pending",
+      },
+      { new: true }
+    );
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Worker removed successfully",
+      data: booking,
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const cancelBooking = async (req,res,next)=>{
   try{
 
