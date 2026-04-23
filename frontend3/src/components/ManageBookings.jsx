@@ -17,7 +17,10 @@ const ALL_STATUSES = ["all", "pending", "confirmed", "assigned", "in_progress", 
 const ACTION_STATUSES = ["confirmed", "assigned", "in_progress", "completed", "cancelled"];
 
 /* ─── helpers ─────────────────────────────────────────────────── */
-const formatDate = (date) =>
+const formatDateOnly = (date) =>
+  new Date(date).toLocaleDateString("en-IN", { dateStyle: "medium" });
+
+const formatDateTime = (date) =>
   new Date(date).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 
 const initials = (name = "") =>
@@ -334,7 +337,7 @@ export default function ManageBookings() {
                       />
                       <InfoItem
                         label="Scheduled"
-                        value={formatDate(booking.scheduledDate)}
+                        value={formatDateOnly(booking.scheduledDate)}
                         icon={Calendar}
                       />
                       <InfoItem
@@ -344,7 +347,7 @@ export default function ManageBookings() {
                       />
                       <InfoItem
                         label="Booked on"
-                        value={formatDate(booking.createdAt)}
+                        value={formatDateTime(booking.createdAt)}
                         icon={Calendar}
                       />
                     </div>
