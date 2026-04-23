@@ -77,7 +77,11 @@ export default function Checkout() {
 
   const [form, setForm] = useState({
     name: "", phone: "",
-    houseNumber: "", street: "", city: "",
+    houseNumber: "",
+    floorNumber:"",
+    buildingName:"",
+    landmark:"",
+    fullAddress:"",
     date: "", timeSlot: "",
   });
 
@@ -94,8 +98,10 @@ export default function Checkout() {
     if (!form.name.trim())        e.name = "Name is required";
     if (!form.phone.trim())       e.phone = "Phone is required";
     if (!form.houseNumber.trim()) e.houseNumber = "House number is required";
-    if (!form.street.trim())      e.street = "Street is required";
-    if (!form.city.trim())        e.city = "City is required";
+    if (!form.floorNumber.trim())      e.floorNumber = "Floor Number is required";
+    if (!form.buildingName.trim())        e.buildingName = "Building Name is required";
+    if (!form.landmark.trim())        e.landmark = "Landmark is required";
+    if (!form.fullAddress.trim())        e.fullAddress = "Full Address is required";
     if (!form.date)               e.date = "Please select a date";
     if (!form.timeSlot)           e.timeSlot = "Please select a time";
     if (!selectedArea?._id)       e.area = "Please select your service area";
@@ -112,7 +118,7 @@ export default function Checkout() {
       const payload = {
         services: cartItems,
         areaId: selectedArea._id,
-        address: { houseNumber: form.houseNumber, street: form.street, city: form.city },
+        address: { houseNumber: form.houseNumber, floorNumber: form.floorNumber, buildingName: form.buildingName, landmark: form.landmark, fullAddress: form.fullAddress },
         customerDetails: { name: form.name, phone: form.phone },
         scheduledDate: form.date,
         timeSlot: form.timeSlot,
@@ -439,15 +445,25 @@ export default function Checkout() {
                   <input name="houseNumber" placeholder="B-204" onChange={handleChange} value={form.houseNumber}
                     className={`co-input${errors.houseNumber ? " error" : ""}`} />
                 </Field>
-                <Field label="City" error={errors.city}>
-                  <input name="city" placeholder="Bhiwandi" onChange={handleChange} value={form.city}
-                    className={`co-input${errors.city ? " error" : ""}`} />
+                <Field label="Floor No." error={errors.floorNumber}>
+                  <input name="floorNumber" placeholder="3rd" onChange={handleChange} value={form.floorNumber}
+                    className={`co-input${errors.floorNumber ? " error" : ""}`} />
                 </Field>
+                <Field label="Building Name" error={errors.buildingName}>
+                  <input name="buildingName" placeholder="Regal Heights" onChange={handleChange} value={form.buildingName}
+                    className={`co-input${errors.buildingName ? " error" : ""}`} />
+                </Field>
+                <Field label="Landmark" error={errors.landmark}>
+                  <input name="landmark" placeholder="Near City Mall" onChange={handleChange} value={form.landmark}
+                    className={`co-input${errors.landmark ? " error" : ""}`} />
+                </Field>
+                <Field label="fullAddress" error={errors.fullAddress}>
+                  <input name="fullAddress" placeholder="Street, Locality, Hotel" onChange={handleChange} value={form.fullAddress}
+                    className={`co-input${errors.fullAddress ? " error" : ""}`} />
+                </Field>
+                
               </div>
-              <Field label="Street / Locality" error={errors.street}>
-                <input name="street" placeholder="Kalyan Road, Near station" onChange={handleChange} value={form.street}
-                  className={`co-input${errors.street ? " error" : ""}`} />
-              </Field>
+              
             </div>
              {/* ── REQUIREMENTS ───────────────────────── */}
     {hasInspection && (

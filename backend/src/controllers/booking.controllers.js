@@ -126,6 +126,14 @@ export const createBooking = async (req, res, next) => {
 
     /* ================= CREATE ================= */
 
+    const formattedAddress = {
+      houseNumber: address?.houseNumber || "",
+      floorNumber: address?.floorNumber || "",
+      buildingName: address?.buildingName || "",
+      landmark: address?.landmark || "",
+      fullAddress: address?.fullAddress || "",
+    };
+
     const booking = await Booking.create({
       userId: null,
       services: enrichedServices,
