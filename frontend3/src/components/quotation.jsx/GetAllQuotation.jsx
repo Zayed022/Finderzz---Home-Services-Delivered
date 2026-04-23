@@ -408,6 +408,7 @@ const GetAllQuotation = () => {
   const [items, setItems]                 = useState([{ name: "", qty: 1, price: 0 }]);
   const [extraCharge, setExtraCharge]     = useState("");
   const [notes, setNotes]                 = useState("");
+  const [previewImage, setPreviewImage] = useState(null);
 
   // Inject styles once
   useEffect(() => {
@@ -497,9 +498,17 @@ const GetAllQuotation = () => {
         {quotations.map((q) => (
           <div key={q._id} className="gaq-card">
             {q.quotationImages
-              ? <img src={q.quotationImages} alt="quotation" className="gaq-card-img" />
-              : <div className="gaq-card-img-placeholder">No image</div>
-            }
+  ? (
+    <img
+      src={q.quotationImages}
+      alt="quotation"
+      className="gaq-card-img"
+      onClick={() => setPreviewImage(q.quotationImages)}
+      style={{ cursor: "zoom-in" }}
+    />
+  )
+  : <div className="gaq-card-img-placeholder">No image</div>
+}
 
             <div className="gaq-card-body">
               <p className="worker">{q.workerName}</p>
@@ -626,6 +635,54 @@ const GetAllQuotation = () => {
           </div>
         </div>
       )}
+
+{previewImage && (
+  <div
+    className="gaq-overlay"
+    onClick={() => setPreviewImage(null)}
+  >
+    <div
+      style={{
+        maxWidth: "95vw",
+        maxHeight: "95vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <img
+        src={previewImage}
+        alt="Full preview"
+        style={{
+          maxWidth: "100%",
+          maxHeight: "90vh",
+          borderRadius: "12px",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.4)"
+        }}
+      />
+
+      {/* Close button */}
+      <button
+        onClick={() => setPreviewImage(null)}
+        style={{
+          position: "absolute",
+          top: 20,
+          right: 20,
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          border: "none",
+          background: "rgba(255,255,255,0.9)",
+          cursor: "pointer",
+          fontSize: 18
+        }}
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 };
