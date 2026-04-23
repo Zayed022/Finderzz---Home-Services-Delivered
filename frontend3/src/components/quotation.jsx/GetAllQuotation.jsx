@@ -432,7 +432,7 @@ const GetAllQuotation = () => {
   /* ── Status ── */
   const updateStatus = async (id, status) => {
     try {
-      await API.patch(`/quotation/admin/${id}/status`, { status });
+      await API.patch(`/quotation/${id}/status`, { status });
       fetchQuotations();
     } catch (e) { console.error(e); }
   };
