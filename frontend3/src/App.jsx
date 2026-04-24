@@ -36,6 +36,8 @@ import Notice from './components/Notice'
 import CreateNotice from './components/Notice/CreateNotice'
 import AllNotices from './components/Notice/AllNotices'
 import EditNotice from './components/Notice/EditNotice'
+import Login from "./pages/Login";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 
 
@@ -43,51 +45,67 @@ function App() {
   return (
     <>
      
-    <Routes>
-      
-      <Route path="/" element={<Home />} />
-      <Route path="/area" element={<Area />} />
-      <Route path = "/area/add" element={<AddArea/>}/>
-      <Route path = "/area/update" element={<UpdateArea/>}/>
-      <Route path = "/area/delete" element={<DeleteArea/>}/>
-      <Route path = "/area/manage" element={<ManageAreas/>}/>
-      <Route path = "/banner" element={<Banner/>}/>
-      <Route path = "/banner/add" element={<AddBanner/>}/>
-      <Route path = "/banner/delete" element={<DeleteBanner/>}/>
-      <Route path = "/banner/manage" element={<ManageBanners/>}/>
-      <Route path = "/services" element={<ManageServices/>}/>
-      <Route path = "/services/add-category" element={<AddCategory/>}/>
-      <Route path = "/services/add-service" element={<AddService/>}/>
-      <Route path = "/services/add-subservice" element={<AddSubService/>}/>
-      <Route path="/services/edit-category/:id" element={<EditCategory />} />
-      <Route path="/services/edit-service/:id" element={<EditService />} />
-      <Route
-  path="/services/edit-subservice/:id"
-  element={<EditSubService />}
-/>
-      <Route path = "/bookings" element={<Bookings/>}/>
-      <Route path = "/bookings/manage" element={<ManageBookings/>}/>
-      <Route path = "/bookings/id" element={<GetBookingById/>}/>
-      <Route path = "/worker" element={<Worker/>}/>
-      <Route path = "/worker/pending" element={<PendingWorkers/>}/>
-      <Route path = "/worker/approved" element={<GetApprovedWorkers/>}/>
-      <Route path = "/worker/settlement" element={<SettlementDashboard/>}/>
-      <Route path = "/vertical" element={<Explore/>}/>
-      <Route path = "/vertical/create" element={<CreateVertical/>}/>
-      <Route path = "/vertical/get" element={<GetAllVerticals/>}/>
-      <Route path = "/vertical/request" element={<GetAllRequest/>}/>
-      <Route path = "/quotation" element={<Quotation/>}/>
-      <Route path = "/quotation/all" element={<GetAllQuotation/>}/>
-      <Route path = "/notice" element={<Notice/>}/>
-      <Route path = "/notice/add" element={<CreateNotice/>}/>
-      <Route path = "/notice/all" element={<AllNotices/>}/>
-      <Route path = "/notice/edit" element={<EditNotice/>}/>
-      
+     <Routes>
 
-      
-      
-      
-    </Routes>
+{/* Public Route */}
+<Route path="/login" element={<Login />} />
+
+{/* Protected Routes */}
+<Route
+  path="/*"
+  element={
+    <ProtectedRoute>
+      <Routes>
+
+        <Route path="/" element={<Home />} />
+        <Route path="/area" element={<Area />} />
+        <Route path="/area/add" element={<AddArea />} />
+        <Route path="/area/update" element={<UpdateArea />} />
+        <Route path="/area/delete" element={<DeleteArea />} />
+        <Route path="/area/manage" element={<ManageAreas />} />
+
+        <Route path="/banner" element={<Banner />} />
+        <Route path="/banner/add" element={<AddBanner />} />
+        <Route path="/banner/delete" element={<DeleteBanner />} />
+        <Route path="/banner/manage" element={<ManageBanners />} />
+
+        <Route path="/services" element={<ManageServices />} />
+        <Route path="/services/add-category" element={<AddCategory />} />
+        <Route path="/services/add-service" element={<AddService />} />
+        <Route path="/services/add-subservice" element={<AddSubService />} />
+
+        <Route path="/services/edit-category/:id" element={<EditCategory />} />
+        <Route path="/services/edit-service/:id" element={<EditService />} />
+        <Route path="/services/edit-subservice/:id" element={<EditSubService />} />
+
+        <Route path="/bookings" element={<Bookings />} />
+        <Route path="/bookings/manage" element={<ManageBookings />} />
+        <Route path="/bookings/id" element={<GetBookingById />} />
+
+        <Route path="/worker" element={<Worker />} />
+        <Route path="/worker/pending" element={<PendingWorkers />} />
+        <Route path="/worker/approved" element={<GetApprovedWorkers />} />
+        <Route path="/worker/settlement" element={<SettlementDashboard />} />
+
+        <Route path="/vertical" element={<Explore />} />
+        <Route path="/vertical/create" element={<CreateVertical />} />
+        <Route path="/vertical/get" element={<GetAllVerticals />} />
+        <Route path="/vertical/request" element={<GetAllRequest />} />
+
+        <Route path="/quotation" element={<Quotation />} />
+        <Route path="/quotation/all" element={<GetAllQuotation />} />
+
+        <Route path="/notice" element={<Notice />} />
+        <Route path="/notice/add" element={<CreateNotice />} />
+        <Route path="/notice/all" element={<AllNotices />} />
+        <Route path="/notice/edit" element={<EditNotice />} />
+
+      </Routes>
+    </ProtectedRoute>
+  }
+/>
+
+</Routes>
 
     
 
