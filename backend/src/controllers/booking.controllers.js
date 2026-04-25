@@ -248,6 +248,11 @@ export const getAllBookings = async (req,res,next)=>{
 
     const bookings = await Booking.find(query)
   .populate("areaId", "name")
+  
+  // ✅ FIX 1: Populate serviceId directly (for inspection)
+  .populate("services.serviceId", "name inspectionPrice")
+  
+  // ✅ FIX 2: Existing subService population (for normal service)
   .populate({
     path: "services.subServiceId",
     select: "name serviceId",
@@ -256,12 +261,12 @@ export const getAllBookings = async (req,res,next)=>{
       select: "name"
     }
   })
+
   .populate("workerId", "name phone")
   .sort({ createdAt: -1 })
   .skip(skip)
   .limit(Number(limit))
   .lean();
-
     const total = await Booking.countDocuments(query);
 
     res.json({

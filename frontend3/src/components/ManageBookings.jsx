@@ -358,7 +358,7 @@ export default function ManageBookings() {
                         Address
                       </p>
                       <p className="text-sm text-gray-700">
-                        {booking.address?.houseNumber}, {booking.address?.buildingName}
+                        {booking.address?.houseNumber} <br /> {booking.address?.buildingName}
                         {booking.address?.floorNumber && ` — Floor ${booking.address.floorNumber}`}
                       </p>
                       {booking.address?.landmark && (
@@ -387,7 +387,7 @@ export default function ManageBookings() {
                            <span className="text-sm text-gray-700">
   {s.bookingType === "inspection" ? (
     <>
-      {s.serviceId?.name || s.subServiceId?.serviceId?.name || "Service"}
+      {s.serviceId?.name || s.subServiceId?.name || "Service"}
       <span className="text-gray-400"> — Inspection</span>
     </>
   ) : (
