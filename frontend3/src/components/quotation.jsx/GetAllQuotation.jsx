@@ -32,7 +32,6 @@ const STYLE = `
   .gaq-wrap * { box-sizing: border-box; margin: 0; padding: 0; }
   .gaq-wrap { font-family: 'DM Sans', sans-serif; background: var(--canvas); min-height: 100vh; color: var(--ink); }
 
-  /* ── Page header ── */
   .gaq-header { padding: 36px 40px 0; display: flex; align-items: flex-end; justify-content: space-between; }
   .gaq-header h1 { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; letter-spacing: -.5px; }
   .gaq-header p  { color: var(--ink-muted); font-size: 14px; margin-top: 4px; }
@@ -41,7 +40,6 @@ const STYLE = `
   .gaq-header-stat span { font-size: 13px; color: var(--ink-muted); }
   .gaq-header-stat strong { display: block; font-size: 22px; font-weight: 600; color: var(--accent); }
 
-  /* ── New Invoice Button ── */
   .btn-new-invoice {
     display: flex; align-items: center; gap: 8px;
     background: var(--accent); color: #fff;
@@ -56,10 +54,8 @@ const STYLE = `
   .btn-new-invoice:active { transform: scale(.97); }
   .btn-new-invoice svg { flex-shrink: 0; }
 
-  /* ── Grid ── */
   .gaq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; padding: 28px 40px 48px; }
 
-  /* ── Card ── */
   .gaq-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow: hidden; transition: box-shadow .2s, transform .2s; display: flex; flex-direction: column; }
   .gaq-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 
@@ -89,7 +85,6 @@ const STYLE = `
   .btn-invoice  { width: 100%; background: var(--accent); color: #fff; }
   .btn-invoice:hover  { filter: brightness(1.1); }
 
-  /* ── Modal overlay ── */
   .gaq-overlay { position: fixed; inset: 0; background: rgba(13,15,20,.55); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; animation: fadeIn .18s ease; }
   @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 
@@ -104,7 +99,6 @@ const STYLE = `
 
   .modal-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
 
-  /* ── Two-column row for client / provider in standalone modal ── */
   .field-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
   .field-group { display: flex; flex-direction: column; gap: 6px; }
@@ -122,7 +116,6 @@ const STYLE = `
   .section-divider { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-muted); display: flex; align-items: center; gap: 10px; }
   .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  /* ── Items table ── */
   .items-header { display: grid; grid-template-columns: 1fr 80px 100px 36px; gap: 8px; padding: 0 4px 6px; }
   .items-header span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-muted); }
   .item-row { display: grid; grid-template-columns: 1fr 80px 100px 36px; gap: 8px; align-items: center; }
@@ -143,16 +136,13 @@ const STYLE = `
   .btn-cancel { flex: 1; background: var(--canvas); color: var(--ink-soft); border: 1.5px solid var(--border); padding: 13px; border-radius: 12px; font-size: 14px; }
   .btn-cancel:hover { background: var(--border); }
 
-  /* ── Loading ── */
   .gaq-loading { height: 100vh; display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--ink-muted); gap: 10px; }
   .spinner { width: 20px; height: 20px; border: 2.5px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg) } }
 
-  /* ── Empty ── */
   .gaq-empty { grid-column: 1/-1; text-align: center; padding: 64px 0; color: var(--ink-muted); font-size: 15px; }
   .gaq-empty svg { margin: 0 auto 16px; display: block; opacity: .3; }
 
-  /* ── Standalone modal badge ── */
   .modal-tag {
     display: inline-flex; align-items: center; gap: 5px;
     background: var(--accent-dim); color: var(--accent);
@@ -175,27 +165,10 @@ const statusLabel = (s) =>
   ({ pending: "Pending", approved: "Approved", rejected: "Rejected", sent_to_customer: "Sent" }[s] || s);
 
 /* ─────────────────────────────────────────────
-   EMPTY STATE for modal fields
-───────────────────────────────────────────── */
-const emptyInvoiceState = () => ({
-  serviceTitle: "",
-  description: "",
-  materialIncluded: "yes",
-  materialDetails: "",
-  items: [{ name: "", qty: 1, price: 0 }],
-  extraCharge: "",
-  notes: "",
-  // standalone-only fields
-  clientName: "",
-  workerName: "",
-  invoiceRef: "",
-});
-
-/* ─────────────────────────────────────────────
-   PDF GENERATOR  –  premium design
-   Works for both quotation-linked and standalone invoices.
-   Pass `standalone: true` + `clientName` / `workerName` / `invoiceRef`
-   when generating a standalone invoice.
+   PDF GENERATOR  — fixed professional table
+   Key fix: strict column x-coords + splitTextToSize
+   for the description column so it NEVER overflows
+   into QTY / UNIT PRICE / AMOUNT columns.
 ───────────────────────────────────────────── */
 function buildPDF({
   quotation,
@@ -206,7 +179,6 @@ function buildPDF({
   items,
   extraCharge,
   notes,
-  // standalone fields (ignored when quotation is provided)
   standalone = false,
   clientName = "",
   workerName = "",
@@ -214,241 +186,299 @@ function buildPDF({
 }) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210, H = 297;
-  const margin = 18;
-  const col2 = W / 2 + 2;
+  const margin = 14;
+  const tableX = margin;
+  const tableW = W - margin * 2;          // 182 mm
 
-  // Resolve names & ref
+  /* ── Column x-positions (absolute from left) ──────────────────
+     DESC  : left-aligned, text wraps up to descMaxX
+     QTY   : center-aligned at 126 mm
+     UPRICE: center-aligned at 152 mm
+     AMOUNT: right-aligned  at W-margin-2 = 194 mm
+     
+     Gap between descMaxX (111) and qty-center (126) = 15 mm → safe
+  ─────────────────────────────────────────────────────────────── */
+  const COL = {
+    descX:    tableX + 4,   // text start
+    descMaxX: 111,          // hard right wall for description text
+    qtyX:     126,          // center
+    upX:      155,          // center
+    amtX:     W - margin - 3, // right edge
+  };
+  const descColWidth = COL.descMaxX - COL.descX; // ≈ 93 mm
+
+  const pageHeight = doc.internal.pageSize.height;
+
+function ensureSpace(requiredHeight) {
+  if (y + requiredHeight > pageHeight - margin) {
+    doc.addPage();
+    y = margin;
+  }
+}
+
+  // Resolve names & reference
   const resolvedClient = standalone ? clientName : quotation?.clientName || "—";
   const resolvedWorker = standalone ? workerName : quotation?.workerName || "—";
   const resolvedRef    = standalone
-    ? (invoiceRef ? `#${invoiceRef.toUpperCase()}` : `#INV-MANUAL`)
+    ? (invoiceRef ? `#${invoiceRef.toUpperCase()}` : "#INV-MANUAL")
     : `#INV-${quotation?._id?.slice(-6).toUpperCase() || "000000"}`;
 
-  // ── Background canvas ──
+  /* ══ BACKGROUND ══ */
   doc.setFillColor(248, 249, 252);
   doc.rect(0, 0, W, H, "F");
 
-  // ── Top accent bar ──
+  /* ══ HEADER BAR ══ */
   doc.setFillColor(13, 15, 20);
   doc.rect(0, 0, W, 52, "F");
 
-  // ── Diagonal accent strip ──
+  /* ── Blue diagonal accent ── */
   doc.setFillColor(26, 86, 219);
-  doc.triangle(0, 52, 80, 52, 0, 80, "F");
+  doc.triangle(0, 52, 72, 52, 0, 78, "F");
 
-  // ── Brand ──
+  /* ── Brand ── */
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
   doc.text("FINDERZZ", margin, 24);
 
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(160, 175, 200);
   doc.text("PROFESSIONAL SERVICES INVOICE", margin, 32);
 
-  // ── Invoice label (right) ──
+  /* ── INVOICE label + ref ── */
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(28);
+  doc.setFontSize(26);
   doc.setFont("helvetica", "bold");
   doc.text("INVOICE", W - margin, 28, { align: "right" });
 
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(160, 175, 200);
   const today = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
   doc.text(resolvedRef, W - margin, 36, { align: "right" });
-  doc.text(`Date: ${today}`, W - margin, 42, { align: "right" });
+  doc.text(`Date: ${today}`, W - margin, 43, { align: "right" });
 
-  // ── Bill-to block ──
-  let y = 68;
-  doc.setFontSize(7.5);
+  /* ══ PARTIES BLOCK ══ */
+  const col2x = W / 2 + 4;
+  let y = 66;
+
+  doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(100, 110, 140);
   doc.text("BILLED TO", margin, y);
+  doc.text("SERVICE PROVIDER", col2x, y);
 
   y += 7;
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(13, 15, 20);
   doc.text(resolvedClient || "—", margin, y);
+  doc.text(resolvedWorker || "—", col2x, y);
 
   y += 6;
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(80, 90, 110);
-  doc.text("Service Requested", margin, y);
+  doc.setTextColor(90, 100, 120);
+  doc.text("Service Requested",    margin, y);
+  doc.text("Assigned Professional", col2x, y);
 
-  // ── Service provider block ──
-  let y2 = 68;
-  doc.setFontSize(7.5);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(100, 110, 140);
-  doc.text("SERVICE PROVIDER", col2, y2);
-
-  y2 += 7;
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(13, 15, 20);
-  doc.text(resolvedWorker || "—", col2, y2);
-
-  y2 += 6;
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(80, 90, 110);
-  doc.text("Assigned Professional", col2, y2);
-
-  // ── Separator line ──
-  y = 96;
+  /* ── Horizontal divider ── */
+  y = 92;
   doc.setDrawColor(220, 225, 238);
-  doc.setLineWidth(0.4);
+  doc.setLineWidth(0.35);
   doc.line(margin, y, W - margin, y);
 
-  // ── Service title & description ──
+  /* ══ SERVICE TITLE & DESCRIPTION ══ */
   y += 10;
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(13, 15, 20);
   doc.text(serviceTitle || "Service", margin, y);
 
   y += 7;
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(80, 90, 110);
-  const descLines = doc.splitTextToSize(description || "—", W - margin * 2);
+  const descLines = doc.splitTextToSize(description || "—", tableW);
   doc.text(descLines, margin, y);
-  y += descLines.length * 5 + 4;
+  y += descLines.length * 4.8 + 5;
 
-  // ── Material pill ──
-  const pillColor = materialIncluded === "yes" ? [5, 150, 105] : [220, 38, 38];
-  const pillBg    = materialIncluded === "yes" ? [209, 250, 229] : [254, 226, 226];
+  /* ── Material pill ── */
+  const matIncluded = materialIncluded === "yes";
+  const pillColor   = matIncluded ? [5, 150, 105]   : [220, 38, 38];
+  const pillBg      = matIncluded ? [209, 250, 229]  : [254, 226, 226];
+  const pillLabel   = matIncluded ? "Material Included" : "Material Excluded";
+  const pillW2      = matIncluded ? 40 : 42;
+
   doc.setFillColor(...pillBg);
-  doc.roundedRect(margin, y, materialIncluded === "yes" ? 38 : 48, 7, 3, 3, "F");
-  doc.setFontSize(7.5);
+  doc.roundedRect(margin, y, pillW2, 7, 3, 3, "F");
+  doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...pillColor);
-  doc.text(materialIncluded === "yes" ? "Material Included" : "Material Excluded", margin + 3, y + 5);
+  doc.text(pillLabel, margin + 3, y + 5);
 
-  if (materialIncluded === "yes" && materialDetails) {
+  if (matIncluded && materialDetails) {
     y += 11;
-    doc.setFontSize(8.5);
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(80, 90, 110);
-    const matLines = doc.splitTextToSize(materialDetails, W - margin * 2);
+    const matLines = doc.splitTextToSize(materialDetails, tableW);
     doc.text(matLines, margin, y);
     y += matLines.length * 4.5;
   }
 
-  // ── Table ──
+  /* ══════════════════════════════════════════════════════════════
+     TABLE — strict column widths, dynamic row height per item
+  ══════════════════════════════════════════════════════════════ */
   y += 12;
-  doc.setFillColor(13, 15, 20);
-  doc.roundedRect(margin, y - 5, W - margin * 2, 11, 3, 3, "F");
+  const headerH = 11;
 
-  doc.setFontSize(8);
+  // Header background
+  doc.setFillColor(13, 15, 20);
+  doc.roundedRect(tableX, y - 6, tableW, headerH, 3, 3, "F");
+
+  // Header labels
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
-  doc.text("SERVICE DESCRIPTION", margin + 4, y + 1.5);
-  doc.text("QTY", 122, y + 1.5, { align: "center" });
-  doc.text("UNIT PRICE", 149, y + 1.5, { align: "center" });
-  doc.text("AMOUNT", W - margin - 4, y + 1.5, { align: "right" });
+  doc.text("SERVICE DESCRIPTION", COL.descX, y);
+  doc.text("QTY",        COL.qtyX, y, { align: "center" });
+  doc.text("UNIT PRICE", COL.upX,  y, { align: "center" });
+  doc.text("AMOUNT",     COL.amtX, y, { align: "right"  });
 
-  y += 10;
+  y += 8;
 
   let subtotal = 0;
+  const LINE_H = 4.8;   // mm per text line
+  const PAD_V  = 5;     // vertical padding inside row (top + bottom together)
+  const MIN_ROW= 11;    // minimum row height in mm
 
   items.forEach((item, idx) => {
-    const rowTotal = Number(item.qty || 0) * Number(item.price || 0);
+    const qty      = Number(item.qty   || 0);
+    const price    = Number(item.price || 0);
+    const rowTotal = qty * price;
     subtotal += rowTotal;
 
-    if (idx % 2 === 0) {
-      doc.setFillColor(243, 245, 250);
-      doc.rect(margin, y - 4.5, W - margin * 2, 9.5, "F");
-    }
+    // Wrap description within its dedicated column width
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    const nameLines = doc.splitTextToSize(item.name || "—", descColWidth);
+    const rowH      = Math.max(nameLines.length * LINE_H + PAD_V, MIN_ROW);
 
-    doc.setFontSize(9);
+    // Alternating background
+    doc.setFillColor(idx % 2 === 0 ? 243 : 248, idx % 2 === 0 ? 245 : 249, idx % 2 === 0 ? 250 : 252);
+    doc.rect(tableX, y - 2, tableW, rowH, "F");
+
+    // Vertical midpoint for single-line numeric cells
+    const midY = y + (rowH - PAD_V) / 2 - LINE_H / 2;
+
+    // ── Description (wraps, top-aligned) ──
     doc.setFont("helvetica", "normal");
     doc.setTextColor(20, 24, 36);
-    doc.text(item.name || "—", margin + 4, y + 1.5);
-    doc.text(String(item.qty || 0), 122, y + 1.5, { align: "center" });
-    doc.setTextColor(80, 90, 110);
-    doc.text(fmtPDF(item.price), 149, y + 1.5, { align: "center" });
+    doc.text(nameLines, COL.descX, y + 3.5);
+
+    // ── QTY ──
+    doc.setFontSize(8.5);
+    doc.setTextColor(60, 70, 90);
+    doc.text(String(qty), COL.qtyX, midY + 4.5, { align: "center" });
+
+    // ── Unit Price ──
+    doc.setTextColor(90, 100, 120);
+    doc.text(fmtPDF(price), COL.upX, midY + 4.5, { align: "center" });
+
+    // ── Amount ──
     doc.setFont("helvetica", "bold");
     doc.setTextColor(13, 15, 20);
-    doc.text(fmtPDF(rowTotal), W - margin - 4, y + 1.5, { align: "right" });
+    doc.text(fmtPDF(rowTotal), COL.amtX, midY + 4.5, { align: "right" });
 
-    y += 10;
+    // Row bottom divider
+    doc.setDrawColor(220, 225, 238);
+    doc.setLineWidth(0.25);
+    doc.line(tableX, y + rowH - 2, tableX + tableW, y + rowH - 2);
+
+    y += rowH;
   });
 
-  // ── Totals block ──
-  y += 4;
-  doc.setDrawColor(220, 225, 238);
-  doc.setLineWidth(0.4);
+  /* ══ TOTALS ══ */
+  y += 6;
+  doc.setDrawColor(200, 208, 225);
+  doc.setLineWidth(0.35);
   doc.line(margin, y, W - margin, y);
-  y += 8;
+  y += 7;
 
   const extra      = Number(extraCharge || 0);
   const grandTotal = subtotal + extra;
+  const totLabelX  = COL.amtX - 35;
 
-  const totals = [
-    { label: "Subtotal", value: fmtPDF(subtotal) },
-    ...(extra > 0 ? [{ label: "Extra Charges", value: fmtPDF(extra) }] : []),
-  ];
+  // Subtotal
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(90, 100, 120);
+  doc.text("Subtotal", totLabelX, y, { align: "right" });
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(20, 24, 36);
+  doc.text(fmtPDF(subtotal), COL.amtX, y, { align: "right" });
+  y += 7;
 
-  totals.forEach(({ label, value }) => {
-    doc.setFontSize(9);
+  // Extra charges (conditional)
+  if (extra > 0) {
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 90, 110);
-    doc.text(label, W - margin - 4 - 30, y, { align: "right" });
+    doc.setTextColor(90, 100, 120);
+    doc.text("Extra Charges", totLabelX, y, { align: "right" });
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(20, 24, 36);
-    doc.text(value, W - margin - 4, y, { align: "right" });
-    y += 8;
-  });
+    doc.text(fmtPDF(extra), COL.amtX, y, { align: "right" });
+    y += 7;
+  }
 
-  const pillX = margin;
-  const pillW = W - margin * 2;
-  const pillH = 14;
+  // Grand total pill (full-width)
+  const gtPillH = 14;
+ensureSpace(gtPillH + 10); 
   doc.setFillColor(26, 86, 219);
-  doc.roundedRect(pillX, y - 5, pillW, pillH, 3, 3, "F");
+  doc.roundedRect(tableX, y - 4, tableW, gtPillH, 3, 3, "F");
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
-  doc.text("TOTAL", pillX + 8, y + 3);
-  doc.text(fmtPDF(grandTotal), pillX + pillW - 8, y + 3, { align: "right" });
+  doc.text("TOTAL", tableX + 8, y + 5);
+  doc.text(fmtPDF(grandTotal), W - margin - 8, y + 5, { align: "right" });
+  y += gtPillH + 10;
 
-  y += 20;
-
-  // ── Notes ──
+  /* ══ NOTES ══ */
   if (notes) {
+    doc.setFontSize(8.5);
+    const noteLines = doc.splitTextToSize(notes, tableW - 16);
+    const noteH = noteLines.length * 5 + 16;
+  
+    ensureSpace(noteH + 10); // 🔑 critical fix
+  
     doc.setFillColor(240, 244, 255);
-    const noteLines = doc.splitTextToSize(notes, W - margin * 2 - 16);
-    const noteH = noteLines.length * 5.5 + 14;
-    doc.roundedRect(margin, y, W - margin * 2, noteH, 4, 4, "F");
-
-    doc.setFontSize(7.5);
+    doc.roundedRect(tableX, y, tableW, noteH, 4, 4, "F");
+  
+    doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(26, 86, 219);
-    doc.text("NOTES", margin + 8, y + 8);
-
+    doc.text("NOTES", tableX + 8, y + 8);
+  
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(50, 60, 90);
-    doc.text(noteLines, margin + 8, y + 15);
-
+    doc.text(noteLines, tableX + 8, y + 14);
+  
     y += noteH + 10;
   }
 
-  // ── Footer ──
-  const footerY = H - 22;
+  /* ══ FOOTER ══ */
+  const footerY = H - 20;
   doc.setFillColor(13, 15, 20);
   doc.rect(0, footerY - 2, W, 24, "F");
-
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(160, 175, 200);
-  doc.text("Thank you for choosing Finderzz — Trusted Professionals, Every Time.", W / 2, footerY + 6, { align: "center" });
+  doc.text("Thank you for choosing Finderzz — Trusted Professionals, Every Time.", W / 2, footerY + 5, { align: "center" });
   doc.setFontSize(7.5);
   doc.setTextColor(100, 115, 145);
-  doc.text("www.finderzz.com  •  support.finderzz@gmail.com", W / 2, footerY + 12, { align: "center" });
+  doc.text("www.finderzz.com  •  support.finderzz@gmail.com", W / 2, footerY + 11, { align: "center" });
 
   const filename = standalone
     ? `Finderzz-Invoice-${resolvedRef.replace(/^#/, "")}.pdf`
@@ -458,16 +488,12 @@ function buildPDF({
 
 /* ─────────────────────────────────────────────
    REUSABLE INVOICE FORM FIELDS
-   Used inside both the quotation-linked modal
-   and the standalone modal.
 ───────────────────────────────────────────── */
 const InvoiceFormFields = ({
   standalone,
-  // standalone-only
   clientName, setClientName,
   workerName, setWorkerName,
   invoiceRef, setInvoiceRef,
-  // shared
   serviceTitle, setServiceTitle,
   description, setDescription,
   materialIncluded, setMaterialIncluded,
@@ -478,59 +504,34 @@ const InvoiceFormFields = ({
   totalAmount,
 }) => (
   <>
-    {/* ── Standalone: Party details ── */}
     {standalone && (
       <>
         <div className="field-row-2">
           <div className="field-group">
             <label>Client Name</label>
-            <input
-              placeholder="e.g. Rahul Sharma"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-            />
+            <input placeholder="e.g. Rahul Sharma" value={clientName} onChange={(e) => setClientName(e.target.value)} />
           </div>
           <div className="field-group">
             <label>Service Provider</label>
-            <input
-              placeholder="e.g. Amit Patil"
-              value={workerName}
-              onChange={(e) => setWorkerName(e.target.value)}
-            />
+            <input placeholder="e.g. Amit Patil" value={workerName} onChange={(e) => setWorkerName(e.target.value)} />
           </div>
         </div>
-
         <div className="field-group">
           <label>Invoice Reference / Number</label>
-          <input
-            placeholder="e.g. INV-2024-001  (optional)"
-            value={invoiceRef}
-            onChange={(e) => setInvoiceRef(e.target.value)}
-          />
+          <input placeholder="e.g. INV-2024-001  (optional)" value={invoiceRef} onChange={(e) => setInvoiceRef(e.target.value)} />
         </div>
-
         <div className="section-divider">Invoice Details</div>
       </>
     )}
 
     <div className="field-group">
       <label>Service Title</label>
-      <input
-        placeholder="e.g. Plumbing Repair"
-        value={serviceTitle}
-        onChange={(e) => setServiceTitle(e.target.value)}
-      />
+      <input placeholder="e.g. Plumbing Repair" value={serviceTitle} onChange={(e) => setServiceTitle(e.target.value)} />
     </div>
-
     <div className="field-group">
       <label>Description</label>
-      <textarea
-        placeholder="Describe the work performed…"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
+      <textarea placeholder="Describe the work performed…" value={description} onChange={(e) => setDescription(e.target.value)} />
     </div>
-
     <div className="field-group">
       <label>Material</label>
       <select value={materialIncluded} onChange={(e) => setMaterialIncluded(e.target.value)}>
@@ -538,79 +539,40 @@ const InvoiceFormFields = ({
         <option value="no">Material Not Included</option>
       </select>
     </div>
-
     {materialIncluded === "yes" && (
       <div className="field-group">
         <label>Material Details</label>
-        <textarea
-          placeholder="List materials used…"
-          value={materialDetails}
-          onChange={(e) => setMaterialDetails(e.target.value)}
-        />
+        <textarea placeholder="List materials used…" value={materialDetails} onChange={(e) => setMaterialDetails(e.target.value)} />
       </div>
     )}
 
-    {/* Items */}
     <div className="section-divider">Services Breakdown</div>
-
     <div>
       <div className="items-header">
-        <span>Service</span>
-        <span>Qty</span>
-        <span>Unit Price</span>
-        <span />
+        <span>Service</span><span>Qty</span><span>Unit Price</span><span />
       </div>
-
       {items.map((item, i) => (
         <div className="item-row" key={i} style={{ marginBottom: 8 }}>
-          <input
-            placeholder="Service name"
-            value={item.name}
-            onChange={(e) => updateItem(i, "name", e.target.value)}
-          />
-          <input
-            type="number"
-            min="1"
-            value={item.qty}
-            onChange={(e) => updateItem(i, "qty", e.target.value)}
-          />
-          <input
-            type="number"
-            min="0"
-            value={item.price}
-            onChange={(e) => updateItem(i, "price", e.target.value)}
-          />
+          <input placeholder="Service name" value={item.name} onChange={(e) => updateItem(i, "name", e.target.value)} />
+          <input type="number" min="1" value={item.qty} onChange={(e) => updateItem(i, "qty", e.target.value)} />
+          <input type="number" min="0" value={item.price} onChange={(e) => updateItem(i, "price", e.target.value)} />
           <button className="btn-remove" onClick={() => removeItem(i)}>−</button>
         </div>
       ))}
-
       <button className="btn-add-item" onClick={addItem}>+ Add Service Line</button>
     </div>
 
-    <div className="field-group">
+    <div className="field-group mt-10">
       <label>Extra Charges (₹)</label>
-      <input
-        type="number"
-        min="0"
-        placeholder="0"
-        value={extraCharge}
-        onChange={(e) => setExtraCharge(e.target.value)}
-      />
+      <input type="number" min="0" placeholder="0" value={extraCharge} onChange={(e) => setExtraCharge(e.target.value)} />
     </div>
-
-    {/* Live total */}
-    <div className="total-row">
+    <div className="total-row mt-10">
       <span className="label">Grand Total</span>
       <span className="amount">{fmt(totalAmount)}</span>
     </div>
-
-    <div className="field-group">
+    <div className="field-group mt-10">
       <label>Notes</label>
-      <textarea
-        placeholder="Payment terms, warranties, or any additional information…"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-      />
+      <textarea placeholder="Payment terms, warranties, or any additional information…" value={notes} onChange={(e) => setNotes(e.target.value)} />
     </div>
   </>
 );
@@ -619,16 +581,13 @@ const InvoiceFormFields = ({
    COMPONENT
 ───────────────────────────────────────────── */
 const GetAllQuotation = () => {
-  const [quotations, setQuotations]             = useState([]);
-  const [loading, setLoading]                   = useState(true);
+  const [quotations, setQuotations]               = useState([]);
+  const [loading, setLoading]                     = useState(true);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
-  const [showModal, setShowModal]               = useState(false);
-  const [previewImage, setPreviewImage]         = useState(null);
-
-  // ── Standalone invoice modal ──
+  const [showModal, setShowModal]                 = useState(false);
+  const [previewImage, setPreviewImage]           = useState(null);
   const [showStandaloneModal, setShowStandaloneModal] = useState(false);
 
-  // ── Shared form state ──
   const [serviceTitle,     setServiceTitle]     = useState("");
   const [description,      setDescription]      = useState("");
   const [materialIncluded, setMaterialIncluded] = useState("yes");
@@ -637,12 +596,10 @@ const GetAllQuotation = () => {
   const [extraCharge,      setExtraCharge]      = useState("");
   const [notes,            setNotes]            = useState("");
 
-  // ── Standalone-only state ──
   const [standaloneClientName, setStandaloneClientName] = useState("");
   const [standaloneWorkerName, setStandaloneWorkerName] = useState("");
   const [standaloneInvoiceRef, setStandaloneInvoiceRef] = useState("");
 
-  // Inject styles once
   useEffect(() => {
     if (!document.getElementById("gaq-styles")) {
       const el = document.createElement("style");
@@ -652,7 +609,6 @@ const GetAllQuotation = () => {
     }
   }, []);
 
-  /* ── Fetch ── */
   const fetchQuotations = async () => {
     try {
       const res = await API.get("/quotation/admin");
@@ -662,7 +618,6 @@ const GetAllQuotation = () => {
   };
   useEffect(() => { fetchQuotations(); }, []);
 
-  /* ── Status ── */
   const updateStatus = async (id, status) => {
     try {
       await API.patch(`/quotation/${id}/status`, { status });
@@ -670,7 +625,6 @@ const GetAllQuotation = () => {
     } catch (e) { console.error(e); }
   };
 
-  /* ── Items helpers ── */
   const addItem    = () => setItems([...items, { name: "", qty: 1, price: 0 }]);
   const removeItem = (i) => setItems(items.filter((_, idx) => idx !== i));
   const updateItem = (i, field, value) => {
@@ -679,29 +633,20 @@ const GetAllQuotation = () => {
     setItems(next);
   };
 
-  /* ── Computed total ── */
   const subtotal    = items.reduce((s, it) => s + Number(it.qty || 0) * Number(it.price || 0), 0);
   const totalAmount = subtotal + Number(extraCharge || 0);
 
-  /* ── Reset & open quotation-linked modal ── */
-  const openModal = (q) => {
-    setSelectedQuotation(q);
+  const resetForm = () => {
     setServiceTitle(""); setDescription("");
     setMaterialIncluded("yes"); setMaterialDetails("");
     setItems([{ name: "", qty: 1, price: 0 }]);
     setExtraCharge(""); setNotes("");
-    setShowModal(true);
   };
 
-  /* ── Reset & open standalone modal ── */
+  const openModal = (q) => { setSelectedQuotation(q); resetForm(); setShowModal(true); };
   const openStandaloneModal = () => {
-    setStandaloneClientName("");
-    setStandaloneWorkerName("");
-    setStandaloneInvoiceRef("");
-    setServiceTitle(""); setDescription("");
-    setMaterialIncluded("yes"); setMaterialDetails("");
-    setItems([{ name: "", qty: 1, price: 0 }]);
-    setExtraCharge(""); setNotes("");
+    setStandaloneClientName(""); setStandaloneWorkerName(""); setStandaloneInvoiceRef("");
+    resetForm();
     setShowStandaloneModal(true);
   };
 
@@ -714,17 +659,14 @@ const GetAllQuotation = () => {
     );
   }
 
-  /* ── Shared form props object (DRY) ── */
   const formProps = {
-    serviceTitle, setServiceTitle,
-    description,  setDescription,
-    materialIncluded, setMaterialIncluded,
-    materialDetails,  setMaterialDetails,
+    serviceTitle, setServiceTitle, description, setDescription,
+    materialIncluded, setMaterialIncluded, materialDetails, setMaterialDetails,
     items, addItem, removeItem, updateItem,
-    extraCharge, setExtraCharge,
-    notes, setNotes,
-    totalAmount,
+    extraCharge, setExtraCharge, notes, setNotes, totalAmount,
   };
+
+  const pdfProps = { serviceTitle, description, materialIncluded, materialDetails, items, extraCharge, notes };
 
   return (
     <div className="gaq-wrap">
@@ -735,9 +677,7 @@ const GetAllQuotation = () => {
           <h1>Quotation Requests</h1>
           <p>Review, approve or create invoices for incoming service requests</p>
         </div>
-
         <div className="gaq-header-right">
-          {/* ── NEW: Standalone invoice button ── */}
           <button className="btn-new-invoice" onClick={openStandaloneModal}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -747,7 +687,6 @@ const GetAllQuotation = () => {
             </svg>
             New Invoice
           </button>
-
           <div className="gaq-header-stat">
             <span>Total requests</span>
             <strong>{quotations.length}</strong>
@@ -769,80 +708,49 @@ const GetAllQuotation = () => {
         {quotations.map((q) => (
           <div key={q._id} className="gaq-card">
             {q.quotationImages
-              ? (
-                <img
-                  src={q.quotationImages}
-                  alt="quotation"
-                  className="gaq-card-img"
-                  onClick={() => setPreviewImage(q.quotationImages)}
-                  style={{ cursor: "zoom-in" }}
-                />
-              )
+              ? <img src={q.quotationImages} alt="quotation" className="gaq-card-img" onClick={() => setPreviewImage(q.quotationImages)} style={{ cursor: "zoom-in" }} />
               : <div className="gaq-card-img-placeholder">No image</div>
             }
-
             <div className="gaq-card-body">
               <p className="worker">{q.workerName}</p>
               <p className="client">{q.clientName}</p>
               {q.description && <p className="desc">{q.description}</p>}
             </div>
-
             <div className="gaq-card-footer">
               <span className="gaq-price">{fmt(q.estimatedPrice)}</span>
               <span className={`gaq-status-badge ${statusClass(q.status)}`}>{statusLabel(q.status)}</span>
             </div>
-
             {q.status === "pending" && (
               <div className="gaq-card-actions">
                 <button className="btn btn-approve" onClick={() => updateStatus(q._id, "approved")}>✓ Approve</button>
                 <button className="btn btn-reject"  onClick={() => updateStatus(q._id, "rejected")}>✕ Reject</button>
               </div>
             )}
-
             {q.status === "approved" && (
               <div className="gaq-card-actions">
-                <button className="btn btn-invoice" onClick={() => openModal(q)}>
-                  ↓ Create Invoice
-                </button>
+                <button className="btn btn-invoice" onClick={() => openModal(q)}>↓ Create Invoice</button>
               </div>
             )}
           </div>
         ))}
       </div>
 
-      {/* ─────────────────────────────────────────
-          QUOTATION-LINKED INVOICE MODAL (existing)
-      ───────────────────────────────────────── */}
+      {/* ── Quotation-linked modal ── */}
       {showModal && (
         <div className="gaq-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
           <div className="gaq-modal">
             <div className="modal-header">
               <div>
                 <h2>Create Invoice</h2>
-                <p className="subtitle">
-                  {selectedQuotation?.clientName} · {selectedQuotation?.workerName}
-                </p>
+                <p className="subtitle">{selectedQuotation?.clientName} · {selectedQuotation?.workerName}</p>
               </div>
               <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
-
             <div className="modal-body">
               <InvoiceFormFields standalone={false} {...formProps} />
             </div>
-
             <div className="modal-footer">
-              <button
-                className="btn btn-pdf"
-                onClick={() =>
-                  buildPDF({
-                    quotation: selectedQuotation,
-                    serviceTitle, description,
-                    materialIncluded, materialDetails,
-                    items, extraCharge, notes,
-                    standalone: false,
-                  })
-                }
-              >
+              <button className="btn btn-pdf" onClick={() => buildPDF({ quotation: selectedQuotation, ...pdfProps, standalone: false })}>
                 ↓ Download PDF Invoice
               </button>
               <button className="btn btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
@@ -851,9 +759,7 @@ const GetAllQuotation = () => {
         </div>
       )}
 
-      {/* ─────────────────────────────────────────
-          STANDALONE INVOICE MODAL (new)
-      ───────────────────────────────────────── */}
+      {/* ── Standalone modal ── */}
       {showStandaloneModal && (
         <div className="gaq-overlay" onClick={(e) => e.target === e.currentTarget && setShowStandaloneModal(false)}>
           <div className="gaq-modal">
@@ -870,7 +776,6 @@ const GetAllQuotation = () => {
               </div>
               <button className="modal-close" onClick={() => setShowStandaloneModal(false)}>✕</button>
             </div>
-
             <div className="modal-body">
               <InvoiceFormFields
                 standalone={true}
@@ -880,23 +785,10 @@ const GetAllQuotation = () => {
                 {...formProps}
               />
             </div>
-
             <div className="modal-footer">
-              <button
-                className="btn btn-pdf"
-                onClick={() =>
-                  buildPDF({
-                    quotation: null,
-                    serviceTitle, description,
-                    materialIncluded, materialDetails,
-                    items, extraCharge, notes,
-                    standalone: true,
-                    clientName: standaloneClientName,
-                    workerName: standaloneWorkerName,
-                    invoiceRef: standaloneInvoiceRef,
-                  })
-                }
-              >
+              <button className="btn btn-pdf" onClick={() =>
+                buildPDF({ quotation: null, ...pdfProps, standalone: true, clientName: standaloneClientName, workerName: standaloneWorkerName, invoiceRef: standaloneInvoiceRef })
+              }>
                 ↓ Download PDF Invoice
               </button>
               <button className="btn btn-cancel" onClick={() => setShowStandaloneModal(false)}>Cancel</button>
@@ -908,21 +800,9 @@ const GetAllQuotation = () => {
       {/* ── Image preview ── */}
       {previewImage && (
         <div className="gaq-overlay" onClick={() => setPreviewImage(null)}>
-          <div
-            style={{ maxWidth: "95vw", maxHeight: "95vh", display: "flex", alignItems: "center", justifyContent: "center" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={previewImage}
-              alt="Full preview"
-              style={{ maxWidth: "100%", maxHeight: "90vh", borderRadius: "12px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}
-            />
-            <button
-              onClick={() => setPreviewImage(null)}
-              style={{ position: "absolute", top: 20, right: 20, width: 40, height: 40, borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.9)", cursor: "pointer", fontSize: 18 }}
-            >
-              ✕
-            </button>
+          <div style={{ maxWidth: "95vw", maxHeight: "95vh", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={(e) => e.stopPropagation()}>
+            <img src={previewImage} alt="Full preview" style={{ maxWidth: "100%", maxHeight: "90vh", borderRadius: "12px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }} />
+            <button onClick={() => setPreviewImage(null)} style={{ position: "absolute", top: 20, right: 20, width: 40, height: 40, borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.9)", cursor: "pointer", fontSize: 18 }}>✕</button>
           </div>
         </div>
       )}
