@@ -36,9 +36,25 @@ const STYLE = `
   .gaq-header { padding: 36px 40px 0; display: flex; align-items: flex-end; justify-content: space-between; }
   .gaq-header h1 { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; letter-spacing: -.5px; }
   .gaq-header p  { color: var(--ink-muted); font-size: 14px; margin-top: 4px; }
+  .gaq-header-right { display: flex; align-items: center; gap: 20px; }
   .gaq-header-stat { text-align: right; }
   .gaq-header-stat span { font-size: 13px; color: var(--ink-muted); }
   .gaq-header-stat strong { display: block; font-size: 22px; font-weight: 600; color: var(--accent); }
+
+  /* ── New Invoice Button ── */
+  .btn-new-invoice {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    border-radius: 12px; padding: 11px 20px;
+    transition: filter .15s, transform .1s, box-shadow .15s;
+    box-shadow: 0 4px 14px rgba(26,86,219,.35);
+    letter-spacing: .2px; white-space: nowrap;
+  }
+  .btn-new-invoice:hover { filter: brightness(1.1); box-shadow: 0 6px 20px rgba(26,86,219,.45); }
+  .btn-new-invoice:active { transform: scale(.97); }
+  .btn-new-invoice svg { flex-shrink: 0; }
 
   /* ── Grid ── */
   .gaq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; padding: 28px 40px 48px; }
@@ -88,6 +104,9 @@ const STYLE = `
 
   .modal-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
 
+  /* ── Two-column row for client / provider in standalone modal ── */
+  .field-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
   .field-group { display: flex; flex-direction: column; gap: 6px; }
   .field-group label { font-size: 12px; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .6px; }
   .field-group input, .field-group textarea, .field-group select {
@@ -132,14 +151,21 @@ const STYLE = `
   /* ── Empty ── */
   .gaq-empty { grid-column: 1/-1; text-align: center; padding: 64px 0; color: var(--ink-muted); font-size: 15px; }
   .gaq-empty svg { margin: 0 auto 16px; display: block; opacity: .3; }
+
+  /* ── Standalone modal badge ── */
+  .modal-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--accent-dim); color: var(--accent);
+    font-size: 11px; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
+    margin-bottom: 4px;
+  }
 `;
 
 /* ─────────────────────────────────────────────
    HELPERS
 ───────────────────────────────────────────── */
-// UI formatter — ₹ works fine in the browser
-const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
-// PDF formatter — jsPDF built-in helvetica does NOT render ₹ Unicode, use "Rs." instead
+const fmt    = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const fmtPDF = (n) => `Rs. ${Number(n || 0).toLocaleString("en-IN")}`;
 
 const statusClass = (s) =>
@@ -149,13 +175,54 @@ const statusLabel = (s) =>
   ({ pending: "Pending", approved: "Approved", rejected: "Rejected", sent_to_customer: "Sent" }[s] || s);
 
 /* ─────────────────────────────────────────────
-   PDF GENERATOR  –  premium design
+   EMPTY STATE for modal fields
 ───────────────────────────────────────────── */
-function buildPDF({ quotation, serviceTitle, description, materialIncluded, materialDetails, items, extraCharge, notes }) {
+const emptyInvoiceState = () => ({
+  serviceTitle: "",
+  description: "",
+  materialIncluded: "yes",
+  materialDetails: "",
+  items: [{ name: "", qty: 1, price: 0 }],
+  extraCharge: "",
+  notes: "",
+  // standalone-only fields
+  clientName: "",
+  workerName: "",
+  invoiceRef: "",
+});
+
+/* ─────────────────────────────────────────────
+   PDF GENERATOR  –  premium design
+   Works for both quotation-linked and standalone invoices.
+   Pass `standalone: true` + `clientName` / `workerName` / `invoiceRef`
+   when generating a standalone invoice.
+───────────────────────────────────────────── */
+function buildPDF({
+  quotation,
+  serviceTitle,
+  description,
+  materialIncluded,
+  materialDetails,
+  items,
+  extraCharge,
+  notes,
+  // standalone fields (ignored when quotation is provided)
+  standalone = false,
+  clientName = "",
+  workerName = "",
+  invoiceRef = "",
+}) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const W = 210, H = 297;
   const margin = 18;
   const col2 = W / 2 + 2;
+
+  // Resolve names & ref
+  const resolvedClient = standalone ? clientName : quotation?.clientName || "—";
+  const resolvedWorker = standalone ? workerName : quotation?.workerName || "—";
+  const resolvedRef    = standalone
+    ? (invoiceRef ? `#${invoiceRef.toUpperCase()}` : `#INV-MANUAL`)
+    : `#INV-${quotation?._id?.slice(-6).toUpperCase() || "000000"}`;
 
   // ── Background canvas ──
   doc.setFillColor(248, 249, 252);
@@ -189,9 +256,8 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(160, 175, 200);
-  const invoiceNo = `#INV-${quotation._id?.slice(-6).toUpperCase() || "000000"}`;
   const today = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-  doc.text(invoiceNo, W - margin, 36, { align: "right" });
+  doc.text(resolvedRef, W - margin, 36, { align: "right" });
   doc.text(`Date: ${today}`, W - margin, 42, { align: "right" });
 
   // ── Bill-to block ──
@@ -205,7 +271,7 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(13, 15, 20);
-  doc.text(quotation.clientName || "—", margin, y);
+  doc.text(resolvedClient || "—", margin, y);
 
   y += 6;
   doc.setFontSize(9);
@@ -224,7 +290,7 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(13, 15, 20);
-  doc.text(quotation.workerName || "—", col2, y2);
+  doc.text(resolvedWorker || "—", col2, y2);
 
   y2 += 6;
   doc.setFontSize(9);
@@ -275,8 +341,6 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
 
   // ── Table ──
   y += 12;
-
-  // Table header bg
   doc.setFillColor(13, 15, 20);
   doc.roundedRect(margin, y - 5, W - margin * 2, 11, 3, 3, "F");
 
@@ -322,7 +386,7 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
   doc.line(margin, y, W - margin, y);
   y += 8;
 
-  const extra  = Number(extraCharge || 0);
+  const extra      = Number(extraCharge || 0);
   const grandTotal = subtotal + extra;
 
   const totals = [
@@ -340,7 +404,6 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
     y += 8;
   });
 
-  // Grand total highlight — full-width pill from margin to margin
   const pillX = margin;
   const pillW = W - margin * 2;
   const pillH = 14;
@@ -349,9 +412,7 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
-  // "TOTAL" label on the left inside the pill
   doc.text("TOTAL", pillX + 8, y + 3);
-  // Grand total amount right-aligned inside the pill
   doc.text(fmtPDF(grandTotal), pillX + pillW - 8, y + 3, { align: "right" });
 
   y += 20;
@@ -387,28 +448,199 @@ function buildPDF({ quotation, serviceTitle, description, materialIncluded, mate
   doc.text("Thank you for choosing Finderzz — Trusted Professionals, Every Time.", W / 2, footerY + 6, { align: "center" });
   doc.setFontSize(7.5);
   doc.setTextColor(100, 115, 145);
-  doc.text("www.finderzz.com  •  support@finderzz.com", W / 2, footerY + 12, { align: "center" });
+  doc.text("www.finderzz.com  •  support.finderzz@gmail.com", W / 2, footerY + 12, { align: "center" });
 
-  doc.save(`Finderzz-Invoice-${invoiceNo}.pdf`);
+  const filename = standalone
+    ? `Finderzz-Invoice-${resolvedRef.replace(/^#/, "")}.pdf`
+    : `Finderzz-Invoice-${resolvedRef}.pdf`;
+  doc.save(filename);
 }
+
+/* ─────────────────────────────────────────────
+   REUSABLE INVOICE FORM FIELDS
+   Used inside both the quotation-linked modal
+   and the standalone modal.
+───────────────────────────────────────────── */
+const InvoiceFormFields = ({
+  standalone,
+  // standalone-only
+  clientName, setClientName,
+  workerName, setWorkerName,
+  invoiceRef, setInvoiceRef,
+  // shared
+  serviceTitle, setServiceTitle,
+  description, setDescription,
+  materialIncluded, setMaterialIncluded,
+  materialDetails, setMaterialDetails,
+  items, addItem, removeItem, updateItem,
+  extraCharge, setExtraCharge,
+  notes, setNotes,
+  totalAmount,
+}) => (
+  <>
+    {/* ── Standalone: Party details ── */}
+    {standalone && (
+      <>
+        <div className="field-row-2">
+          <div className="field-group">
+            <label>Client Name</label>
+            <input
+              placeholder="e.g. Rahul Sharma"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+            />
+          </div>
+          <div className="field-group">
+            <label>Service Provider</label>
+            <input
+              placeholder="e.g. Amit Patil"
+              value={workerName}
+              onChange={(e) => setWorkerName(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="field-group">
+          <label>Invoice Reference / Number</label>
+          <input
+            placeholder="e.g. INV-2024-001  (optional)"
+            value={invoiceRef}
+            onChange={(e) => setInvoiceRef(e.target.value)}
+          />
+        </div>
+
+        <div className="section-divider">Invoice Details</div>
+      </>
+    )}
+
+    <div className="field-group">
+      <label>Service Title</label>
+      <input
+        placeholder="e.g. Plumbing Repair"
+        value={serviceTitle}
+        onChange={(e) => setServiceTitle(e.target.value)}
+      />
+    </div>
+
+    <div className="field-group">
+      <label>Description</label>
+      <textarea
+        placeholder="Describe the work performed…"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+    </div>
+
+    <div className="field-group">
+      <label>Material</label>
+      <select value={materialIncluded} onChange={(e) => setMaterialIncluded(e.target.value)}>
+        <option value="yes">Material Included in Price</option>
+        <option value="no">Material Not Included</option>
+      </select>
+    </div>
+
+    {materialIncluded === "yes" && (
+      <div className="field-group">
+        <label>Material Details</label>
+        <textarea
+          placeholder="List materials used…"
+          value={materialDetails}
+          onChange={(e) => setMaterialDetails(e.target.value)}
+        />
+      </div>
+    )}
+
+    {/* Items */}
+    <div className="section-divider">Services Breakdown</div>
+
+    <div>
+      <div className="items-header">
+        <span>Service</span>
+        <span>Qty</span>
+        <span>Unit Price</span>
+        <span />
+      </div>
+
+      {items.map((item, i) => (
+        <div className="item-row" key={i} style={{ marginBottom: 8 }}>
+          <input
+            placeholder="Service name"
+            value={item.name}
+            onChange={(e) => updateItem(i, "name", e.target.value)}
+          />
+          <input
+            type="number"
+            min="1"
+            value={item.qty}
+            onChange={(e) => updateItem(i, "qty", e.target.value)}
+          />
+          <input
+            type="number"
+            min="0"
+            value={item.price}
+            onChange={(e) => updateItem(i, "price", e.target.value)}
+          />
+          <button className="btn-remove" onClick={() => removeItem(i)}>−</button>
+        </div>
+      ))}
+
+      <button className="btn-add-item" onClick={addItem}>+ Add Service Line</button>
+    </div>
+
+    <div className="field-group">
+      <label>Extra Charges (₹)</label>
+      <input
+        type="number"
+        min="0"
+        placeholder="0"
+        value={extraCharge}
+        onChange={(e) => setExtraCharge(e.target.value)}
+      />
+    </div>
+
+    {/* Live total */}
+    <div className="total-row">
+      <span className="label">Grand Total</span>
+      <span className="amount">{fmt(totalAmount)}</span>
+    </div>
+
+    <div className="field-group">
+      <label>Notes</label>
+      <textarea
+        placeholder="Payment terms, warranties, or any additional information…"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+      />
+    </div>
+  </>
+);
 
 /* ─────────────────────────────────────────────
    COMPONENT
 ───────────────────────────────────────────── */
 const GetAllQuotation = () => {
-  const [quotations, setQuotations]       = useState([]);
-  const [loading, setLoading]             = useState(true);
+  const [quotations, setQuotations]             = useState([]);
+  const [loading, setLoading]                   = useState(true);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
-  const [showModal, setShowModal]         = useState(false);
+  const [showModal, setShowModal]               = useState(false);
+  const [previewImage, setPreviewImage]         = useState(null);
 
-  const [serviceTitle, setServiceTitle]   = useState("");
-  const [description, setDescription]     = useState("");
+  // ── Standalone invoice modal ──
+  const [showStandaloneModal, setShowStandaloneModal] = useState(false);
+
+  // ── Shared form state ──
+  const [serviceTitle,     setServiceTitle]     = useState("");
+  const [description,      setDescription]      = useState("");
   const [materialIncluded, setMaterialIncluded] = useState("yes");
-  const [materialDetails, setMaterialDetails]   = useState("");
-  const [items, setItems]                 = useState([{ name: "", qty: 1, price: 0 }]);
-  const [extraCharge, setExtraCharge]     = useState("");
-  const [notes, setNotes]                 = useState("");
-  const [previewImage, setPreviewImage] = useState(null);
+  const [materialDetails,  setMaterialDetails]  = useState("");
+  const [items,            setItems]            = useState([{ name: "", qty: 1, price: 0 }]);
+  const [extraCharge,      setExtraCharge]      = useState("");
+  const [notes,            setNotes]            = useState("");
+
+  // ── Standalone-only state ──
+  const [standaloneClientName, setStandaloneClientName] = useState("");
+  const [standaloneWorkerName, setStandaloneWorkerName] = useState("");
+  const [standaloneInvoiceRef, setStandaloneInvoiceRef] = useState("");
 
   // Inject styles once
   useEffect(() => {
@@ -438,7 +670,7 @@ const GetAllQuotation = () => {
     } catch (e) { console.error(e); }
   };
 
-  /* ── Items ── */
+  /* ── Items helpers ── */
   const addItem    = () => setItems([...items, { name: "", qty: 1, price: 0 }]);
   const removeItem = (i) => setItems(items.filter((_, idx) => idx !== i));
   const updateItem = (i, field, value) => {
@@ -451,7 +683,7 @@ const GetAllQuotation = () => {
   const subtotal    = items.reduce((s, it) => s + Number(it.qty || 0) * Number(it.price || 0), 0);
   const totalAmount = subtotal + Number(extraCharge || 0);
 
-  /* ── Reset modal ── */
+  /* ── Reset & open quotation-linked modal ── */
   const openModal = (q) => {
     setSelectedQuotation(q);
     setServiceTitle(""); setDescription("");
@@ -459,6 +691,18 @@ const GetAllQuotation = () => {
     setItems([{ name: "", qty: 1, price: 0 }]);
     setExtraCharge(""); setNotes("");
     setShowModal(true);
+  };
+
+  /* ── Reset & open standalone modal ── */
+  const openStandaloneModal = () => {
+    setStandaloneClientName("");
+    setStandaloneWorkerName("");
+    setStandaloneInvoiceRef("");
+    setServiceTitle(""); setDescription("");
+    setMaterialIncluded("yes"); setMaterialDetails("");
+    setItems([{ name: "", qty: 1, price: 0 }]);
+    setExtraCharge(""); setNotes("");
+    setShowStandaloneModal(true);
   };
 
   if (loading) {
@@ -470,17 +714,44 @@ const GetAllQuotation = () => {
     );
   }
 
+  /* ── Shared form props object (DRY) ── */
+  const formProps = {
+    serviceTitle, setServiceTitle,
+    description,  setDescription,
+    materialIncluded, setMaterialIncluded,
+    materialDetails,  setMaterialDetails,
+    items, addItem, removeItem, updateItem,
+    extraCharge, setExtraCharge,
+    notes, setNotes,
+    totalAmount,
+  };
+
   return (
     <div className="gaq-wrap">
+
       {/* ── Header ── */}
       <div className="gaq-header">
         <div>
           <h1>Quotation Requests</h1>
           <p>Review, approve or create invoices for incoming service requests</p>
         </div>
-        <div className="gaq-header-stat">
-          <span>Total requests</span>
-          <strong>{quotations.length}</strong>
+
+        <div className="gaq-header-right">
+          {/* ── NEW: Standalone invoice button ── */}
+          <button className="btn-new-invoice" onClick={openStandaloneModal}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            New Invoice
+          </button>
+
+          <div className="gaq-header-stat">
+            <span>Total requests</span>
+            <strong>{quotations.length}</strong>
+          </div>
         </div>
       </div>
 
@@ -498,17 +769,17 @@ const GetAllQuotation = () => {
         {quotations.map((q) => (
           <div key={q._id} className="gaq-card">
             {q.quotationImages
-  ? (
-    <img
-      src={q.quotationImages}
-      alt="quotation"
-      className="gaq-card-img"
-      onClick={() => setPreviewImage(q.quotationImages)}
-      style={{ cursor: "zoom-in" }}
-    />
-  )
-  : <div className="gaq-card-img-placeholder">No image</div>
-}
+              ? (
+                <img
+                  src={q.quotationImages}
+                  alt="quotation"
+                  className="gaq-card-img"
+                  onClick={() => setPreviewImage(q.quotationImages)}
+                  style={{ cursor: "zoom-in" }}
+                />
+              )
+              : <div className="gaq-card-img-placeholder">No image</div>
+            }
 
             <div className="gaq-card-body">
               <p className="worker">{q.workerName}</p>
@@ -539,11 +810,12 @@ const GetAllQuotation = () => {
         ))}
       </div>
 
-      {/* ── Modal ── */}
+      {/* ─────────────────────────────────────────
+          QUOTATION-LINKED INVOICE MODAL (existing)
+      ───────────────────────────────────────── */}
       {showModal && (
         <div className="gaq-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
           <div className="gaq-modal">
-            {/* Header */}
             <div className="modal-header">
               <div>
                 <h2>Create Invoice</h2>
@@ -554,79 +826,22 @@ const GetAllQuotation = () => {
               <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>
 
-            {/* Body */}
             <div className="modal-body">
-
-              <div className="field-group">
-                <label>Service Title</label>
-                <input placeholder="e.g. Plumbing Repair" value={serviceTitle} onChange={(e) => setServiceTitle(e.target.value)} />
-              </div>
-
-              <div className="field-group">
-                <label>Description</label>
-                <textarea placeholder="Describe the work performed…" value={description} onChange={(e) => setDescription(e.target.value)} />
-              </div>
-
-              <div className="field-group">
-                <label>Material</label>
-                <select value={materialIncluded} onChange={(e) => setMaterialIncluded(e.target.value)}>
-                  <option value="yes">Material Included in Price</option>
-                  <option value="no">Material Not Included</option>
-                </select>
-              </div>
-
-              {materialIncluded === "yes" && (
-                <div className="field-group">
-                  <label>Material Details</label>
-                  <textarea placeholder="List materials used…" value={materialDetails} onChange={(e) => setMaterialDetails(e.target.value)} />
-                </div>
-              )}
-
-              {/* Items */}
-              <div className="section-divider">Services Breakdown</div>
-
-              <div>
-                <div className="items-header">
-                  <span>Service</span>
-                  <span>Qty</span>
-                  <span>Unit Price</span>
-                  <span />
-                </div>
-
-                {items.map((item, i) => (
-                  <div className="item-row" key={i} style={{ marginBottom: 8 }}>
-                    <input placeholder="Service name" value={item.name} onChange={(e) => updateItem(i, "name", e.target.value)} />
-                    <input type="number" min="1" value={item.qty} onChange={(e) => updateItem(i, "qty", e.target.value)} />
-                    <input type="number" min="0" value={item.price} onChange={(e) => updateItem(i, "price", e.target.value)} />
-                    <button className="btn-remove" onClick={() => removeItem(i)}>−</button>
-                  </div>
-                ))}
-
-                <button className="btn-add-item" onClick={addItem}>+ Add Service Line</button>
-              </div>
-
-              <div className="field-group">
-                <label>Extra Charges (₹)</label>
-                <input type="number" min="0" placeholder="0" value={extraCharge} onChange={(e) => setExtraCharge(e.target.value)} />
-              </div>
-
-              {/* Live total */}
-              <div className="total-row">
-                <span className="label">Grand Total</span>
-                <span className="amount">{fmt(totalAmount)}</span>
-              </div>
-
-              <div className="field-group">
-                <label>Notes</label>
-                <textarea placeholder="Payment terms, warranties, or any additional information…" value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </div>
+              <InvoiceFormFields standalone={false} {...formProps} />
             </div>
 
-            {/* Footer */}
             <div className="modal-footer">
               <button
                 className="btn btn-pdf"
-                onClick={() => buildPDF({ quotation: selectedQuotation, serviceTitle, description, materialIncluded, materialDetails, items, extraCharge, notes })}
+                onClick={() =>
+                  buildPDF({
+                    quotation: selectedQuotation,
+                    serviceTitle, description,
+                    materialIncluded, materialDetails,
+                    items, extraCharge, notes,
+                    standalone: false,
+                  })
+                }
               >
                 ↓ Download PDF Invoice
               </button>
@@ -636,53 +851,82 @@ const GetAllQuotation = () => {
         </div>
       )}
 
-{previewImage && (
-  <div
-    className="gaq-overlay"
-    onClick={() => setPreviewImage(null)}
-  >
-    <div
-      style={{
-        maxWidth: "95vw",
-        maxHeight: "95vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <img
-        src={previewImage}
-        alt="Full preview"
-        style={{
-          maxWidth: "100%",
-          maxHeight: "90vh",
-          borderRadius: "12px",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.4)"
-        }}
-      />
+      {/* ─────────────────────────────────────────
+          STANDALONE INVOICE MODAL (new)
+      ───────────────────────────────────────── */}
+      {showStandaloneModal && (
+        <div className="gaq-overlay" onClick={(e) => e.target === e.currentTarget && setShowStandaloneModal(false)}>
+          <div className="gaq-modal">
+            <div className="modal-header">
+              <div>
+                <span className="modal-tag">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  New Invoice
+                </span>
+                <h2>Create Invoice</h2>
+                <p className="subtitle">Fill in all the details manually</p>
+              </div>
+              <button className="modal-close" onClick={() => setShowStandaloneModal(false)}>✕</button>
+            </div>
 
-      {/* Close button */}
-      <button
-        onClick={() => setPreviewImage(null)}
-        style={{
-          position: "absolute",
-          top: 20,
-          right: 20,
-          width: 40,
-          height: 40,
-          borderRadius: "50%",
-          border: "none",
-          background: "rgba(255,255,255,0.9)",
-          cursor: "pointer",
-          fontSize: 18
-        }}
-      >
-        ✕
-      </button>
-    </div>
-  </div>
-)}
+            <div className="modal-body">
+              <InvoiceFormFields
+                standalone={true}
+                clientName={standaloneClientName} setClientName={setStandaloneClientName}
+                workerName={standaloneWorkerName} setWorkerName={setStandaloneWorkerName}
+                invoiceRef={standaloneInvoiceRef} setInvoiceRef={setStandaloneInvoiceRef}
+                {...formProps}
+              />
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-pdf"
+                onClick={() =>
+                  buildPDF({
+                    quotation: null,
+                    serviceTitle, description,
+                    materialIncluded, materialDetails,
+                    items, extraCharge, notes,
+                    standalone: true,
+                    clientName: standaloneClientName,
+                    workerName: standaloneWorkerName,
+                    invoiceRef: standaloneInvoiceRef,
+                  })
+                }
+              >
+                ↓ Download PDF Invoice
+              </button>
+              <button className="btn btn-cancel" onClick={() => setShowStandaloneModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Image preview ── */}
+      {previewImage && (
+        <div className="gaq-overlay" onClick={() => setPreviewImage(null)}>
+          <div
+            style={{ maxWidth: "95vw", maxHeight: "95vh", display: "flex", alignItems: "center", justifyContent: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewImage}
+              alt="Full preview"
+              style={{ maxWidth: "100%", maxHeight: "90vh", borderRadius: "12px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}
+            />
+            <button
+              onClick={() => setPreviewImage(null)}
+              style={{ position: "absolute", top: 20, right: 20, width: 40, height: 40, borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.9)", cursor: "pointer", fontSize: 18 }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
