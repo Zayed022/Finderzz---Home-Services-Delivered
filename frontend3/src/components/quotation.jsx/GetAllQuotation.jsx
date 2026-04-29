@@ -343,8 +343,8 @@ function ensureSpace(requiredHeight) {
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
   doc.text("SERVICE DESCRIPTION", COL.descX, y);
-  doc.text("QTY",        COL.qtyX, y, { align: "center" });
-  doc.text("UNIT PRICE", COL.upX,  y, { align: "center" });
+  doc.text("Sq.ft / Rft",        COL.qtyX, y, { align: "center" });
+  doc.text("Rate", COL.upX,  y, { align: "center" });
   doc.text("AMOUNT",     COL.amtX, y, { align: "right"  });
 
   y += 8;
@@ -549,7 +549,7 @@ const InvoiceFormFields = ({
     <div className="section-divider">Services Breakdown</div>
     <div>
       <div className="items-header">
-        <span>Service</span><span>Qty</span><span>Unit Price</span><span />
+        <span>Service</span><span>Sq.ft / Rft</span><span>Rate</span><span />
       </div>
       {items.map((item, i) => (
         <div className="item-row" key={i} style={{ marginBottom: 8 }}>
