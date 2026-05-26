@@ -1051,14 +1051,13 @@ export const getSettlementsByStatus = async (req, res) => {
 
     const settlements = await Settlement.find();
 
-    // settlement map by bookingId
     const settlementMap = {};
 
     settlements.forEach((s) => {
 
-      if (s.bookingId) {
-        settlementMap[s.bookingId.toString()] = s;
-      }
+      const key = `${s.workerId.toString()}_${s.date}`;
+
+      settlementMap[key] = s;
 
     });
 
@@ -1067,6 +1066,9 @@ export const getSettlementsByStatus = async (req, res) => {
       const date = booking.updatedAt
         .toISOString()
         .split("T")[0];
+
+      const workerId =
+        booking.workerId?._id?.toString();
 
       let collected = 0;
       let workerEarn = 0;
@@ -1077,8 +1079,8 @@ export const getSettlementsByStatus = async (req, res) => {
         const quantity = service.quantity || 1;
 
         // IMPORTANT:
-        // service.price usually already contains quantity
-        const price = service.price || 0;
+        // Usually already includes quantity
+        const price = (service.price || 0) * quantity;
 
         let workerPrice = 0;
         let platformFee = 0;
@@ -1114,19 +1116,16 @@ export const getSettlementsByStatus = async (req, res) => {
 
       const adminShare = platformEarn + areaCharge;
 
-      const settlement =
-        settlementMap[booking._id.toString()];
+      // OLD settlement mapping preserved
+      const key = `${workerId}_${date}`;
+
+      const settlement = settlementMap[key];
 
       return {
 
         bookingId: booking._id,
 
-        bookingNumber:
-          booking.bookingId ||
-          booking.orderId ||
-          booking._id.toString().slice(-6),
-
-        workerId: booking.workerId?._id,
+        workerId,
 
         workerName: booking.workerId?.name,
 
