@@ -1080,7 +1080,7 @@ export const getSettlementsByStatus = async (req, res) => {
 
         // IMPORTANT:
         // Usually already includes quantity
-        const price = (service.price || 0) * quantity;
+        const price = (service.price || 0)*quantity;
 
         let workerPrice = 0;
         let platformFee = 0;
