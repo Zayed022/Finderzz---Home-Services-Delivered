@@ -1034,56 +1034,39 @@ export const getSettlementStats = async (req,res)=>{
   }
 };
 
-export const getSettlementsByStatus = async (req,res)=>{
-  try{
+export const getSettlementsByStatus = async (req, res) => {
+
+  try {
 
     const { status } = req.query;
 
     const bookings = await Booking.find({
-      status:"completed"
+      status: "completed"
     })
-    .populate("workerId","name phone")
-    .populate("services.subServiceId")
-    .populate("services.serviceId")
-    .populate("areaId")
-    .sort({createdAt:-1});
+      .populate("workerId", "name phone")
+      .populate("services.subServiceId")
+      .populate("services.serviceId")
+      .populate("areaId")
+      .sort({ createdAt: -1 });
 
     const settlements = await Settlement.find();
 
+    // settlement map by bookingId
     const settlementMap = {};
 
-    settlements.forEach(s => {
+    settlements.forEach((s) => {
 
-      const key = `${s.workerId.toString()}_${s.date}`;
-
-      settlementMap[key] = s;
+      if (s.bookingId) {
+        settlementMap[s.bookingId.toString()] = s;
+      }
 
     });
 
-    const dailyMap = {};
+    let result = bookings.map((booking) => {
 
-    bookings.forEach((booking)=>{
-
-      const date = booking.updatedAt.toISOString().split("T")[0];
-      const workerId = booking.workerId?._id?.toString();
-
-      const key = `${workerId}_${date}`;
-
-      if(!dailyMap[key]){
-
-        dailyMap[key] = {
-          workerId,
-          workerName: booking.workerId?.name,
-          workerPhone: booking.workerId?.phone,
-          date,
-          totalCollected:0,
-          workerEarnings:0,
-          adminShare:0,
-          jobs:0,
-          status:"pending"
-        };
-
-      }
+      const date = booking.updatedAt
+        .toISOString()
+        .split("T")[0];
 
       let collected = 0;
       let workerEarn = 0;
@@ -1092,81 +1075,106 @@ export const getSettlementsByStatus = async (req,res)=>{
       booking.services.forEach((service) => {
 
         const quantity = service.quantity || 1;
-      
-        const price = (service.price || 0) * quantity;
-      
+
+        // IMPORTANT:
+        // service.price usually already contains quantity
+        const price = service.price || 0;
+
         let workerPrice = 0;
         let platformFee = 0;
-      
+
         if (service.bookingType === "inspection") {
-      
+
           workerPrice =
-            (service.serviceId?.inspectionWorkerPrice || 0) * quantity;
-      
+            (service.serviceId?.inspectionWorkerPrice || 0)
+            * quantity;
+
           platformFee =
-            (service.serviceId?.inspectionPlatformFee || 0) * quantity;
-      
+            (service.serviceId?.inspectionPlatformFee || 0)
+            * quantity;
+
         } else {
-      
+
           workerPrice =
-            (service.subServiceId?.workerPrice || 0) * quantity;
-      
+            (service.subServiceId?.workerPrice || 0)
+            * quantity;
+
           platformFee =
-            (service.subServiceId?.platformFee || 0) * quantity;
+            (service.subServiceId?.platformFee || 0)
+            * quantity;
         }
-      
+
         collected += price;
         workerEarn += workerPrice;
         platformEarn += platformFee;
-      
+
       });
 
       const areaCharge = booking.extraCharge || 0;
 
       const adminShare = platformEarn + areaCharge;
 
-      dailyMap[key].totalCollected += collected + areaCharge;
-      dailyMap[key].workerEarnings += workerEarn;
-      dailyMap[key].adminShare += adminShare;
-      dailyMap[key].jobs += 1;
+      const settlement =
+        settlementMap[booking._id.toString()];
+
+      return {
+
+        bookingId: booking._id,
+
+        bookingNumber:
+          booking.bookingId ||
+          booking.orderId ||
+          booking._id.toString().slice(-6),
+
+        workerId: booking.workerId?._id,
+
+        workerName: booking.workerId?.name,
+
+        workerPhone: booking.workerId?.phone,
+
+        date,
+
+        totalCollected: collected + areaCharge,
+
+        workerEarnings: workerEarn,
+
+        adminShare,
+
+        jobs: 1,
+
+        status: settlement?.status || "pending",
+
+        settlementId: settlement?._id || null
+
+      };
 
     });
 
-    let result = Object.values(dailyMap).map(day => {
+    if (status) {
 
-      const key = `${day.workerId}_${day.date}`;
+      result = result.filter(
+        (r) => r.status === status
+      );
 
-      const settlement = settlementMap[key];
-
-      if(settlement){
-        day.status = settlement.status;
-        day.settlementId = settlement._id;
-      }
-
-      return day;
-
-    });
-
-    if(status){
-      result = result.filter(r => r.status === status);
     }
 
     res.json({
-      success:true,
-      count:result.length,
-      data:result
+      success: true,
+      count: result.length,
+      data: result
     });
 
-  }catch(error){
+  } catch (error) {
 
     console.error(error);
 
     res.status(500).json({
-      success:false,
-      message:"Failed to fetch settlements"
+      success: false,
+      message: "Failed to fetch settlements"
     });
 
   }
+
 };
 
 export const getDashboardStats = async (req, res) => {
