@@ -321,159 +321,328 @@ strokeWidth={3}
 <div className="bg-white rounded-xl shadow border overflow-hidden">
 
 
-<div className="px-6 py-4 border-b flex justify-between items-center">
+<div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
-<h3 className="font-semibold text-gray-800">
-Worker Settlements
-</h3>
+{/* HEADER */}
 
-<span className="text-sm text-gray-500">
-{filteredData.length} records
-</span>
+  <div className="px-6 py-5 border-b bg-gradient-to-r from-gray-50 to-white flex items-center justify-between">
 
+```
+<div>
+  <h3 className="text-lg font-semibold text-gray-900">
+    Worker Settlements
+  </h3>
+
+  <p className="text-sm text-gray-500 mt-1">
+    Monitor payouts, platform earnings and settlement approvals
+  </p>
 </div>
-
-
-
-{/* TABLE DESKTOP */}
-
-<div className="hidden md:block overflow-x-auto">
-
-<table className="min-w-full text-sm">
-
-<thead className="bg-gray-50 text-gray-600">
-
-<tr>
-
-<th className="px-6 py-3"></th>
-<th>Date</th>
-<th>Worker</th>
-<th>Jobs</th>
-<th>Total</th>
-<th>Worker</th>
-<th>Platform</th>
-<th>Status</th>
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{loading ? (
-
-<tr>
-<td colSpan="9" className="text-center py-10">
-Loading settlements...
-</td>
-</tr>
-
-) : filteredData.map(day=>{
-
-const id=day.settlementId;
-
-return(
-
-<tr key={id || `${day.workerId}_${day.date}`} className="border-t hover:bg-gray-50">
-
-<td className="px-6 py-4">
-
-{id && (
-<input
-type="checkbox"
-checked={selected.includes(id)}
-onChange={()=>{
-if(selected.includes(id)){
-setSelected(prev=>prev.filter(x=>x!==id))
-}else{
-setSelected(prev=>[...prev,id])
-}
-}}
-/>
-)}
-
-</td>
-
-<td>{day.date}</td>
-
-<td>
 
 <div className="flex items-center gap-3">
 
-<div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold">
-{day.workerName?.charAt(0)}
-</div>
+  <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-medium">
+    {filteredData.length} Records
+  </div>
 
-<div>
+  <div className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+    {filteredData.filter(x => x.status === "approved").length} Approved
+  </div>
 
-<p className="font-medium text-gray-800">
-{day.workerName}
-</p>
-
-<p className="text-xs text-gray-500">
-{day.workerPhone}
-</p>
+  <div className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium">
+    {filteredData.filter(x => x.status === "pending").length} Pending
+  </div>
 
 </div>
+```
 
-</div>
+  </div>
 
-</td>
+{/* DESKTOP TABLE */}
 
-<td>{day.jobs}</td>
+  <div className="hidden lg:block overflow-x-auto">
 
-<td className="font-medium">
-₹{day.totalCollected}
-</td>
 
-<td className="text-green-600 font-medium">
-₹{day.workerEarnings}
-</td>
+<table className="w-full">
 
-<td className="text-indigo-600 font-medium">
-₹{day.adminShare}
-</td>
+  <thead className="sticky top-0 bg-gray-50 border-b z-10">
 
-<td>
+    <tr className="text-left text-xs uppercase tracking-wider text-gray-500">
 
-<span className={`px-2 py-1 text-xs rounded ${
-day.status==="approved"
-? "bg-green-100 text-green-700"
-: "bg-yellow-100 text-yellow-700"
-}`}>
-{day.status}
-</span>
+      <th className="px-6 py-4"></th>
+      <th className="px-4 py-4">Booking</th>
+      <th className="px-4 py-4">Date</th>
+      <th className="px-4 py-4">Worker</th>
+      <th className="px-4 py-4 text-center">Jobs</th>
+      <th className="px-4 py-4 text-right">Total</th>
+      <th className="px-4 py-4 text-right">Worker</th>
+      <th className="px-4 py-4 text-right">Platform</th>
+      <th className="px-4 py-4 text-center">Status</th>
+      <th className="px-6 py-4 text-center">Action</th>
 
-</td>
+    </tr>
 
-<td>
+  </thead>
 
-{day.status!=="approved" && id && (
+  <tbody>
 
-<button
-onClick={()=>approveSettlement(id)}
-disabled={approving===id}
-className="bg-black text-white px-3 py-1 rounded text-xs"
->
-{approving===id ? "Approving..." : "Approve"}
-</button>
+    {loading ? (
 
-)}
+      <tr>
+        <td colSpan="10" className="py-20 text-center text-gray-500">
+          Loading settlements...
+        </td>
+      </tr>
 
-</td>
+    ) : filteredData.length === 0 ? (
 
-</tr>
+      <tr>
+        <td colSpan="10" className="py-20 text-center">
 
-);
+          <div className="flex flex-col items-center">
 
-})}
+            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              📄
+            </div>
 
-</tbody>
+            <p className="font-medium text-gray-700">
+              No settlements found
+            </p>
+
+            <p className="text-sm text-gray-500 mt-1">
+              Try changing filters or search criteria
+            </p>
+
+          </div>
+
+        </td>
+      </tr>
+
+    ) : (
+
+      filteredData.map((day,index)=>{
+
+        const id = day.settlementId;
+
+        return(
+
+          <tr
+            key={day.bookingId}
+            className={`
+              border-b transition-all duration-150
+              hover:bg-blue-50/40
+              ${selected.includes(id)
+                ? "bg-blue-50"
+                : index % 2 === 0
+                ? "bg-white"
+                : "bg-gray-50/30"}
+            `}
+          >
+
+            <td className="px-6 py-4">
+
+              {id && (
+
+                <input
+                  type="checkbox"
+                  checked={selected.includes(id)}
+                  onChange={()=>{
+                    if(selected.includes(id)){
+                      setSelected(prev=>prev.filter(x=>x!==id))
+                    }else{
+                      setSelected(prev=>
+                        prev.includes(id)
+                          ? prev
+                          : [...prev,id]
+                      )
+                    }
+                  }}
+                />
+
+              )}
+
+            </td>
+
+            <td className="px-4 py-4">
+
+              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                #{String(day.bookingId).slice(-6)}
+              </span>
+
+            </td>
+
+            <td className="px-4 py-4 font-medium">
+              {day.date}
+            </td>
+
+            <td className="px-4 py-4">
+
+              <div className="flex items-center gap-3">
+
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-semibold">
+                  {day.workerName?.charAt(0)}
+                </div>
+
+                <div>
+
+                  <p className="font-medium text-gray-900">
+                    {day.workerName}
+                  </p>
+
+                  <p className="text-xs text-gray-500">
+                    {day.workerPhone}
+                  </p>
+
+                </div>
+
+              </div>
+
+            </td>
+
+            <td className="text-center font-medium">
+              {day.jobs}
+            </td>
+
+            <td className="text-right font-semibold">
+              ₹{day.totalCollected}
+            </td>
+
+            <td className="text-right font-semibold text-green-600">
+              ₹{day.workerEarnings}
+            </td>
+
+            <td className="text-right font-semibold text-indigo-600">
+              ₹{day.adminShare}
+            </td>
+
+            <td className="text-center">
+
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                  day.status === "approved"
+                    ? "bg-green-100 text-green-700"
+                    : day.status === "submitted"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
+                {day.status}
+              </span>
+
+            </td>
+
+            <td className="text-center">
+
+              {day.status === "submitted" && id && (
+
+                <button
+                  onClick={()=>approveSettlement(id)}
+                  disabled={approving===id}
+                  className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-xs font-medium transition"
+                >
+                  {approving===id
+                    ? "Approving..."
+                    : "Approve"}
+                </button>
+
+              )}
+
+            </td>
+
+          </tr>
+
+        )
+
+      })
+
+    )}
+
+  </tbody>
 
 </table>
 
+
+  </div>
+
+{/* MOBILE */}
+
+  <div className="lg:hidden divide-y">
+
+```
+{filteredData.map(day=>{
+
+  const id = day.settlementId;
+
+  return(
+
+    <div
+      key={day.bookingId}
+      className="p-5 hover:bg-gray-50 transition"
+    >
+
+      <div className="flex items-start justify-between mb-4">
+
+        <div>
+
+          <h4 className="font-semibold text-gray-900">
+            {day.workerName}
+          </h4>
+
+          <p className="text-sm text-gray-500">
+            {day.workerPhone}
+          </p>
+
+          <p className="text-xs text-gray-400 mt-1">
+            #{String(day.bookingId).slice(-6)}
+          </p>
+
+        </div>
+
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-medium ${
+            day.status === "approved"
+              ? "bg-green-100 text-green-700"
+              : day.status === "submitted"
+              ? "bg-blue-100 text-blue-700"
+              : "bg-yellow-100 text-yellow-700"
+          }`}
+        >
+          {day.status}
+        </span>
+
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+
+        <Metric title="Date" value={day.date}/>
+        <Metric title="Jobs" value={day.jobs}/>
+        <Metric title="Total" value={`₹${day.totalCollected}`}/>
+        <Metric title="Platform" value={`₹${day.adminShare}`}/>
+        <Metric title="Worker" value={`₹${day.workerEarnings}`}/>
+
+      </div>
+
+      {day.status === "submitted" && id && (
+
+        <button
+          onClick={()=>approveSettlement(id)}
+          className="w-full mt-4 bg-black text-white py-3 rounded-xl font-medium"
+        >
+          Approve Settlement
+        </button>
+
+      )}
+
+    </div>
+
+  )
+
+})}
+```
+
+  </div>
+
 </div>
+
 
 
 
@@ -487,7 +656,7 @@ const id=day.settlementId;
 
 return(
 
-<div key={id || `${day.workerId}_${day.date}`} className="p-4">
+<div key={day.bookingId} className="p-4">
 
 <div className="flex justify-between mb-2">
 
@@ -532,7 +701,7 @@ day.status==="approved"
 
 </div>
 
-{day.status!=="approved" && id && (
+{day.status=="submitted" && id && (
 
 <button
 onClick={()=>approveSettlement(id)}
@@ -606,3 +775,13 @@ active
 );
 
 }
+
+
+function Metric({ title, value }) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-3">
+        <p className="text-xs text-gray-500">{title}</p>
+        <p className="font-semibold text-gray-900 mt-1">{value}</p>
+      </div>
+    );
+  }

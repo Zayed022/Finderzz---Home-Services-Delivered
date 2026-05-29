@@ -123,7 +123,7 @@ const [approvingSettlement, setApprovingSettlement] = useState(null);
   
       setApprovingSettlement(settlementId);
   
-      await API.patch(`/worker/approve/${settlementId}`);
+      await API.patch(`/settlement/approve/${settlementId}`);
   
       setSettlements(prev =>
         prev.map(s =>

@@ -749,7 +749,13 @@ settlements.forEach(s => {
 
     bookings.forEach((booking)=>{
 
-      const date = booking.createdAt.toISOString().split("T")[0];
+      const date = booking.scheduledDate
+  ? booking.scheduledDate
+      .toISOString()
+      .split("T")[0]
+  : booking.updatedAt
+      .toISOString()
+      .split("T")[0];
 
       if(!dailyMap[date]){
         dailyMap[date] = {
@@ -870,7 +876,13 @@ export const getAllSettlements = async (req,res)=>{
 
     bookings.forEach((booking)=>{
 
-      const date = booking.createdAt.toISOString().split("T")[0];
+      const date = booking.scheduledDate
+  ? booking.scheduledDate
+      .toISOString()
+      .split("T")[0]
+  : booking.updatedAt
+      .toISOString()
+      .split("T")[0];
       const workerId = booking.workerId?._id?.toString();
 
       const key = `${workerId}_${date}`;
@@ -1057,16 +1069,47 @@ export const getSettlementsByStatus = async (req, res) => {
 
       const key = `${s.workerId.toString()}_${s.date}`;
 
+
       settlementMap[key] = s;
+      
 
     });
 
+    console.log("Settlement Records");
+
+settlements.forEach(s => {
+  console.log({
+    workerId: s.workerId.toString(),
+    date: s.date,
+    status: s.status
+  });
+});
+
+console.log("Booking Records");
+
+bookings.forEach(b => {
+  console.log({
+    bookingId: b._id,
+    workerId: b.workerId?._id?.toString(),
+    updatedDate: b.updatedAt
+      .toISOString()
+      .split("T")[0]
+  });
+});
+
+
+
+    
+
     let result = bookings.map((booking) => {
 
-      const date = booking.updatedAt
-        .toISOString()
-        .split("T")[0];
-
+      const date = booking.scheduledDate
+  ? booking.scheduledDate
+      .toISOString()
+      .split("T")[0]
+  : booking.updatedAt
+      .toISOString()
+      .split("T")[0];
       const workerId =
         booking.workerId?._id?.toString();
 
@@ -1111,6 +1154,9 @@ export const getSettlementsByStatus = async (req, res) => {
         platformEarn += platformFee;
 
       });
+      console.log("Settlement Records");
+
+
 
       const areaCharge = booking.extraCharge || 0;
 
@@ -1118,6 +1164,21 @@ export const getSettlementsByStatus = async (req, res) => {
 
       // OLD settlement mapping preserved
       const key = `${workerId}_${date}`;
+
+      console.log({
+        workerName: booking.workerId?.name,
+        bookingId: booking._id.toString(),
+        workerId,
+        date,
+        key,
+        settlement: settlementMap[key]
+          ? {
+              id: settlementMap[key]._id,
+              date: settlementMap[key].date,
+              status: settlementMap[key].status
+            }
+          : null
+      });
 
       const settlement = settlementMap[key];
 
