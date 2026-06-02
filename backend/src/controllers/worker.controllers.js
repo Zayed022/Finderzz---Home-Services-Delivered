@@ -772,33 +772,41 @@ settlements.forEach(s => {
       let workerEarn = 0;
       let platformEarn = 0;
 
-      booking.services.forEach(service=>{
+      booking.services.forEach(service => {
 
-        const price = service.price || 0;
-
+        const quantity = service.quantity || 1;
+      
+        const price =
+          (service.price || 0) * quantity;
+      
         let workerPrice = 0;
         let platformFee = 0;
-
+      
         if (service.bookingType === "inspection") {
-
+      
           workerPrice =
-            service.serviceId?.inspectionWorkerPrice || 0;
-        
+            (service.serviceId?.inspectionWorkerPrice || 0)
+            * quantity;
+      
           platformFee =
-            service.serviceId?.inspectionPlatformFee || 0;
-        
+            (service.serviceId?.inspectionPlatformFee || 0)
+            * quantity;
+      
         } else {
-        
+      
           workerPrice =
-            service.subServiceId?.workerPrice || 0;
-        
+            (service.subServiceId?.workerPrice || 0)
+            * quantity;
+      
           platformFee =
-            service.subServiceId?.platformFee || 0;
+            (service.subServiceId?.platformFee || 0)
+            * quantity;
         }
+      
         collected += price;
         workerEarn += workerPrice;
         platformEarn += platformFee;
-
+      
       });
 
       const areaCharge = booking.extraCharge || 0;
