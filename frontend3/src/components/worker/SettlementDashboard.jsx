@@ -644,9 +644,9 @@ strokeWidth={3}
 </div>
 
 
+{/*
 
 
-{/* MOBILE CARDS */}
 
 <div className="md:hidden divide-y">
 
@@ -719,6 +719,8 @@ Approve Settlement
 })}
 
 </div>
+
+*/}
 
 </div>
 
